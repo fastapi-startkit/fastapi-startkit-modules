@@ -16,13 +16,14 @@ class Application(Container):
         ConfigurationProvider,
     ]
 
-    def __init__(self, base_path: str = None,env=None, providers=None):
+    def __init__(self, base_path: str = None,env=None, providers=None, console=False):
         super().__init__()
 
         self.base_path: str | None = base_path
         self.env = env
         self.providers = self.DEFAULT_PROVIDERS + (providers or [])
         self.published_resources = {}
+        self._running_in_console = console
 
         # Set global singleton
         Container.set_instance(self)
@@ -131,3 +132,38 @@ class Application(Container):
         self.bind('storage.location', path)
 
         return self
+
+    @property
+    def cli(self):
+        if not hasattr(self, "_cli"):
+            from typer import Typer
+            from .commands import register_command
+
+            self._cli = Typer()
+            register_command(self._cli)
+
+        return self._cli
+
+    def handle_command(self, input_args=None):
+        """
+        Handle a CLI command.
+        """
+        self._running_in_console = True
+
+        if input_args:
+            return self.cli(args=input_args)
+
+        return self.cli()
+
+    def running_in_console(self) -> bool:
+        """
+        Check if the application is running in the console.
+        """
+        if self._running_in_console:
+            return True
+
+        import sys
+        # Check if the script name suggests a CLI run (e.g., artisan, manage.py, or any script)
+        # In many frameworks, this is just True if sys.argv is present and not running via a server.
+        # For now, we'll return True if handle_command is used or if we want to be more proactive.
+        return self._running_in_console
