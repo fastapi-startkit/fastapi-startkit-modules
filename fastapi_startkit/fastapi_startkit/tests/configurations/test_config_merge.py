@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
-from fastapi_startkit.configuration import Configuration
-from fastapi_startkit.loader import Loader
+from fastapi_startkits.configuration import Configuration
+from fastapi_startkits.loader import Loader
 
 class TestConfiguration:
     def test_merge_with_dict(self):

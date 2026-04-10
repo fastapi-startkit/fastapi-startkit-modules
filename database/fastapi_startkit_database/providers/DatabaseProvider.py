@@ -1,9 +1,9 @@
-from fastapi_startkit.providers import Provider
+from fastapi_startkits.providers import Provider
 
 
 class DatabaseProvider(Provider):
     def register(self):
-        config = self.application.make("config")
+        config = self.app.make("config")
 
         from masoniteorm.query import QueryBuilder
         from masoniteorm.connections import ConnectionResolver
@@ -11,17 +11,17 @@ class DatabaseProvider(Provider):
         # Register ConnectionResolver
         db_config = config.get("database.databases") or config.get("database")
         resolver = ConnectionResolver().set_connection_details(db_config)
-        self.application.bind("resolver", resolver)
+        self.app.bind("resolver", resolver)
 
         # Register QueryBuilder
-        self.application.bind(
+        self.app.bind(
             "builder",
             QueryBuilder(connection_details=db_config, connection='default'),
         )
 
         # Register Migrations and Seeds locations
-        self.application.bind("migrations.location", "databases/migrations")
-        self.application.bind("seeds.location", "databases/seeds")
+        self.app.bind("migrations.location", "databases/migrations")
+        self.app.bind("seeds.location", "databases/seeds")
 
     def boot(self):
         pass

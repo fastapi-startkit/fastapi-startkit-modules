@@ -5,9 +5,8 @@ import os
 from .BaseChannel import BaseChannel
 
 class DailyChannel(BaseChannel):
-
     def __init__(self, driver=None, path=None):
-        path = path or Config.get('logging.channels.daily.path')
+        path = path or Config.get('logging.channels.daily.path','')
         path = os.path.join(path, self.get_time().to_date_string() + '.log')
         self.max_level = Config.get('logging.channels.daily.level')
         make_directory(path)

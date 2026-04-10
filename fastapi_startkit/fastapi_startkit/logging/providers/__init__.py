@@ -1,1 +1,1 @@
-from .LoggingProvider import LoggingProvider
+from .log_provider import LogProvider

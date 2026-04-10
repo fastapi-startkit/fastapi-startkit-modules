@@ -2,9 +2,7 @@ import pendulum
 from fastapi_startkit.facades import Config
 
 class BaseChannel:
-
     def get_time(self):
-        
         return pendulum.now().in_tz(Config.get('logging.channels.timezone', 'UTC'))
 
     def emergency(self, message, *args, **kwargs):
@@ -48,7 +46,7 @@ class BaseChannel:
             return
 
         return self.driver.info(message, *args, **kwargs)
-        
+
     def debug(self, message, *args, **kwargs):
         if not self.driver.should_run('debug', self.max_level):
             return

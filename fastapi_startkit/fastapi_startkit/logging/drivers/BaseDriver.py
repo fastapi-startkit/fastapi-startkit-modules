@@ -22,4 +22,3 @@ class BaseDriver:
             return True
 
         return self.levels.index(level) <= self.levels.index(max_level)
-    

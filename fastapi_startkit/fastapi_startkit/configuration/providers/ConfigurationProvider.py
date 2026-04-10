@@ -5,9 +5,9 @@ from ..Configuration import Configuration
 
 class ConfigurationProvider(Provider):
     def register(self):
-        config = Configuration(self.application)
+        config = Configuration(self.app)
         config.load()
-        self.application.bind("config", config)
+        self.app.bind("config", config)
 
     def boot(self):
         pass

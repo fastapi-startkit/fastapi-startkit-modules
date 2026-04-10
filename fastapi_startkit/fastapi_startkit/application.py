@@ -1,5 +1,6 @@
 import os
-from typing import Type, Callable, Any
+from pathlib import Path
+from typing import Type, Callable, Any, List
 
 from fastapi import FastAPI, APIRouter
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -16,14 +17,14 @@ class Application(Container):
         ConfigurationProvider,
     ]
 
-    def __init__(self, base_path: str = None,env=None, providers=None, console=False):
+    def __init__(self, base_path: str = None,env=None, providers=None):
         super().__init__()
 
-        self.base_path: str | None = base_path
+        self.base_path: str = base_path or os.getcwd()
         self.env = env
         self.providers = self.DEFAULT_PROVIDERS + (providers or [])
         self.published_resources = {}
-        self._running_in_console = console
+        self.commands = []
 
         # Set global singleton
         Container.set_instance(self)
@@ -60,6 +61,9 @@ class Application(Container):
     def use_fastapi(self, fastapi: FastAPI):
         self._fastapi = fastapi
         return self
+
+    def use_base_path(self, path: str):
+        return str(Path(self.base_path) / path)
 
     def get(self, path: str, **kwargs) -> Callable:
         return self._fastapi.get(path, **kwargs)
@@ -133,37 +137,10 @@ class Application(Container):
 
         return self
 
-    @property
-    def cli(self):
-        if not hasattr(self, "_cli"):
-            from typer import Typer
-            from .commands import register_command
+    def add_commands(self, commands: List):
+        self.commands.extend(commands)
 
-            self._cli = Typer()
-            register_command(self._cli)
+    def handle_command(self):
+        from fastapi_startkit.console import ConsoleApplication
 
-        return self._cli
-
-    def handle_command(self, input_args=None):
-        """
-        Handle a CLI command.
-        """
-        self._running_in_console = True
-
-        if input_args:
-            return self.cli(args=input_args)
-
-        return self.cli()
-
-    def running_in_console(self) -> bool:
-        """
-        Check if the application is running in the console.
-        """
-        if self._running_in_console:
-            return True
-
-        import sys
-        # Check if the script name suggests a CLI run (e.g., artisan, manage.py, or any script)
-        # In many frameworks, this is just True if sys.argv is present and not running via a server.
-        # For now, we'll return True if handle_command is used or if we want to be more proactive.
-        return self._running_in_console
+        ConsoleApplication(self).handle()
