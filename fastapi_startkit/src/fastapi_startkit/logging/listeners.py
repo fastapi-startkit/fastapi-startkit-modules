@@ -1,4 +1,4 @@
-from .Logger import Logger
+from .logger import Logger
 
 class LoggerExceptionListener:
 
@@ -9,7 +9,7 @@ class LoggerExceptionListener:
 
     def handle(self, exception, file, line):
         self.logger.error("{} in {} on line {}".format(
-            exception.__class__.__name__, 
+            exception.__class__.__name__,
             file,
             line
         ))

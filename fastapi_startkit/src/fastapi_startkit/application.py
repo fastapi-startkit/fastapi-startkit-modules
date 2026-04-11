@@ -2,12 +2,15 @@ import os
 from pathlib import Path
 from typing import Type, Callable, Any, List
 
-from fastapi import FastAPI, APIRouter
-from starlette.middleware.base import BaseHTTPMiddleware
-
 from .container import Container
 from .environment.environment import LoadEnvironment
 from .configuration.providers import ConfigurationProvider
+
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from fastapi import FastAPI, APIRouter
+    from starlette.middleware.base import BaseHTTPMiddleware
 
 def app() -> 'Container':
     return Container.instance()
@@ -34,7 +37,7 @@ class Application(Container):
         self.configure_paths()
         self.register_providers()
 
-        self._fastapi = FastAPI()
+        self._fastapi: Optional["FastAPI"] = None
         self.load_providers()
 
     def register_providers(self):
@@ -58,7 +61,7 @@ class Application(Container):
             self.resolve(provider.boot)
         return self
 
-    def use_fastapi(self, fastapi: FastAPI):
+    def use_fastapi(self, fastapi: "FastAPI"):
         self._fastapi = fastapi
         return self
 
@@ -66,22 +69,22 @@ class Application(Container):
         return str(Path(self.base_path) / path)
 
     def get(self, path: str, **kwargs) -> Callable:
-        return self._fastapi.get(path, **kwargs)
+        return self.fastapi.get(path, **kwargs)
 
     def post(self, path: str, **kwargs) -> Callable:
-        return self._fastapi.post(path, **kwargs)
+        return self.fastapi.post(path, **kwargs)
 
     def put(self, path: str, **kwargs) -> Callable:
-        return self._fastapi.put(path, **kwargs)
+        return self.fastapi.put(path, **kwargs)
 
     def delete(self, path: str, **kwargs) -> Callable:
-        return self._fastapi.delete(path, **kwargs)
+        return self.fastapi.delete(path, **kwargs)
 
     def patch(self, path: str, **kwargs) -> Callable:
-        return self._fastapi.patch(path, **kwargs)
+        return self.fastapi.patch(path, **kwargs)
 
     def options(self, path: str, **kwargs) -> Callable:
-        return self._fastapi.options(path, **kwargs)
+        return self.fastapi.options(path, **kwargs)
 
     def head(self, path: str, **kwargs) -> Callable:
         return self._fastapi.head(path, **kwargs)
@@ -90,22 +93,22 @@ class Application(Container):
         return self._fastapi.trace(path, **kwargs)
 
     # Include routers
-    def include_router(self, router: APIRouter, **kwargs):
+    def include_router(self, router: "APIRouter", **kwargs):
         self._fastapi.include_router(router, **kwargs)
         return self
 
     # Add middleware
-    def add_middleware(self, middleware_class: Type[BaseHTTPMiddleware], **options):
+    def add_middleware(self, middleware_class: Type['BaseHTTPMiddleware'], **options):
         self._fastapi.add_middleware(middleware_class, **options)
         return self
 
     # Add event handlers (startup/shutdown)
     def add_event_handler(self, event_type: str, func: Callable[..., Any]):
-        self._fastapi.add_event_handler(event_type, func)
+        self.fastapi.add_event_handler(event_type, func)
         return self
 
     # Mount sub-apps
-    def mount(self, path: str, app_instance: FastAPI, **kwargs):
+    def mount(self, path: str, app_instance: "FastAPI", **kwargs):
         self._fastapi.mount(path, app_instance, **kwargs)
         return self
 
@@ -115,11 +118,21 @@ class Application(Container):
         return self
 
     @property
-    def fastapi(self) -> FastAPI:
+    def fastapi(self) -> "FastAPI":
+        if self._fastapi is None:
+            try:
+                from fastapi import FastAPI
+            except ImportError:
+                raise RuntimeError(
+                    "FastAPI is not installed. Install it with: pip install fastapi"
+                )
+            self._fastapi = FastAPI()
+        # Making the type hint work
+        assert self._fastapi is not None
         return self._fastapi
 
     def __call__(self, *args, **kwargs):
-        return self._fastapi
+        return self.fastapi
 
     def load_environment(self):
         LoadEnvironment(base_path=self.base_path)

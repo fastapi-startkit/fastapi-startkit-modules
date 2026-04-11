@@ -2,10 +2,11 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..container import Container
+    from ..application import Application
 
 class Provider:
-    def __init__(self, application, config: dict = None):
-        self.app = application
+    def __init__(self, application: 'Application', config: dict = None):
+        self.app: 'Application' = application
         self.config = config or {}
 
     def register(self) -> None:
