@@ -5,29 +5,24 @@ set -e
 
 echo "🚀 Starting release process..."
 
-# 1. Release Modules
-MODULES_DIR="modules"
+PACKAGE_DIR="fastapi_startkit"
 
-if [ -d "$MODULES_DIR" ]; then
-    for module in "$MODULES_DIR"/*; do
-        if [ -d "$module" ] && [ -f "$module/pyproject.toml" ]; then
-            module_name=$(basename "$module")
-            echo "📦 Releasing module: $module_name"
+if [ -d "$PACKAGE_DIR" ]; then
+    echo "📦 Releasing package: $PACKAGE_DIR"
 
-            # Navigate to module directory
-            cd "$module"
+    # Navigate to package directory
+    cd "$PACKAGE_DIR"
 
-            # Build and Publish
-            echo "   Building and publishing $module_name..."
-            poetry build
-            poetry publish
+    # Build and Publish
+    echo "   Building and publishing..."
+    uv build
+    uv publish
 
-            # Return to root
-            cd - > /dev/null
-            echo "✅ $module_name processed."
-            echo "----------------------------------------"
-        fi
-    done
+    # Return to root
+    cd - > /dev/null
+    echo "✅ $PACKAGE_DIR processed."
+    echo "----------------------------------------"
 else
-    echo "⚠️  No modules directory found."
+    echo "⚠️  Package directory $PACKAGE_DIR not found."
+    exit 1
 fi
