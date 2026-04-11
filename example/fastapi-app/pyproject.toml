@@ -1,0 +1,17 @@
+[project]
+name = "fastapi-app"
+version = "0.1.0"
+description = "FastAPI application example using fastapi-startkit"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi-startkit[fastapi]",
+]
+
+[tool.uv.sources]
+fastapi-startkit = { path = "../../fastapi_startkit", editable = true }
+
+[dependency-groups]
+dev = [
+    "dumpdie>=1.5.0",
+]
