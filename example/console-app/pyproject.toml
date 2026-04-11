@@ -5,12 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "cleo>=2.1.0",
     "fastapi-startkit",
 ]
 
 [tool.uv.sources]
-fastapi-startkit = { path = "../fastapi_startkit", editable=true }
+fastapi-startkit = { path = "../../fastapi_startkit", editable=true }
 
 [dependency-groups]
 dev = [

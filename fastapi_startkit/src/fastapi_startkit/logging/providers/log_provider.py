@@ -2,7 +2,7 @@ import os
 from fastapi_startkit.providers import Provider
 
 from ..ChannelFactory import ChannelFactory
-from ..Logger import Logger
+from ..logger import Logger
 from ..factory import DriverFactory
 from ..listeners import LoggerExceptionListener
 from ..managers import LoggingManager
