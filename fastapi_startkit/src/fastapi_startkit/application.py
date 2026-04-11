@@ -94,7 +94,7 @@ class Application(Container):
 
     # Include routers
     def include_router(self, router: "APIRouter", **kwargs):
-        self._fastapi.include_router(router, **kwargs)
+        self.fastapi.include_router(router, **kwargs)
         return self
 
     # Add middleware
