@@ -1,22 +1,28 @@
 import datetime
 import os
 import pathlib
-
 from inflection import camelize, tableize
-
+from cleo.helpers import argument, option
 from .Command import Command
 
 
 class MakeMigrationCommand(Command):
-    """
-    Creates a new migration file.
+    name = "migration"
+    description = "Creates a new migration file."
 
-    migration
-        {name : The name of the migration}
-        {--c|create=None : The table to create}
-        {--t|table=None : The table to alter}
-        {--d|directory=databases/migrations : The location of the migration directory}
-    """
+    arguments = [argument("name", description="The name of the migration")]
+
+    options = [
+        option("create", "c", flag=False, default="None", description="The table to create"),
+        option("table", "t", flag=False, default="None", description="The table to alter"),
+        option(
+            "directory",
+            "d",
+            flag=False,
+            default="databases/migrations",
+            description="The location of the migration directory",
+        ),
+    ]
 
     def handle(self):
         name = self.argument("name")

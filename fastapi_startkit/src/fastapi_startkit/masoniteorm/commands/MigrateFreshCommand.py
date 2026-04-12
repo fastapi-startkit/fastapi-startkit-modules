@@ -1,18 +1,45 @@
+from cleo.helpers import option
 from .Command import Command
 
 
 class MigrateFreshCommand(Command):
-    """
-    Fresh migrations.
+    name = "migrate:fresh"
+    description = "Fresh migrations."
 
-    migrate:fresh
-        {--c|connection=default : The connection you want to run migrations on}
-        {--schema=? : Sets the schema to be migrated}
-        {--d|directory=databases/migrations : The location of the migration directory}
-        {--i|ignore-fk : Ignore foreign key constraints}
-        {--s|seed=? : Seed the database after fresh}
-        {--seed-directory=databases/seeds : The location of the seed directory}
-    """
+    options = [
+        option(
+            "connection",
+            "c",
+            flag=False,
+            default="default",
+            description="The connection you want to run migrations on",
+        ),
+        option(
+            "schema", None, flag=False, default=None, description="Sets the schema to be migrated"
+        ),
+        option(
+            "directory",
+            "d",
+            flag=False,
+            default="databases/migrations",
+            description="The location of the migration directory",
+        ),
+        option("ignore-fk", "i", flag=True, description="Ignore foreign key constraints"),
+        option(
+            "seed",
+            "s",
+            flag=False,
+            default=None,
+            description="Seed the database after fresh",
+        ),
+        option(
+            "seed-directory",
+            None,
+            flag=False,
+            default="databases/seeds",
+            description="The location of the seed directory",
+        ),
+    ]
 
     def handle(self):
         import asyncio

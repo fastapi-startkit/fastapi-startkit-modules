@@ -1,21 +1,33 @@
+from cleo.helpers import argument, option
 import os
 import re
 import shlex
 import subprocess
 from collections import OrderedDict
-
 from ..config import load_config
 from .Command import Command
 
 
 class ShellCommand(Command):
-    """
-    Connect to your database interactive terminal.
+    name = "shell"
+    description = "Connect to your database interactive terminal."
 
-    shell
-        {--c|connection=default : The connection you want to use to connect to interactive terminal}
-        {--s|show=? : Display the command which will be called to connect}
-    """
+    options = [
+        option(
+            "connection",
+            "c",
+            flag=False,
+            default="default",
+            description="The connection you want to use to connect to interactive terminal",
+        ),
+        option(
+            "show",
+            "s",
+            flag=False,
+            default=None,
+            description="Display the command which will be called to connect",
+        ),
+    ]
 
     shell_programs = {
         "mysql": "mysql",

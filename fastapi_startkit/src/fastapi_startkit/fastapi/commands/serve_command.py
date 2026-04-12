@@ -1,14 +1,15 @@
-from cleo import Command
+from cleo.helpers import argument, option
+from cleo.commands.command import Command
 
 
 class ServeCommand(Command):
-    """
-    Start the FastAPI server.
+    name = "serve"
+    description = "Start the FastAPI server."
 
-    serve
-        {--p|port=8000 : The port to serve the application on}
-        {--a|app=bootstrap.application:app : The application to serve}
-    """
+    options = [
+        option("port", "p", flag=False, default="8000", description="The port to serve the application on"),
+        option("app", "a", flag=False, default="bootstrap.application:app", description="The application to serve"),
+    ]
 
     def handle(self):
         import uvicorn

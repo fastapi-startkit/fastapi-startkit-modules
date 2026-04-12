@@ -1,16 +1,37 @@
+from cleo.helpers import option
 from .Command import Command
 
 
 class MigrateResetCommand(Command):
-    """
-    Reset migrations.
+    name = "migrate:reset"
+    description = "Reset migrations."
 
-    migrate:reset
-        {--m|migration=all : Migration's name to be rollback}
-        {--c|connection=default : The connection you want to run migrations on}
-        {--schema=? : Sets the schema to be migrated}
-        {--d|directory=databases/migrations : The location of the migration directory}
-    """
+    options = [
+        option(
+            "migration",
+            "m",
+            flag=False,
+            default="all",
+            description="Migration's name to be rollback",
+        ),
+        option(
+            "connection",
+            "c",
+            flag=False,
+            default="default",
+            description="The connection you want to run migrations on",
+        ),
+        option(
+            "schema", None, flag=False, default=None, description="Sets the schema to be migrated"
+        ),
+        option(
+            "directory",
+            "d",
+            flag=False,
+            default="databases/migrations",
+            description="The location of the migration directory",
+        ),
+    ]
 
     def handle(self):
         import asyncio

@@ -1,19 +1,46 @@
 import os
 from .Command import Command
-
+from cleo.helpers import option
 
 class MigrateCommand(Command):
-    """
-    Run migrations.
+    name = "migrate"
+    description = "Run migrations."
 
-    migrate
-        {--m|migration=all : Migration's name to be migrated}
-        {--c|connection=default : The connection you want to run migrations on}
-        {--f|force : Force migrations without prompt in production}
-        {--s|show : Shows the output of SQL for migrations that would be running}
-        {--schema=? : Sets the schema to be migrated}
-        {--d|directory=databases/migrations : The location of the migration directory}
-    """
+    options = [
+        option(
+            "migration",
+            "m",
+            flag=False,
+            default="all",
+            description="Migration's name to be migrated",
+        ),
+        option(
+            "connection",
+            "c",
+            flag=False,
+            default="default",
+            description="The connection you want to run migrations on",
+        ),
+        option(
+            "force", "f", flag=True, description="Force migrations without prompt in production"
+        ),
+        option(
+            "show",
+            "s",
+            flag=True,
+            description="Shows the output of SQL for migrations that would be running",
+        ),
+        option(
+            "schema", None, flag=False, default=None, description="Sets the schema to be migrated"
+        ),
+        option(
+            "directory",
+            "d",
+            flag=False,
+            default="databases/migrations",
+            description="The location of the migration directory",
+        ),
+    ]
 
     def handle(self):
         import asyncio

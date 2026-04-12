@@ -1,17 +1,43 @@
+from cleo.helpers import option
 from .Command import Command
 
 
 class MigrateRollbackCommand(Command):
-    """
-    Rolls back the last batch of migrations.
+    name = "migrate:rollback"
+    description = "Rolls back the last batch of migrations."
 
-    migrate:rollback
-        {--m|migration=all : Migration's name to be rollback}
-        {--c|connection=default : The connection you want to run migrations on}
-        {--s|show : Shows the output of SQL for migrations that would be running}
-        {--schema=? : Sets the schema to be migrated}
-        {--d|directory=databases/migrations : The location of the migration directory}
-    """
+    options = [
+        option(
+            "migration",
+            "m",
+            flag=False,
+            default="all",
+            description="Migration's name to be rollback",
+        ),
+        option(
+            "connection",
+            "c",
+            flag=False,
+            default="default",
+            description="The connection you want to run migrations on",
+        ),
+        option(
+            "show",
+            "s",
+            flag=True,
+            description="Shows the output of SQL for migrations that would be running",
+        ),
+        option(
+            "schema", None, flag=False, default=None, description="Sets the schema to be migrated"
+        ),
+        option(
+            "directory",
+            "d",
+            flag=False,
+            default="databases/migrations",
+            description="The location of the migration directory",
+        ),
+    ]
 
     def handle(self):
         import asyncio

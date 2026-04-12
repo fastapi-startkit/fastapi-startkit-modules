@@ -1,16 +1,31 @@
+from cleo.helpers import option
 from ..migrations import Migration
 from .Command import Command
 
 
 class MigrateStatusCommand(Command):
-    """
-    Display migrations status.
+    name = "migrate:status"
+    description = "Display migrations status."
 
-    migrate:status
-        {--c|connection=default : The connection you want to run migrations on}
-        {--schema=? : Sets the schema to be migrated}
-        {--d|directory=databases/migrations : The location of the migration directory}
-    """
+    options = [
+        option(
+            "connection",
+            "c",
+            flag=False,
+            default="default",
+            description="The connection you want to run migrations on",
+        ),
+        option(
+            "schema", None, flag=False, default=None, description="Sets the schema to be migrated"
+        ),
+        option(
+            "directory",
+            "d",
+            flag=False,
+            default="databases/migrations",
+            description="The location of the migration directory",
+        ),
+    ]
 
     def handle(self):
         import asyncio

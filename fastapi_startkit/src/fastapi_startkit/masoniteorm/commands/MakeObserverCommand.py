@@ -1,20 +1,26 @@
+from cleo.helpers import argument, option
 import os
 import pathlib
-
 from inflection import camelize, underscore
-
 from .Command import Command
 
 
 class MakeObserverCommand(Command):
-    """
-    Creates a new observer file.
+    name = "observer"
+    description = "Creates a new observer file."
 
-    observer
-        {name : The name of the observer}
-        {--m|model=None : The name of the model}
-        {--d|directory=app/observers : The location of the observers directory}
-    """
+    arguments = [argument("name", description="The name of the observer")]
+
+    options = [
+        option("model", "m", flag=False, default="None", description="The name of the model"),
+        option(
+            "directory",
+            "d",
+            flag=False,
+            default="app/observers",
+            description="The location of the observers directory",
+        ),
+    ]
 
     def handle(self):
         name = self.argument("name")
