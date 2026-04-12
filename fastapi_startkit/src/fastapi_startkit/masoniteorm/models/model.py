@@ -2,10 +2,13 @@ from typing import TypeVar, Type
 
 from inflection import tableize
 
+import logging
+from .caster import Caster
 from ..config import load_config
 from ..query import AsyncQueryBuilder
 
 T = TypeVar("T", bound="Model")
+
 
 class Model:
     __dry__ = False
@@ -13,6 +16,7 @@ class Model:
     __connection__ = "default"
     __resolved_connection__ = None
     __selects__ = []
+    __casts__ = {}
 
     __observers__ = {}
     __has_events__ = True
@@ -56,7 +60,6 @@ class Model:
             self._booted = True
 
     def __init__(self):
-        super().__init__()
         self.__attributes__ = {}
         self.__original_attributes__ = {}
         self.__dirty_attributes__ = {}
@@ -65,27 +68,51 @@ class Model:
         self._relationships = {}
         self._global_scopes = {}
 
+        self.caster = Caster(self, self.__casts__)
+
         self.boot()
 
     def __getattr__(self, attribute):
-        if attribute in self.__attributes__:
-            return self.__attributes__[attribute]
+        """Magic method that is called when an attribute does not exist on the model.
+
+        Args:
+            attribute (string): the name of the attribute being accessed or called.
+
+        Returns:
+            mixed: Could be anything that a method can return.
+        """
+
+        new_name_accessor = "get_" + attribute + "_attribute"
+
+        if new_name_accessor in self.__class__.__dict__:
+            return self.__class__.__dict__.get(new_name_accessor)(self)
+
+        if "__dirty_attributes__" in self.__dict__ and attribute in self.__dict__["__dirty_attributes__"]:
+            return self.get_dirty_value(attribute)
+
+        if "__attributes__" in self.__dict__ and attribute in self.__dict__["__attributes__"]:
+            return self.get_value(attribute)
 
         if attribute in self.__passthrough__:
             def method(*args, **kwargs):
                 return getattr(self.get_builder(), attribute)(*args, **kwargs)
             return method
 
-        raise AttributeError(
-            f"'{self.__class__.__name__}' object has no attribute '{attribute}'"
-        )
+        if attribute in self.__dict__.get("_relationships", {}):
+            return self.__dict__["_relationships"][attribute]
 
-    def __setattr__(self, key, value):
-        if key.startswith("_") or key in self.__dict__ or key in self.__class__.__dict__:
-            return super().__setattr__(key, value)
+        if attribute not in self.__dict__:
+            name = self.__class__.__name__
+            raise AttributeError(f"class model '{name}' has no attribute {attribute}")
+        return None
 
-        self.__attributes__[key] = value
-        self.__dirty_attributes__[key] = value
+    def get_value(self, attribute: str):
+        value = self.__attributes__[attribute]
+        return self.caster.get(attribute, value)
+
+    def get_dirty_value(self, attribute: str):
+        value = self.__dirty_attributes__[attribute]
+        return self.caster.get(attribute, value)
 
     def get_builder(self):
         if hasattr(self, "builder"):
@@ -124,28 +151,67 @@ class Model:
     def is_loaded(self):
         return bool(self.__attributes__)
 
-    def hydrate(self, result):
-        if isinstance(result, list):
-            return [self.hydrate(r) for r in result]
+    def add_relation(self, relations):
+        self._relationships.update(relations)
+        return self
 
-        model = self.__class__()
-        
-        # Apply reverse casts
-        casts = getattr(self, "__casts__", {})
-        hydrated_result = result.copy()
-        for key, cast_type in casts.items():
-            if key in hydrated_result and hydrated_result[key] is not None:
-                if cast_type == "json":
-                    import json
-                    if isinstance(hydrated_result[key], str):
-                        try:
-                            hydrated_result[key] = json.loads(hydrated_result[key])
-                        except Exception:
-                            pass
-        
-        model.__attributes__.update(hydrated_result)
-        model.__original_attributes__.update(hydrated_result)
-        return model
+    @classmethod
+    def hydrate(cls, result, relations=None):
+        """Takes a result and loads it into a model
+
+        Args:
+            result ([type]): [description]
+            relations (dict, optional): [description]. Defaults to {}.
+
+        Returns:
+            [type]: [description]
+        """
+        relations = relations or {}
+
+        if result is None:
+            return None
+
+        if isinstance(result, (list, tuple)):
+            response = []
+            for element in result:
+                response.append(cls.hydrate(element))
+            return cls.new_collection(response)
+
+        elif isinstance(result, dict):
+            model = cls()
+            dic = {}
+            for key, value in result.items():
+                # if key in model.get_dates() and value:
+                #     value = model.get_new_date(value)
+                dic.update({key: value})
+
+            logger = logging.getLogger("masoniteorm.models.hydrate")
+            logger.setLevel(logging.INFO)
+            logger.propagate = False
+            logger.info(
+                f"Hydrating Model {cls.__name__}",
+                extra={"class_name": cls.__name__, "class_module": cls.__module__},
+            )
+
+            model.observe_events(model, "hydrating")
+            model.__attributes__.update(dic or {})
+            model.__original_attributes__.update(dic or {})
+            model.add_relation(relations)
+            model.observe_events(model, "hydrated")
+            return model
+
+        elif hasattr(result, "serialize"):
+            model = cls()
+            model.__attributes__.update(result.serialize())
+            model.__original_attributes__.update(result.serialize())
+            return model
+        else:
+            model = cls()
+            model.observe_events(model, "hydrating")
+            model.__attributes__.update(dict(result))
+            model.__original_attributes__.update(dict(result))
+            model.observe_events(model, "hydrated")
+            return model
 
     def fill(self, attributes):
         self.__attributes__.update(attributes)
@@ -155,13 +221,8 @@ class Model:
         return attributes
 
     def cast_values(self, attributes):
-        casts = getattr(self, "__casts__", {})
-        for key, cast_type in casts.items():
-            if key in attributes and attributes[key] is not None:
-                if cast_type == "json":
-                    import json
-                    if not isinstance(attributes[key], str):
-                        attributes[key] = json.dumps(attributes[key])
+        for key, value in attributes.items():
+            attributes[key] = self.caster.set(key, value)
         return attributes
 
     def observe_events(self, instance, event):
@@ -172,7 +233,6 @@ class Model:
 
     def get_selects(self):
         return self.__selects__
-
 
     @classmethod
     async def find(cls: Type[T], record_id: int | str, query=False) -> T:

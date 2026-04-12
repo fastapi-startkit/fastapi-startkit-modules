@@ -433,7 +433,7 @@ class QueryBuilder(ObservesEvents):
 
         self.connection_class = DRIVERS.get(self._connection_driver, SQLAlchemyConnection)
         self.grammar = self.connection_class.get_default_query_grammar()
-        
+
         return self
 
     def select(self, *args):

@@ -14,6 +14,8 @@ class CreateUsersTable(Migration):
             table.integer("age").nullable()
             table.float("balance").nullable()
             table.json("metadata").nullable()
+            table.string("gender").nullable()
+            table.json("address").nullable()
             table.boolean("is_active").default(True)
             table.text("bio").nullable()
             table.decimal("price", 10, 2).nullable()
