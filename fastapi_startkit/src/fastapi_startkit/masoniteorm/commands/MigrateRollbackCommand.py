@@ -1,4 +1,3 @@
-from ..migrations import Migration
 from .Command import Command
 
 
@@ -15,7 +14,12 @@ class MigrateRollbackCommand(Command):
     """
 
     def handle(self):
-        Migration(
+        import asyncio
+        return asyncio.run(self.handle_async())
+
+    async def handle_async(self):
+        from ..migrations import Migration
+        await Migration(
             command_class=self,
             connection=self.option("connection"),
             migration_directory=self.option("directory"),

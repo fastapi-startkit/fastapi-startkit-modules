@@ -1,4 +1,4 @@
-from cleo.application import Application as BaseApplication
+from cleo import Application as BaseApplication
 from fastapi_startkit.application import Application
 
 class ConsoleApplication(BaseApplication):

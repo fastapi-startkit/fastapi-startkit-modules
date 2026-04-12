@@ -488,16 +488,16 @@ class PostgresPlatform(Platform):
         return f"ALTER TABLE {self.wrap_table(current_name)} RENAME TO {self.wrap_table(new_name)}"
 
     def compile_drop_table_if_exists(self, table):
-        return f"DROP TABLE IF EXISTS {self.wrap_table(table)}"
+        return f"DROP TABLE IF EXISTS {self.wrap_table(table)} CASCADE"
 
     def compile_drop_table(self, table):
-        return f"DROP TABLE {self.wrap_table(table)}"
+        return f"DROP TABLE {self.wrap_table(table)} CASCADE"
 
     def compile_column_exists(self, table, column):
         return f"SELECT column_name FROM information_schema.columns WHERE table_name='{table}' and column_name='{column}'"
 
     def compile_get_all_tables(self, database=None, schema=None):
-        return f"SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_catalog = '{database}'"
+        return f"SELECT table_name FROM information_schema.tables WHERE table_schema = '{schema or 'public'}' AND table_catalog = '{database}' AND table_type = 'BASE TABLE'"
 
     def get_current_schema(self, connection, table_name, schema=None):
         sql = self.table_information_string().format(

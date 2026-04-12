@@ -1,4 +1,3 @@
-from ..migrations import Migration
 from .Command import Command
 
 
@@ -14,6 +13,11 @@ class MigrateResetCommand(Command):
     """
 
     def handle(self):
+        import asyncio
+        return asyncio.run(self.handle_async())
+
+    async def handle_async(self):
+        from ..migrations import Migration
         migration = Migration(
             command_class=self,
             connection=self.option("connection"),
@@ -22,4 +26,4 @@ class MigrateResetCommand(Command):
             schema=self.option("schema"),
         )
 
-        migration.reset(self.option("migration"))
+        await migration.reset(self.option("migration"))

@@ -1,6 +1,4 @@
 import os
-
-from ..migrations import Migration
 from .Command import Command
 
 
@@ -18,6 +16,11 @@ class MigrateCommand(Command):
     """
 
     def handle(self):
+        import asyncio
+        return asyncio.run(self.handle_async())
+
+    async def handle_async(self):
+        from ..migrations import Migration
         # prompt user for confirmation in production
         if os.getenv("APP_ENV") == "production" and not self.option("force"):
             answer = ""
@@ -35,12 +38,12 @@ class MigrateCommand(Command):
             config_path=self.option("config"),
             schema=self.option("schema"),
         )
-        migration.create_table_if_not_exists()
-        if not migration.get_unran_migrations():
+        await migration.create_table_if_not_exists()
+        if not await migration.get_unran_migrations():
             self.info("Nothing To Migrate!")
             return
 
         migration_name = self.option("migration")
         show_output = self.option("show")
 
-        migration.migrate(migration=migration_name, output=show_output)
+        await migration.migrate(migration=migration_name, output=show_output)

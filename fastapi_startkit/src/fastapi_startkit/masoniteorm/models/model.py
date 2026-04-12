@@ -6,6 +6,7 @@ import logging
 from .caster import Caster
 from ..config import load_config
 from ..query import AsyncQueryBuilder
+from ..collection.Collection import Collection
 
 T = TypeVar("T", bound="Model")
 
@@ -265,3 +266,10 @@ class Model:
     @classmethod
     async def create(cls, dictionary=None, **kwargs):
         return await cls().get_builder().create(dictionary, **kwargs)
+
+    @classmethod
+    def new_collection(cls, items):
+        return Collection(items)
+
+    def serialize(self):
+        return self.__attributes__

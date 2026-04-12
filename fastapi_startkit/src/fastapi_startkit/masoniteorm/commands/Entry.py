@@ -19,7 +19,7 @@ from . import (
     MigrateResetCommand,
     MigrateRollbackCommand,
     MigrateStatusCommand,
-    SeedRunCommand,
+    DBSeedCommand,
     ShellCommand,
 )
 
@@ -36,7 +36,7 @@ application.add(MakeObserverCommand())
 application.add(MigrateResetCommand())
 application.add(MigrateStatusCommand())
 application.add(MakeSeedCommand())
-application.add(SeedRunCommand())
+application.add(DBSeedCommand())
 application.add(ShellCommand())
 
 if __name__ == "__main__":

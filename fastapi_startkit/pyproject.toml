@@ -11,7 +11,7 @@ dependencies = [
     "pendulum (>=3.1.0,<4.0.0)",
     "inflection>=0.5.1",
     "requests (>=2.32.5,<3.0.0)",
-    "cleo>=0.8.1",
+    "cleo>=0.8.1,<1.0.0",
     "dotenv>=0.9.9",
 ]
 
@@ -19,12 +19,19 @@ dependencies = [
 fastapi = [
     "fastapi[standard] (>=0.124.4,<0.125.0)",
 ]
-database = [
+sqlite = [
     "aiosqlite>=0.22.1",
     "sqlalchemy[asyncio]>=2.0.38",
 ]
-masoniteorm = [
-    "masonite-orm (>=3.0.0,<4.0.0)",
+
+postgres = [
+    "asyncpg>=0.29.0",
+    "sqlalchemy[asyncio]>=2.0.38",
+]
+
+mysql = [
+    "aiomysql>=0.2.0",
+    "sqlalchemy[asyncio]>=2.0.38",
 ]
 
 [dependency-groups]

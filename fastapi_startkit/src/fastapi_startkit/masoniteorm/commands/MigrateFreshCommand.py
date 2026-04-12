@@ -1,21 +1,25 @@
-from ..migrations import Migration
 from .Command import Command
 
 
 class MigrateFreshCommand(Command):
     """
-    Drops all tables and migrates them again.
+    Fresh migrations.
 
     migrate:fresh
         {--c|connection=default : The connection you want to run migrations on}
-        {--d|directory=databases/migrations : The location of the migration directory}
-        {--f|ignore-fk=? : The connection you want to run migrations on}
-        {--s|seed=? : Seed database after fresh. The seeder to be ran can be provided in argument}
         {--schema=? : Sets the schema to be migrated}
-        {--D|seed-directory=databases/seeds : The location of the seed directory if seed option is used.}
+        {--d|directory=databases/migrations : The location of the migration directory}
+        {--i|ignore-fk : Ignore foreign key constraints}
+        {--s|seed=? : Seed the database after fresh}
+        {--seed-directory=databases/seeds : The location of the seed directory}
     """
 
     def handle(self):
+        import asyncio
+        return asyncio.run(self.handle_async())
+
+    async def handle_async(self):
+        from ..migrations import Migration
         migration = Migration(
             command_class=self,
             connection=self.option("connection"),
@@ -24,16 +28,13 @@ class MigrateFreshCommand(Command):
             schema=self.option("schema"),
         )
 
-        migration.fresh(ignore_fk=self.option("ignore-fk"))
-
-        self.line("")
+        await migration.fresh(ignore_fk=self.option("ignore-fk"))
 
         if self.option("seed") == "null":
             self.call(
                 "seed:run",
                 f"None --directory {self.option('seed-directory')} --connection {self.option('connection')}",
             )
-
         elif self.option("seed"):
             self.call(
                 "seed:run",
