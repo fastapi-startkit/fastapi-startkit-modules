@@ -1,28 +1,25 @@
-from masonite.providers import Provider
-
-from masoniteorm.commands import (
+from ...providers.Provider import Provider
+from ..commands import (
     MakeMigrationCommand,
     MakeModelCommand,
     MakeObserverCommand,
     MakeSeedCommand,
     MigrateCommand,
+    MigrateFreshCommand,
     MigrateRefreshCommand,
     MigrateResetCommand,
     MigrateRollbackCommand,
     MigrateStatusCommand,
-    SeedRunCommand,
+    MakeModelDocstringCommand,
+    DBSeedCommand,
 )
 
 
-class ORMProvider(Provider):
-    """Masonite ORM database provider to be used inside
-    Masonite based projects."""
-
-    def __init__(self, application):
-        self.application = application
+class DatabaseProvider(Provider):
+    """Database provider for Masonite ORM."""
 
     def register(self):
-        self.application.make("commands").add(
+        self.commands([
             MakeMigrationCommand(),
             MakeSeedCommand(),
             MakeObserverCommand(),
@@ -31,9 +28,11 @@ class ORMProvider(Provider):
             MakeModelCommand(),
             MigrateStatusCommand(),
             MigrateRefreshCommand(),
+            MigrateFreshCommand(),
             MigrateRollbackCommand(),
-            SeedRunCommand(),
-        ),
+            DBSeedCommand(),
+            MakeModelDocstringCommand(),
+        ])
 
     def boot(self):
         pass

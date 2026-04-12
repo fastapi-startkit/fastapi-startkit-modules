@@ -79,16 +79,13 @@ class Migration:
             )
             .order_by("migration_id", "desc")
             .get()
-            .pluck("migration")
-        )
+        ).pluck("migration")
 
     async def get_all_migrations(self, reverse=False):
         if reverse:
             return (
-                await self.migration_model.order_by("migration_id", "desc")
-                .get()
-                .pluck("migration")
-            )
+                await self.migration_model.order_by("migration_id", "desc").get()
+            ).pluck("migration")
 
         return (await self.migration_model.all()).pluck("migration")
 

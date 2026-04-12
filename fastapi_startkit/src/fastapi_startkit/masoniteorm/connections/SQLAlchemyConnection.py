@@ -85,6 +85,10 @@ class SQLAlchemyConnection(BaseConnection):
             except Exception:
                 pass
 
+        # Auto-commit if not in transaction for non-SELECT queries
+        if self.transaction_level == 0 and not query.strip().upper().startswith("SELECT"):
+            await session.commit()
+
         if results == 1:
             try:
                 row = result.fetchone()

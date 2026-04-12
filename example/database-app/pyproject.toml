@@ -1,0 +1,12 @@
+[project]
+name = "database-app"
+version = "0.1.0"
+description = "FastAPI application example using fastapi-startkit with PostgreSQL"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi-startkit[postgres,fastapi]",
+]
+
+[tool.uv.sources]
+fastapi-startkit = { path = "../../fastapi_startkit", editable = true }

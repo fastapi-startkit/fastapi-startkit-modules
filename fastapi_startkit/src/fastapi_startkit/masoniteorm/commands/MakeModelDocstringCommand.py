@@ -1,16 +1,25 @@
+from cleo.helpers import argument, option
 from ..config import load_config
 from .Command import Command
 
 
 class MakeModelDocstringCommand(Command):
-    """
-    Generate model docstring and type hints (for auto-completion).
+    name = "model:docstring"
+    description = "Generate model docstring and type hints (for auto-completion)."
 
-    model:docstring
-        {table : The table you want to generate docstring and type hints}
-        {--t|type-hints : The table you want to generate docstring and type hints}
-        {--c|connection=default : The connection you want to use}
-    """
+    arguments = [
+        argument("table", description="The table you want to generate docstring and type hints")
+    ]
+
+    options = [
+        option(
+            "type-hints",
+            "t",
+            description="The table you want to generate docstring and type hints",
+            flag=True,
+        ),
+        option("connection", "c", flag=False, default="default", description="The connection you want to use"),
+    ]
 
     def handle(self):
         table = self.argument("table")

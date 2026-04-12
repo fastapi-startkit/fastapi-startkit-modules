@@ -1,23 +1,53 @@
 import os
-
-from ..migrations import Migration
 from .Command import Command
-
+from cleo.helpers import option
 
 class MigrateCommand(Command):
-    """
-    Run migrations.
+    name = "migrate"
+    description = "Run migrations."
 
-    migrate
-        {--m|migration=all : Migration's name to be migrated}
-        {--c|connection=default : The connection you want to run migrations on}
-        {--f|force : Force migrations without prompt in production}
-        {--s|show : Shows the output of SQL for migrations that would be running}
-        {--schema=? : Sets the schema to be migrated}
-        {--d|directory=databases/migrations : The location of the migration directory}
-    """
+    options = [
+        option(
+            "migration",
+            "m",
+            flag=False,
+            default="all",
+            description="Migration's name to be migrated",
+        ),
+        option(
+            "connection",
+            "c",
+            flag=False,
+            default="default",
+            description="The connection you want to run migrations on",
+        ),
+        option(
+            "force", "f", flag=True, description="Force migrations without prompt in production"
+        ),
+        option(
+            "show",
+            "s",
+            flag=True,
+            description="Shows the output of SQL for migrations that would be running",
+        ),
+        option(
+            "schema", None, flag=False, default=None, description="Sets the schema to be migrated"
+        ),
+        option(
+            "directory",
+            "d",
+            flag=False,
+            default="databases/migrations",
+            description="The location of the migration directory",
+        ),
+    ]
 
     def handle(self):
+        import asyncio
+        return asyncio.run(self.handle_async())
+
+    async def handle_async(self):
+        from ..migrations import Migration
         # prompt user for confirmation in production
         if os.getenv("APP_ENV") == "production" and not self.option("force"):
             answer = ""
@@ -35,12 +65,12 @@ class MigrateCommand(Command):
             config_path=self.option("config"),
             schema=self.option("schema"),
         )
-        migration.create_table_if_not_exists()
-        if not migration.get_unran_migrations():
+        await migration.create_table_if_not_exists()
+        if not await migration.get_unran_migrations():
             self.info("Nothing To Migrate!")
             return
 
         migration_name = self.option("migration")
         show_output = self.option("show")
 
-        migration.migrate(migration=migration_name, output=show_output)
+        await migration.migrate(migration=migration_name, output=show_output)

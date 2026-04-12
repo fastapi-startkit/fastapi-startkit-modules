@@ -1,26 +1,45 @@
 import os
 import pathlib
-
 from inflection import camelize, tableize, underscore
-
 from .Command import Command
-
+from cleo.helpers import argument, option
 
 class MakeModelCommand(Command):
-    """
-    Creates a new model file.
+    name = "model"
+    description = "Creates a new model file."
 
-    model
-        {name : The name of the model}
-        {--m|migration : Optionally create a migration file}
-        {--s|seeder : Optionally create a seeder file}
-        {--c|create : If the migration file should create a table}
-        {--t|table : If the migration file should modify an existing table}
-        {--p|pep : Makes the file into pep 8 standards}
-        {--d|directory=app : The location of the model directory}
-        {--D|migrations-directory=databases/migrations : The location of the migration directory}
-        {--S|seeders-directory=databases/seeds : The location of the seeders directory}
-    """
+    arguments = [argument("name", description="The name of the model")]
+
+    options = [
+        option("migration", "m", description="Optionally create a migration file", flag=True),
+        option("seeder", "s", description="Optionally create a seeder file", flag=True),
+        option("create", "c", description="If the migration file should create a table", flag=True),
+        option(
+            "table", "t", description="If the migration file should modify an existing table", flag=True
+        ),
+        option("pep", "p", description="Makes the file into pep 8 standards", flag=True),
+        option(
+            "directory",
+            "d",
+            flag=False,
+            default="app",
+            description="The location of the model directory",
+        ),
+        option(
+            "migrations-directory",
+            "D",
+            flag=False,
+            default="databases/migrations",
+            description="The location of the migration directory",
+        ),
+        option(
+            "seeders-directory",
+            "S",
+            flag=False,
+            default="databases/seeds",
+            description="The location of the seeders directory",
+        ),
+    ]
 
     def handle(self):
         name = self.argument("name")

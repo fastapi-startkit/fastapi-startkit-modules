@@ -1,19 +1,25 @@
+from cleo.helpers import argument, option
 import os
 import pathlib
-
 from inflection import camelize, underscore
-
 from .Command import Command
 
 
 class MakeSeedCommand(Command):
-    """
-    Creates a new seed file.
+    name = "seed"
+    description = "Creates a new seed file."
 
-    seed
-        {name : The name of the seed}
-        {--d|directory=databases/seeds : The location of the seed directory}
-    """
+    arguments = [argument("name", description="The name of the seed")]
+
+    options = [
+        option(
+            "directory",
+            "d",
+            flag=False,
+            default="databases/seeds",
+            description="The location of the seed directory",
+        ),
+    ]
 
     def handle(self):
         # get the contents of a stub file

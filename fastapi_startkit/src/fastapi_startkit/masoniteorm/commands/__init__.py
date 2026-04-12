@@ -14,5 +14,5 @@ from .MigrateRefreshCommand import MigrateRefreshCommand
 from .MigrateResetCommand import MigrateResetCommand
 from .MigrateRollbackCommand import MigrateRollbackCommand
 from .MigrateStatusCommand import MigrateStatusCommand
-from .SeedRunCommand import SeedRunCommand
+from .DBSeedCommand import DBSeedCommand
 from .ShellCommand import ShellCommand

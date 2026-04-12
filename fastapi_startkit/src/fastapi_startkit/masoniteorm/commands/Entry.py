@@ -5,7 +5,7 @@ This can be used by running "python craft". This module is not ran when the CLI 
 successfully import commands for you.
 """
 
-from cleo import Application
+from cleo.application import Application
 
 from . import (
     MakeMigrationCommand,
@@ -19,11 +19,11 @@ from . import (
     MigrateResetCommand,
     MigrateRollbackCommand,
     MigrateStatusCommand,
-    SeedRunCommand,
+    DBSeedCommand,
     ShellCommand,
 )
 
-application = Application("ORM Version:", 0.1)
+application = Application("ORM Version:", "0.1")
 
 application.add(MigrateCommand())
 application.add(MigrateRollbackCommand())
@@ -36,7 +36,7 @@ application.add(MakeObserverCommand())
 application.add(MigrateResetCommand())
 application.add(MigrateStatusCommand())
 application.add(MakeSeedCommand())
-application.add(SeedRunCommand())
+application.add(DBSeedCommand())
 application.add(ShellCommand())
 
 if __name__ == "__main__":

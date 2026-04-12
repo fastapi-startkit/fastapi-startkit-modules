@@ -1,18 +1,37 @@
+from cleo.helpers import option
 from ..migrations import Migration
 from .Command import Command
 
 
 class MigrateStatusCommand(Command):
-    """
-    Display migrations status.
+    name = "migrate:status"
+    description = "Display migrations status."
 
-    migrate:status
-        {--c|connection=default : The connection you want to run migrations on}
-        {--schema=? : Sets the schema to be migrated}
-        {--d|directory=databases/migrations : The location of the migration directory}
-    """
+    options = [
+        option(
+            "connection",
+            "c",
+            flag=False,
+            default="default",
+            description="The connection you want to run migrations on",
+        ),
+        option(
+            "schema", None, flag=False, default=None, description="Sets the schema to be migrated"
+        ),
+        option(
+            "directory",
+            "d",
+            flag=False,
+            default="databases/migrations",
+            description="The location of the migration directory",
+        ),
+    ]
 
     def handle(self):
+        import asyncio
+        return asyncio.run(self.handle_async())
+
+    async def handle_async(self):
         migration = Migration(
             command_class=self,
             connection=self.option("connection"),
@@ -20,12 +39,13 @@ class MigrateStatusCommand(Command):
             config_path=self.option("config"),
             schema=self.option("schema"),
         )
-        migration.create_table_if_not_exists()
+        await migration.create_table_if_not_exists()
         table = self.table()
         table.set_header_row(["Ran?", "Migration", "Batch"])
         migrations = []
 
-        for migration_data in migration.get_ran_migrations():
+        ran_migrations = await migration.get_ran_migrations()
+        for migration_data in ran_migrations:
             migration_file = migration_data["migration_file"]
             batch = migration_data["batch"]
 
@@ -37,7 +57,8 @@ class MigrateStatusCommand(Command):
                 ]
             )
 
-        for migration_file in migration.get_unran_migrations():
+        unran_migrations = await migration.get_unran_migrations()
+        for migration_file in unran_migrations:
             migrations.append(
                 [
                     "<error>N</error>",
