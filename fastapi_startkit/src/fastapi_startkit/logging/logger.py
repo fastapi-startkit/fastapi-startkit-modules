@@ -3,7 +3,6 @@ import traceback
 from fastapi_startkit.application import app
 from fastapi_startkit.logging.channels import BaseChannel
 
-
 class Logger:
     instance = None
 
