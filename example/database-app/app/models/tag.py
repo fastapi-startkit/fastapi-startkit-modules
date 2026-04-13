@@ -1,0 +1,14 @@
+from typing import TYPE_CHECKING
+from fastapi_startkit.masoniteorm import Model
+from fastapi_startkit.masoniteorm.relationships import BelongsToMany
+
+if TYPE_CHECKING:
+    from .Post import Post
+
+class Tag(Model):
+    __table__ = "tags"
+    
+    id: int
+    name: str
+    
+    posts: list["Post"] = BelongsToMany("Post")

@@ -10,7 +10,6 @@ class ConnectionResolver:
     _engines = {}
     _sessions = {}
     _sticky_sessions = {}
-    _morph_map = {}
 
     def __init__(self, connection_details=None):
         self._connection_details = connection_details or {}

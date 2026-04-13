@@ -120,7 +120,8 @@ class Caster:
     @staticmethod
     def build_casts(model):
         cls = model if isinstance(model, type) else model.__class__
-        annotations = get_type_hints(cls)
+        from .registry import Registry
+        annotations = get_type_hints(cls, globalns=Registry._models)
 
         # Internal map of type to Cast Class
         cast_class_map = {

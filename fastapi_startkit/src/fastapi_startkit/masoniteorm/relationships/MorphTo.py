@@ -105,7 +105,8 @@ class MorphTo(BaseRelationship):
         model.add_relation({key: related})
 
     def morph_map(self):
-        return load_config().DB._morph_map
+        from ..models.registry import Registry
+        return Registry.get_morph_map()
 
     def map_related(self, related_result):
         return related_result

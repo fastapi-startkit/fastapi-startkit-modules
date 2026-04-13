@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from starlette.responses import JSONResponse
 
-from app.models.User import User
-from app.models.Post import Post
+from app.models.user import User
+from app.models.post import Post
 public = APIRouter()
 
 @public.get("/")

@@ -10,6 +10,7 @@ from pendulum import DateTime
 
 from .caster import Caster
 from .fields import Field
+from .registry import Registry
 from pydantic.fields import FieldInfo
 from ..config import load_config
 from ..query import AsyncQueryBuilder
@@ -31,6 +32,15 @@ class Model:
 
     _booted = False
     _scopes = {}
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        Registry.register(cls)
+
+    @classmethod
+    def get_morph_class(cls):
+        return cls.__name__
+
     __primary_key__ = "id"
     __primary_key_type__ = "int"
     __hidden__ = []
@@ -280,6 +290,19 @@ class Model:
     @classmethod
     async def create(cls, dictionary=None, **kwargs):
         return await cls().get_builder().create(dictionary, **kwargs)
+
+    @classmethod
+    async def first_or_create(cls, wheres, creates: dict = None):
+        if creates is None:
+            creates = {}
+        self = cls()
+        record = await self.where(wheres).first()
+        total = {}
+        total.update(creates)
+        total.update(wheres)
+        if not record:
+            return await self.create(total, id_key=cls().get_primary_key())
+        return record
 
     @classmethod
     def new_collection(cls, items):
