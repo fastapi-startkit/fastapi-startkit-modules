@@ -16,6 +16,7 @@ async def get_users():
         "id": users.id,
         "name": users.name,
         "email": users.email,
+        "created_at": users.created_at.diff_for_humans()
     })
 
 @public.get("/posts")

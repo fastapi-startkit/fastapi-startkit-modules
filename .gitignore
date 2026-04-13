@@ -2,7 +2,9 @@
 .DS_Store
 **/.venv
 **/__pycache__/
+**/*.db
+**/*.log
+**/.env
+**/*.sqlite
 fastapi_startkit/dist
 fastapi_startkit.github.io.git
-*.db
-.log
