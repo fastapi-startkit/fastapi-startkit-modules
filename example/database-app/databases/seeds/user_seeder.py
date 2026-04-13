@@ -1,5 +1,5 @@
 from fastapi_startkit.masoniteorm.seeds import Seeder
-from app.models.User import User
+from app.models.user import User
 
 class UserSeeder(Seeder):
     async def run(self):

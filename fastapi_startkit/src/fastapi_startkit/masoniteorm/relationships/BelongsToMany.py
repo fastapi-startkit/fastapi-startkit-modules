@@ -22,19 +22,9 @@ class BelongsToMany(BaseRelationship):
         attribute="pivot",
         with_fields=[],
     ):
-        if isinstance(fn, str):
-            self.fn = None
-            self.local_key = fn
-            self.foreign_key = local_foreign_key
-            self.local_owner_key = other_foreign_key or "id"
-            self.other_owner_key = local_owner_key or "id"
-        else:
-            self.fn = fn
-            self.local_key = local_foreign_key
-            self.foreign_key = other_foreign_key
-            self.local_owner_key = local_owner_key or "id"
-            self.other_owner_key = other_owner_key or "id"
-
+        super().__init__(fn, local_foreign_key, other_foreign_key)
+        self.local_owner_key = local_owner_key or "id"
+        self.other_owner_key = other_owner_key or "id"
         self._table = table
         self.with_timestamps = with_timestamps
         self._as = attribute
