@@ -1,35 +1,48 @@
 import json
 import pendulum
+import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import TYPE_CHECKING, Any, get_type_hints
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any, get_type_hints, Optional
+from pydantic.fields import FieldInfo
+from ...carbon import Carbon
 
 if TYPE_CHECKING:
     from .model import Model
 
-class BoolCast:
-    """Casts a value to a boolean"""
+@dataclass
+class BaseCast:
+    """Base class for all casters"""
+    config: Optional[FieldInfo] = field(default=None, kw_only=True)
 
     def get(self, value):
         """
         Cast the value to assign to the model attribute
         """
-        return bool(value)
+        return value
 
     def set(self, value):
         """
         Cast the value for use in insert/update queries
         """
+        return value
+
+
+class BoolCast(BaseCast):
+    """Casts a value to a boolean"""
+
+    def get(self, value):
+        return bool(value)
+
+    def set(self, value):
         return bool(value)
 
 
-class JsonCast:
+class JsonCast(BaseCast):
     """Casts a value to JSON"""
 
     def get(self, value):
-        """
-        Cast the value to assign to the model attribute
-        """
         if isinstance(value, str):
             try:
                 return json.loads(value)
@@ -39,9 +52,6 @@ class JsonCast:
         return value
 
     def set(self, value):
-        """
-        Cast the value for use in insert/update queries
-        """
         if isinstance(value, str):
             # make sure the string is valid JSON
             json.loads(value)
@@ -50,67 +60,52 @@ class JsonCast:
         return json.dumps(value, default=str)
 
 
-class IntCast:
+class IntCast(BaseCast):
     """Casts a value to a int"""
 
     def get(self, value):
-        """
-        Cast the value to assign to the model attribute
-        """
         return int(value)
 
     def set(self, value):
-        """
-        Cast the value for use in insert/update queries
-        """
         return int(value)
 
 
-class FloatCast:
+class FloatCast(BaseCast):
     """Casts a value to a float"""
 
     def get(self, value):
-        """
-        Cast the value to assign to the model attribute
-        """
         return float(value)
 
     def set(self, value):
-        """
-        Cast the value for use in insert/update queries
-        """
         return float(value)
 
 
-class DateCast:
-    """Casts a value to a float"""
+class DateCast(BaseCast):
+    """Casts a value to a date or datetime"""
 
     def get(self, value):
-        """
-        Cast the value to assign to the model attribute
-        """
-        return pendulum.parse(value).to_date_string()
+        if not value:
+            return None
+
+        dt = pendulum.parse(str(value))
+
+        # Return the rich object for attribute access
+        return dt
 
     def set(self, value):
-        """
-        Cast the value for use in insert/update queries
-        """
-        return pendulum.parse(value).to_date_string()
+        if not value:
+            return None
+
+        return pendulum.parse(str(value)).to_datetime_string()
 
 
-class DecimalCast:
+class DecimalCast(BaseCast):
     """Casts a value to Decimal for accuracy"""
 
     def get(self, value):
-        """
-        Cast the value to assign to the model attribute
-        """
         return Decimal(str(value))
 
     def set(self, value):
-        """
-        Cast the value for use in insert/update queries
-        """
         return str(value)
 
 
@@ -122,23 +117,45 @@ class Caster:
         self.casts = Caster.build_casts(model)
         self.casts.update(casts or {})
 
-        self.__internal_cast_map__ = {
-            "bool": BoolCast(),
-            "json": JsonCast(),
-            "int": IntCast(),
-            "float": FloatCast(),
-            "date": DateCast(),
-            "decimal": DecimalCast(),
-        }
-
     @staticmethod
     def build_casts(model):
-        annotations = get_type_hints(model if isinstance(model, type) else model.__class__)
+        cls = model if isinstance(model, type) else model.__class__
+        annotations = get_type_hints(cls)
 
-        return {
-            field: Caster.normalize_type(typ)
-            for field, typ in annotations.items()
+        # Internal map of type to Cast Class
+        cast_class_map = {
+            "bool": BoolCast,
+            "json": JsonCast,
+            "int": IntCast,
+            "float": FloatCast,
+            "date": DateCast,
+            "decimal": DecimalCast,
         }
+
+        from .fields import FieldDescriptor
+
+        # 1. Collect all potential fields (annotations + descriptors)
+        all_field_names = set(annotations.keys())
+        descriptors = {}
+        for name, attr in cls.__dict__.items():
+            if isinstance(attr, FieldDescriptor):
+                all_field_names.add(name)
+                descriptors[name] = attr
+
+        casts = {}
+        for field_name in all_field_names:
+            # 2. Get Type Hint and FieldInfo
+            typ = annotations.get(field_name) or "str"
+            descriptor = descriptors.get(field_name) or getattr(cls, field_name, None)
+            field_info = descriptor.field_info if isinstance(descriptor, FieldDescriptor) else None
+
+            caster = Caster.normalize_type(typ)
+            if caster in cast_class_map:
+                casts[field_name] = cast_class_map[caster](config=field_info)
+            else:
+                casts[field_name] = caster
+
+        return casts
 
     @staticmethod
     def normalize_type(t):
@@ -152,28 +169,33 @@ class Caster:
             return "bool"
         if t is dict or t is list:
             return "json"
+        if t is pendulum.DateTime or t is datetime.datetime or t is datetime.date or t is Carbon:
+            return "date"
         if isinstance(t, type):
             if issubclass(t, Enum) or hasattr(t, "get") or hasattr(t, "set"):
                 return t
 
         return "str"
 
-    def get(self,  attribute: str, value: Any)->Any:
+    def get(self, attribute: str, value: Any) -> Any:
         if attribute not in self.casts:
             return value
 
-        typ = self.casts[attribute]
+        cast = self.casts[attribute]
 
-        if typ == "str":
+        if cast == "str":
             return str(value) if value is not None else None
 
-        if typ in self.__internal_cast_map__:
-            return self.__internal_cast_map__[typ].get(value)
+        if isinstance(cast, BaseCast):
+            return cast.get(value)
 
-        if isinstance(typ, type):
-            if hasattr(typ, "get"):
-                return typ().get(value)
-            return typ(value)
+        if isinstance(cast, type):
+            if issubclass(cast, Enum):
+                return cast(value) if value is not None else None
+            # Fallback for old custom types that don't inherit BaseCast
+            if hasattr(cast, "get"):
+                return cast().get(value)
+            return cast(value)
 
         return value
 
@@ -181,13 +203,14 @@ class Caster:
         if attribute not in self.casts:
             return value
 
-        typ = self.casts[attribute]
+        cast = self.casts[attribute]
 
-        if typ in self.__internal_cast_map__:
-            return self.__internal_cast_map__[typ].set(value)
+        if isinstance(cast, BaseCast):
+            return cast.set(value)
 
-        if isinstance(typ, type):
-            if hasattr(typ, "set"):
-                return typ().set(value)
+        if isinstance(cast, type):
+            # Fallback for old custom types that don't inherit BaseCast
+            if hasattr(cast, "set"):
+                return cast().set(value)
 
         return value

@@ -41,7 +41,11 @@ class Database:
         resolver.remove_sticky_session()
         
         if hasattr(self, "_transaction"):
-            await self._transaction.rollback()
+            try:
+                await self._transaction.rollback()
+            except Exception:
+                # Transaction might already be closed or inactive
+                pass
         
         if hasattr(self, "_session"):
             await self._session.__aexit__(None, None, None)

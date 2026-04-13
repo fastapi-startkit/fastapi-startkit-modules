@@ -1,9 +1,16 @@
+import datetime
 from typing import TypeVar, Type
 
 from inflection import tableize
 
 import logging
+from fastapi_startkit.carbon import Carbon
+
+from pendulum import DateTime
+
 from .caster import Caster
+from .fields import Field
+from pydantic.fields import FieldInfo
 from ..config import load_config
 from ..query import AsyncQueryBuilder
 from ..collection.Collection import Collection
@@ -34,8 +41,8 @@ class Model:
     __with__ = ()
     __force_update__ = False
 
-    date_created_at: str = "created_at"
-    date_updated_at: str = "updated_at"
+    created_at: Carbon = Field(json_schema_extra={"format": "YYYY-MM-DD HH:mm:ss"})
+    updated_at: Carbon = Field(json_schema_extra={"format": "YYYY-MM-DD HH:mm:ss"})
 
     builder: AsyncQueryBuilder
 
@@ -69,20 +76,11 @@ class Model:
         self._relationships = {}
         self._global_scopes = {}
 
-        self.caster = Caster(self, self.__casts__)
+        self.caster = Caster(self)
 
         self.boot()
 
     def __getattr__(self, attribute):
-        """Magic method that is called when an attribute does not exist on the model.
-
-        Args:
-            attribute (string): the name of the attribute being accessed or called.
-
-        Returns:
-            mixed: Could be anything that a method can return.
-        """
-
         new_name_accessor = "get_" + attribute + "_attribute"
 
         if new_name_accessor in self.__class__.__dict__:
@@ -106,6 +104,22 @@ class Model:
             name = self.__class__.__name__
             raise AttributeError(f"class model '{name}' has no attribute {attribute}")
         return None
+
+    def __setattr__(self, name, value):
+        """Redirct all attribute assignments to the ORM storage."""
+        # 1. Internal/Private attributes or existing dict entries
+        if name.startswith("_") or name == "caster" or name == "builder":
+            super().__setattr__(name, value)
+            return
+
+        # 2. Check for descriptors (like properties or relationship descriptors)
+        cls_attr = getattr(self.__class__, name, None)
+        if cls_attr and hasattr(cls_attr, "__set__"):
+            cls_attr.__set__(self, value)
+            return
+
+        # 3. Default: Store in __attributes__ with casting
+        self.__attributes__[name] = self.caster.set(name, value)
 
     def get_value(self, attribute: str):
         value = self.__attributes__[attribute]
@@ -271,5 +285,102 @@ class Model:
     def new_collection(cls, items):
         return Collection(items)
 
-    def serialize(self):
-        return self.__attributes__
+    def serialize(self, exclude=None, include=None):
+        """Takes the data as a model and converts it into a dictionary.
+
+        Returns:
+            dict
+        """
+        serialized_dictionary = self.__attributes__.copy()
+
+        # prevent using both exclude and include at the same time
+        if exclude is not None and include is not None:
+            raise AttributeError("Can not define both includes and exclude values.")
+
+        if exclude is not None:
+            self.__hidden__ = exclude
+
+        if include is not None:
+            self.__visible__ = include
+
+        # prevent using both hidden and visible at the same time
+        if self.__visible__ and self.__hidden__:
+            raise AttributeError(
+                f"class model '{self.__class__.__name__}' defines both __visible__ and __hidden__."
+            )
+
+        if self.__visible__:
+            new_serialized_dictionary = {
+                k: serialized_dictionary[k]
+                for k in self.__visible__
+                if k in serialized_dictionary
+            }
+            serialized_dictionary = new_serialized_dictionary
+        else:
+            for key in self.__hidden__:
+                if key in serialized_dictionary:
+                    serialized_dictionary.pop(key)
+
+        # for date_column in self.get_dates():
+        #     if (
+        #             date_column in serialized_dictionary
+        #             and serialized_dictionary[date_column]
+        #     ):
+        #         serialized_dictionary[date_column] = self.get_new_serialized_date(
+        #             serialized_dictionary[date_column]
+        #         )
+
+        serialized_dictionary.update(self.__dirty_attributes__)
+
+        # The builder is inside the attributes but should not be serialized
+        if "builder" in serialized_dictionary:
+            serialized_dictionary.pop("builder")
+
+        # Serialize relationships as well
+        serialized_dictionary.update(self.relations_to_dict())
+
+        for append in self.__appends__:
+            serialized_dictionary.update({append: getattr(self, append)})
+
+        remove_keys = []
+        for key, value in serialized_dictionary.items():
+            if key in self.__hidden__:
+                remove_keys.append(key)
+            if hasattr(value, "serialize"):
+                value = value.serialize(self.__relationship_hidden__.get(key, []))
+            # if isinstance(value, datetime):
+            #     value = self.get_new_serialized_date(value)
+            if key in self.__casts__:
+                value = self._cast_attribute(key, value)
+
+            serialized_dictionary.update({key: value})
+
+        for key in remove_keys:
+            serialized_dictionary.pop(key)
+
+        return serialized_dictionary
+
+    def relations_to_dict(self):
+        """Converts a models relationships to a dictionary
+
+        Returns:
+            [type]: [description]
+        """
+        new_dic = {}
+        for key, value in self._relationships.items():
+            if value == {}:
+                new_dic.update({key: {}})
+            else:
+                if value is None:
+                    new_dic.update({key: {}})
+                    continue
+                elif isinstance(value, list):
+                    value = Collection(value).serialize()
+                elif isinstance(value, dict):
+                    pass
+                else:
+                    value = value.serialize()
+
+                new_dic.update({key: value})
+
+        return new_dic
