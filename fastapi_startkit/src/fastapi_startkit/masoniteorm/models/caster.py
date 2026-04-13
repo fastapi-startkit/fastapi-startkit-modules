@@ -6,6 +6,7 @@ from enum import Enum
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, get_type_hints, Optional
 from pydantic.fields import FieldInfo
+from ...carbon import Carbon
 
 if TYPE_CHECKING:
     from .model import Model
@@ -88,10 +89,7 @@ class DateCast(BaseCast):
 
         dt = pendulum.parse(str(value))
 
-        # Check for custom format in config
-        if self.config and self.config.json_schema_extra and "format" in self.config.json_schema_extra:
-            return dt.format(self.config.json_schema_extra["format"])
-
+        # Return the rich object for attribute access
         return dt
 
     def set(self, value):
@@ -154,7 +152,7 @@ class Caster:
             caster = Caster.normalize_type(typ)
             if caster in cast_class_map:
                 casts[field_name] = cast_class_map[caster](config=field_info)
-            elif isinstance(caster, type) and issubclass(caster, Enum):
+            else:
                 casts[field_name] = caster
 
         return casts
@@ -171,7 +169,7 @@ class Caster:
             return "bool"
         if t is dict or t is list:
             return "json"
-        if t is pendulum.DateTime or t is datetime.datetime or t is datetime.date:
+        if t is pendulum.DateTime or t is datetime.datetime or t is datetime.date or t is Carbon:
             return "date"
         if isinstance(t, type):
             if issubclass(t, Enum) or hasattr(t, "get") or hasattr(t, "set"):
