@@ -63,6 +63,7 @@ class BelongsTo(BaseRelationship):
         Returns:
             Model|Collection
         """
+        self.set_keys(self._owner, self._name)
         builder = self.get_builder().with_(eagers)
         if callback:
             callback(builder)

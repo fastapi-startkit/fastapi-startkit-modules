@@ -1,8 +1,9 @@
+import inspect
 import pendulum
 from inflection import singularize
 
 from ..collection import Collection
-from ..models_backup.Pivot import Pivot
+from ..models.Pivot import Pivot
 from .BaseRelationship import BaseRelationship
 
 
@@ -31,10 +32,6 @@ class BelongsToMany(BaseRelationship):
         self.pivot_id = pivot_id
         self.with_fields = with_fields
 
-    def set_keys(self, owner, attribute):
-        self.local_key = self.local_key or "id"
-        self.foreign_key = self.foreign_key or f"{attribute}_id"
-        return self
 
     def apply_query(self, query, owner):
         """Apply the query and return a dictionary to be hydrated.
@@ -167,7 +164,7 @@ class BelongsToMany(BaseRelationship):
             [type]: [description]
         """
         eagers = eagers or []
-        builder = self.get_builder().with_(eagers)
+        builder = self.make_builder(eagers)
 
         if not self._table:
             pivot_tables = [
@@ -239,11 +236,23 @@ class BelongsToMany(BaseRelationship):
             ).get()
 
     def get_related(self, query, relation, eagers=None, callback=None):
+        builder = self.make_builder(eagers)
         final_result = self.make_query(
             query, relation, eagers=eagers, callback=callback
         )
-        builder = self.make_builder(eagers)
 
+        if inspect.isawaitable(final_result):
+            return self._get_related_async(final_result, builder)
+
+        return self._post_process_related(final_result, builder)
+
+    def map_related(self, related_result):
+        return related_result.group_by(f"{self._table}_id")
+
+    async def _get_related_async(self, final_result, builder):
+        return self._post_process_related(await final_result, builder)
+
+    def _post_process_related(self, final_result, builder):
         for model in final_result:
             pivot_data = {
                 self.local_key: getattr(model, f"{self._table}_id"),

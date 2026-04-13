@@ -1,3 +1,4 @@
+import inspect
 from ..collection import Collection
 from ..config import load_config
 from .BaseRelationship import BaseRelationship
@@ -14,8 +15,6 @@ class MorphToMany(BaseRelationship):
             self.morph_id = morph_id
             self.morph_key = morph_key
 
-    def get_builder(self):
-        return self._related_builder
 
     def set_keys(self, owner, attribute):
         self.morph_id = self.morph_id or "record_id"
@@ -77,23 +76,56 @@ class MorphToMany(BaseRelationship):
         Returns:
             Model|Collection
         """
+        self.set_keys(self._owner, self._name)
+
         if isinstance(relation, Collection):
-            relations = Collection()
-            for group, items in relation.group_by(self.morph_key).items():
-                morphed_model = self.morph_map().get(group)
-                relations.merge(
-                    morphed_model.where_in(
-                        f"{morphed_model.get_table_name()}.{morphed_model.get_primary_key()}",
-                        Collection(items)
-                        .pluck(self.morph_id, keep_nulls=False)
-                        .unique(),
-                    ).get()
-                )
-            return relations
+            # We check if we should be async by checking the first morphed model's builder
+            groups = relation.group_by(self.morph_key)
+            if not groups:
+                return Collection()
+            
+            first_group = list(groups.keys())[0]
+            morphed_model = self.morph_map().get(first_group)
+            
+            if morphed_model and morphed_model().get_builder().__class__.__name__ == 'AsyncQueryBuilder':
+                return self._get_related_collection_async(groups)
+            
+            return self._get_related_collection_sync(groups)
         else:
             model = self.morph_map().get(getattr(relation, self.morph_key))
             if model:
                 return model.find([getattr(relation, self.morph_id)])
+    
+    def _get_related_collection_sync(self, groups):
+        relations = Collection()
+        for group, items in groups.items():
+            morphed_model = self.morph_map().get(group)
+            relations.merge(
+                morphed_model.where_in(
+                    f"{morphed_model.get_table_name()}.{morphed_model.get_primary_key()}",
+                    Collection(items)
+                    .pluck(self.morph_id, keep_nulls=False)
+                    .unique(),
+                ).get()
+            )
+        return relations
+
+    async def _get_related_collection_async(self, groups):
+        relations = Collection()
+        for group, items in groups.items():
+            morphed_model = self.morph_map().get(group)
+            result = morphed_model.where_in(
+                f"{morphed_model.get_table_name()}.{morphed_model.get_primary_key()}",
+                Collection(items)
+                .pluck(self.morph_id, keep_nulls=False)
+                .unique(),
+            ).get()
+            
+            if inspect.isawaitable(result):
+                result = await result
+            
+            relations.merge(result)
+        return relations
 
     def register_related(self, key, model, collection):
         morphed_model = self.morph_map().get(getattr(model, self.morph_key))
@@ -106,4 +138,7 @@ class MorphToMany(BaseRelationship):
 
     def morph_map(self):
         from ..models.registry import Registry
-        return Registry.get_morph_map()
+        return Registry.get_models()
+
+    def map_related(self, related_result):
+        return related_result.group_by(self.morph_id)

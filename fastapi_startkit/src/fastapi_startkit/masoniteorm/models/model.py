@@ -15,11 +15,12 @@ from pydantic.fields import FieldInfo
 from ..config import load_config
 from ..query import AsyncQueryBuilder
 from ..collection.Collection import Collection
+from ..scopes.TimeStampsMixin import TimeStampsMixin
 
 T = TypeVar("T", bound="Model")
 
 
-class Model:
+class Model(TimeStampsMixin):
     __dry__ = False
     __table__ = None
     __connection__ = "default"
@@ -62,14 +63,14 @@ class Model:
     """
     __passthrough__ = {
         "add_select",
-        "aggregate", "all", "avg", "between", "bulk_create", "chunk", "count", "decrement", "delete", "distinct", "doesnt_exist", "doesnt_have", "exists", "find_or",
-        "find_or_404", "first_or_fail", "first", "first_where", "first_or_create", "force_update", "from_", "from_raw", "get", "get_table_schema", "group_by_raw", "group_by", "has",
-        "having", "having_raw", "increment", "in_random_order", "join_on", "join", "joins", "last", "left_join", "limit", "lock_for_update", "make_lock", "max", "min",
-        "new_from_builder", "new", "not_between", "offset", "on", "or_where", "or_where_null", "order_by_raw", "order_by", "paginate", "right_join", "select_raw", "select",
-        "set_global_scope", "set_schema", "shared_lock", "simple_paginate", "skip", "statement", "sum", "table_raw", "take", "to_qmark", "to_sql", "truncate", "update", "when",
+        "aggregate", "between", "bulk_create", "chunk", "decrement", "delete", "distinct", "doesnt_have", "find_or",
+        "find_or_404", "first_or_fail", "first_where", "force_update", "from_", "from_raw", "get", "get_table_schema", "group_by_raw", "group_by", "has",
+        "having", "having_raw", "increment", "in_random_order", "join_on", "join", "joins", "last", "left_join", "lock_for_update", "make_lock",
+        "new_from_builder", "new", "not_between", "offset", "or_where", "or_where_null", "order_by_raw", "right_join", "select_raw",
+        "set_global_scope", "set_schema", "shared_lock", "skip", "statement", "table_raw", "take", "to_qmark", "to_sql", "truncate", "update", "when",
         "where_between", "where_column", "where_date", "or_where_doesnt_have", "or_has", "or_where_has", "or_doesnt_have", "or_where_not_exists", "or_where_date", "where_exists",
-        "where_from_builder", "where_has", "where_in", "where_like", "where_not_between", "where_not_in", "where_not_like", "where_not_null", "where_null", "where_raw",
-        "without_global_scopes", "where", "where_doesnt_have", "with_", "with_count", "latest", "oldest", "value"
+        "where_from_builder", "where_in", "where_like", "where_not_between", "where_not_in", "where_not_like", "where_not_null", "where_null", "where_raw",
+        "without_global_scopes", "value"
     }
 
     def boot(self):
@@ -138,6 +139,16 @@ class Model:
     def get_dirty_value(self, attribute: str):
         value = self.__dirty_attributes__[attribute]
         return self.caster.get(attribute, value)
+
+    def delete_attribute(self, attribute):
+        """Remove an attribute from the model's storage."""
+        if attribute in self.__attributes__:
+            del self.__attributes__[attribute]
+        if attribute in self.__original_attributes__:
+            del self.__original_attributes__[attribute]
+        if attribute in self.__dirty_attributes__:
+            del self.__dirty_attributes__[attribute]
+        return self
 
     def get_builder(self):
         if hasattr(self, "builder"):
@@ -260,6 +271,70 @@ class Model:
         return self.__selects__
 
     @classmethod
+    async def all(cls):
+        return await cls().get_builder().all()
+
+    @classmethod
+    def with_(cls, *eagers):
+        return cls().get_builder().with_(*eagers)
+
+    @classmethod
+    def with_count(cls, relationship, callback=None):
+        return cls().get_builder().with_count(relationship, callback)
+
+    @classmethod
+    def latest(cls, column="created_at"):
+        return cls().get_builder().latest(column)
+
+    @classmethod
+    def oldest(cls, column="created_at"):
+        return cls().get_builder().oldest(column)
+
+    @classmethod
+    def where_has(cls, relationship, callback):
+        return cls().get_builder().where_has(relationship, callback)
+
+    @classmethod
+    def where_doesnt_have(cls, relationship, callback):
+        return cls().get_builder().where_doesnt_have(relationship, callback)
+
+    @classmethod
+    async def count(cls, column=None):
+        return await cls().get_builder().count(column)
+
+    @classmethod
+    async def sum(cls, column):
+        return await cls().get_builder().sum(column)
+
+    @classmethod
+    async def avg(cls, column):
+        return await cls().get_builder().avg(column)
+
+    @classmethod
+    async def min(cls, column):
+        return await cls().get_builder().min(column)
+
+    @classmethod
+    async def max(cls, column):
+        return await cls().get_builder().max(column)
+
+    @classmethod
+    async def exists(cls):
+        return await cls().get_builder().exists()
+
+    @classmethod
+    async def doesnt_exist(cls):
+        return await cls().get_builder().doesnt_exist()
+
+    @classmethod
+    async def paginate(cls, per_page, page=1):
+        return await cls().get_builder().paginate(per_page, page)
+
+    @classmethod
+    async def simple_paginate(cls, per_page, page=1):
+        return await cls().get_builder().simple_paginate(per_page, page)
+
+    @classmethod
     async def find(cls: Type[T], record_id: int | str, query=False) -> T:
         return await cls().get_builder().find(record_id, query=query)
 
@@ -303,6 +378,10 @@ class Model:
         if not record:
             return await self.create(total, id_key=cls().get_primary_key())
         return record
+
+    def get_related(self, relation):
+        related = getattr(self.__class__, relation)
+        return related
 
     @classmethod
     def new_collection(cls, items):

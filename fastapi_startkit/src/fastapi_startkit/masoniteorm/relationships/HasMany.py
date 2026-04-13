@@ -22,8 +22,9 @@ class HasMany(BaseRelationship):
         return result
 
     def set_keys(self, owner, attribute):
+        from inflection import singularize
         self.local_key = self.local_key or "id"
-        self.foreign_key = self.foreign_key or f"{attribute}_id"
+        self.foreign_key = self.foreign_key or f"{singularize(owner.get_table_name())}_id"
         return self
 
     def register_related(self, key, model, collection):
@@ -49,6 +50,7 @@ class HasMany(BaseRelationship):
         return related_record
 
     def get_related(self, query, relation, eagers=None, callback=None):
+        self.set_keys(self._owner, self._name)
         eagers = eagers or []
         builder = self.get_builder().with_(eagers)
 

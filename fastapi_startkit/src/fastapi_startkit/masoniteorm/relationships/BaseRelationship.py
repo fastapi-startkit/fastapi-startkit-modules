@@ -7,7 +7,7 @@ class BaseRelationship:
         self._owner = None
         self._model = None
 
-        if callable(fn):
+        if callable(fn) and not isinstance(fn, type):
             self.fn = fn
             self.local_key = local_key
             self.foreign_key = foreign_key
@@ -42,8 +42,6 @@ class BaseRelationship:
 
         return self
 
-    def get_builder(self):
-        return self._related_builder
 
     def __get__(self, instance, owner):
         """
@@ -118,7 +116,30 @@ class BaseRelationship:
 
         return self._model
 
-    def __getattr__(self, attribute):
+    def get_builder(self):
+        # If _related_builder is already set (by __get__ on instance), use it
+        if hasattr(self, "_related_builder") and self._related_builder:
+            return self._related_builder
+            
+        # Otherwise resolve the model and get its builder
+        model = self.resolve_model(self._owner)
+        if not model:
+            # Fallback for polymorphic relationships that don't have a single _model
+            if hasattr(self, "polymorphic_builder"):
+                 return self.polymorphic_builder
+            # Attempt to resolve from name if owner is missing (e.g. dynamically added relationships)
+            return None
+            
+        instance = model()
+        builder = instance.get_builder()
+        self._related_builder = builder
+        return self._related_builder
+
+    def make_builder(self, eagers=None):
+        builder = self.get_builder()
+        if not builder:
+            return None
+        return builder.with_(eagers or [])
         if self.fn:
             relationship = self.fn(self)()
             return getattr(relationship.builder, attribute)

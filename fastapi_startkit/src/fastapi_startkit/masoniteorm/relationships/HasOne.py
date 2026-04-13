@@ -15,8 +15,9 @@ class HasOne(BaseRelationship):
             self.foreign_key = foreign_key
 
     def set_keys(self, owner, attribute):
+        from inflection import singularize
         self.local_key = self.local_key or "id"
-        self.foreign_key = self.foreign_key or f"{attribute}_id"
+        self.foreign_key = self.foreign_key or f"{singularize(owner.get_table_name())}_id"
         return self
 
     def apply_query(self, foreign, owner):
@@ -46,6 +47,7 @@ class HasOne(BaseRelationship):
         Returns:
             Model|Collection
         """
+        self.set_keys(self._owner, self._name)
         builder = self.get_builder().with_(eagers)
 
         if callback:

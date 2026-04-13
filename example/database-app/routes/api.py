@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from starlette.responses import JSONResponse
 
+from app.models import Post
 from app.models.user import User
 from app.models.post import Post
 public = APIRouter()
@@ -23,4 +24,8 @@ async def get_users():
 async def get_posts():
     # Example of fetching posts with relationships
     posts = await Post.with_("author", "tags", "media").get()
-    return posts
+    return JSONResponse([{
+        'id': post.id,
+        'author': post.author.name,
+        'tags': [tag.name for tag in post.tags]
+    } for post in posts])

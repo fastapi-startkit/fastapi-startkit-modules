@@ -355,7 +355,12 @@ class Collection:
 
     def sort(self, key=None):
         if key:
-            self._items.sort(key=lambda x: x[key], reverse=False)
+            self._items.sort(
+                key=lambda x: (
+                    x.get(key) if isinstance(x, dict) else getattr(x, key)
+                ),
+                reverse=False,
+            )
             return self
 
         self._items = sorted(self)
@@ -380,7 +385,10 @@ class Collection:
 
         new_dict = {}
 
-        for k, v in groupby(self._items, key=lambda x: x[key]):
+        for k, v in groupby(
+            self._items,
+            key=lambda x: x.get(key) if isinstance(x, dict) else getattr(x, key),
+        ):
             new_dict.update({k: list(v)})
 
         return Collection(new_dict)
