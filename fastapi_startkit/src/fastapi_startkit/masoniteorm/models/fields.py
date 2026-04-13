@@ -1,0 +1,33 @@
+from pydantic.fields import FieldInfo
+from pydantic import Field as BaseField
+from typing import Any
+
+class FieldDescriptor:
+    """
+    A descriptor that wraps Pydantic's FieldInfo.
+    It allows us to store metadata that the Caster can later discover.
+    """
+    def __init__(self, field_info: FieldInfo):
+        self.field_info = field_info
+        self.name = None
+
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            # When accessed on the class (e.g., User.name), return the FieldInfo
+            return self.field_info
+        
+        # When accessed on the instance (e.g., user.name), retrieve from ORM storage
+        return instance.get_value(self.name)
+
+    def __set__(self, instance, value):
+        # When setting (e.g., user.name = 'Joe'), update ORM storage
+        instance.set_value(self.name, value)
+
+def Field(*args, **kwargs) -> Any:
+    """
+    Factory function that returns a FieldDescriptor wrapping a Pydantic Field.
+    """
+    return FieldDescriptor(BaseField(*args, **kwargs))

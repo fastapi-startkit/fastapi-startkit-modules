@@ -1,8 +1,8 @@
 from fastapi import APIRouter
+from starlette.responses import JSONResponse
+
 from app.models.User import User
 from app.models.Post import Post
-from app.models.Tag import Tag
-
 public = APIRouter()
 
 @public.get("/")
@@ -12,7 +12,11 @@ async def index():
 @public.get("/users")
 async def get_users():
     users = await User.first()
-    return users
+    return JSONResponse({
+        "id": users.id,
+        "name": users.name,
+        "email": users.email,
+    })
 
 @public.get("/posts")
 async def get_posts():
