@@ -4,6 +4,7 @@ from typing import TypeVar, Type
 from inflection import tableize
 
 import logging
+from fastapi_startkit.carbon import Carbon
 
 from pendulum import DateTime
 
@@ -40,8 +41,8 @@ class Model:
     __with__ = ()
     __force_update__ = False
 
-    created_at: DateTime = Field(json_schema_extra={"format": "YYYY-MM-DD HH:mm:ss"})
-    updated_at: DateTime = Field(json_schema_extra={"format": "YYYY-MM-DD HH:mm:ss"})
+    created_at: Carbon = Field(json_schema_extra={"format": "YYYY-MM-DD HH:mm:ss"})
+    updated_at: Carbon = Field(json_schema_extra={"format": "YYYY-MM-DD HH:mm:ss"})
 
     builder: AsyncQueryBuilder
 

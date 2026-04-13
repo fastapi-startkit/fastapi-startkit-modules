@@ -80,13 +80,25 @@ class FloatCast(BaseCast):
 
 
 class DateCast(BaseCast):
-    """Casts a value to a date string"""
+    """Casts a value to a date or datetime"""
 
     def get(self, value):
-        return pendulum.parse(value).to_date_string()
+        if not value:
+            return None
+
+        dt = pendulum.parse(str(value))
+
+        # Check for custom format in config
+        if self.config and self.config.json_schema_extra and "format" in self.config.json_schema_extra:
+            return dt.format(self.config.json_schema_extra["format"])
+
+        return dt
 
     def set(self, value):
-        return pendulum.parse(value).to_date_string()
+        if not value:
+            return None
+
+        return pendulum.parse(str(value)).to_datetime_string()
 
 
 class DecimalCast(BaseCast):
@@ -111,7 +123,7 @@ class Caster:
     def build_casts(model):
         cls = model if isinstance(model, type) else model.__class__
         annotations = get_type_hints(cls)
-        
+
         # Internal map of type to Cast Class
         cast_class_map = {
             "bool": BoolCast,
@@ -123,7 +135,7 @@ class Caster:
         }
 
         from .fields import FieldDescriptor
-        
+
         # 1. Collect all potential fields (annotations + descriptors)
         all_field_names = set(annotations.keys())
         descriptors = {}
@@ -135,33 +147,15 @@ class Caster:
         casts = {}
         for field_name in all_field_names:
             # 2. Get Type Hint and FieldInfo
-            typ = annotations.get(field_name)
+            typ = annotations.get(field_name) or "str"
             descriptor = descriptors.get(field_name) or getattr(cls, field_name, None)
-            
-            field_info = None
-            if isinstance(descriptor, FieldDescriptor):
-                field_info = descriptor.field_info
-            elif isinstance(descriptor, FieldInfo):
-                field_info = descriptor
+            field_info = descriptor.field_info if isinstance(descriptor, FieldDescriptor) else None
 
-            # 3. Resolve Cast Type Identifier or Class
-            cast_id_or_class = "str"
-            if field_info and field_info.json_schema_extra and "cast" in field_info.json_schema_extra:
-                cast_id_or_class = field_info.json_schema_extra["cast"]
-            elif typ:
-                cast_id_or_class = Caster.normalize_type(typ)
-            elif field_info and field_info.default is not ...:
-                cast_id_or_class = Caster.normalize_type(type(field_info.default))
-
-            # 4. Instantiate the Caster
-            if cast_id_or_class in cast_class_map:
-                casts[field_name] = cast_class_map[cast_id_or_class](config=field_info)
-            elif isinstance(cast_id_or_class, type) and issubclass(cast_id_or_class, BaseCast):
-                casts[field_name] = cast_id_or_class(config=field_info)
-            elif isinstance(cast_id_or_class, type) and issubclass(cast_id_or_class, Enum):
-                casts[field_name] = cast_id_or_class
-            else:
-                casts[field_name] = cast_id_or_class # fallback to string or type
+            caster = Caster.normalize_type(typ)
+            if caster in cast_class_map:
+                casts[field_name] = cast_class_map[caster](config=field_info)
+            elif isinstance(caster, type) and issubclass(caster, Enum):
+                casts[field_name] = caster
 
         return casts
 

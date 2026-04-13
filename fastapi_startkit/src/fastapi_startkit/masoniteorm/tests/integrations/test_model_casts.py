@@ -17,6 +17,9 @@ class TestModelCast(TestCase):
         self.assertEqual(user.email, "joe@test.com")
         self.assertEqual(user.password, "password")
 
+        from dumpdie import dd
+        dd(user.created_at)
+
     async def test_can_create_with_dict(self):
         await User.create({"name": "Jane", "username": "jane", "email": "jane@test.com", "password": "password"})
 
