@@ -110,6 +110,9 @@ class BaseConnection:
 
             result = await self._connection.execute(statement, bindings if not "?" in query else None)
 
+            if self.get_transaction_level() <= 0:
+                await self._connection.commit()
+
             if results == 1:
                 row = result.fetchone()
                 return dict(row._mapping) if row else {}

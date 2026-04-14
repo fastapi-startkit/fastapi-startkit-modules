@@ -10,30 +10,28 @@ class PostSeeder(Seeder):
             return
 
         # Create tags
-        tag_python = await Tag.first_or_create({"name": "Python"})
-        tag_fastapi = await Tag.first_or_create({"name": "FastAPI"})
-        tag_orm = await Tag.first_or_create({"name": "ORM"})
+        tag_laravel = await Tag.first_or_create({"name": "laravel"})
+        tag_fastapi = await Tag.first_or_create({"name": "fastapi"})
+        tag_database = await Tag.first_or_create({"name": "database"})
 
         # Create First Blog Post
         post1 = await Post.create(
             user_id=user.id,
-            title="First Blog Post",
-            content="This is the content of the first blog post."
+            title="Laravel and Databases",
+            content="This is a post about Laravel framework and its database capabilities."
         )
+        
         # Attach tags to first post
-        await PostTag.first_or_create({"post_id": post1.id, "tag_id": tag_python.id})
-        await PostTag.first_or_create({"post_id": post1.id, "tag_id": tag_fastapi.id})
-        # await post1.tags.attach(post1, tag_python)
-        # await post1.tags.attach(post1, tag_fastapi)
+        await PostTag.first_or_create({"post_id": post1.id, "tag_id": tag_laravel.id})
+        await PostTag.first_or_create({"post_id": post1.id, "tag_id": tag_database.id})
 
         # Create Second Blog Post
         post2 = await Post.create(
             user_id=user.id,
-            title="Second Blog Post",
-            content="This is the content of the second blog post."
+            title="FastAPI and Databases",
+            content="This is a post about FastAPI performance and database handling."
         )
+        
         # Attach tags to second post
-        await PostTag.first_or_create({"post_id": post2.id, "tag_id": tag_python.id})
         await PostTag.first_or_create({"post_id": post2.id, "tag_id": tag_fastapi.id})
-        # await post2.tags.attach(post2, tag_fastapi)
-        # await post2.tags.attach(post2, tag_orm)
+        await PostTag.first_or_create({"post_id": post2.id, "tag_id": tag_database.id})

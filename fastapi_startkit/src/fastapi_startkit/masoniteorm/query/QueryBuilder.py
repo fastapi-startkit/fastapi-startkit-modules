@@ -27,7 +27,7 @@ from ..expressions.expressions import (
     SubSelectExpression,
     UpdateQueryExpression,
 )
-from ..models_backup import Model
+from ..models.model import Model
 from ..observers import ObservesEvents
 from ..pagination import LengthAwarePaginator, SimplePaginator
 from ..schema import Schema
@@ -465,7 +465,11 @@ class QueryBuilder(ObservesEvents):
         return self
 
     def get_processor(self):
-        return self.connection_class.get_default_post_processor()()
+        if self.connection_class:
+            return self.connection_class.get_default_post_processor()()
+        if hasattr(self, "_connection") and self._connection:
+            return self._connection.get_default_post_processor()()
+        raise AttributeError("QueryBuilder lacks an active connection_class or _connection")
 
     def bulk_create(
         self,

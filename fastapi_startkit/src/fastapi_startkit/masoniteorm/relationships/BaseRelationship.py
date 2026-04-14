@@ -160,5 +160,5 @@ class BaseRelationship:
     def map_related(self, related_result):
         klass = self.__class__.__name__
         raise NotImplementedError(
-            f"{klass} relationship does not implement the 'related_result' method"
+            f"{klass} relationship does not implement the 'map_related' method"
         )

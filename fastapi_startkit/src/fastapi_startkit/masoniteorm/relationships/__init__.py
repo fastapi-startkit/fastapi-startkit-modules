@@ -1,3 +1,11 @@
 from .BaseRelationship import BaseRelationship
 from .BelongsTo import BelongsTo as BelongsTo
 from .BelongsToMany import BelongsToMany as BelongsToMany
+from .HasMany import HasMany as has_many
+from .HasManyThrough import HasManyThrough
+from .HasOne import HasOne
+from .HasOneThrough import HasOneThrough
+from .MorphMany import MorphMany
+from .MorphOne import MorphOne
+from .MorphTo import MorphTo
+from .MorphToMany import MorphToMany
