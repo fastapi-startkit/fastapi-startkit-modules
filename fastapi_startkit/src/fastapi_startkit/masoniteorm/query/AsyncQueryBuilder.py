@@ -353,36 +353,3 @@ class AsyncQueryBuilder(QueryBuilder):
             return Collection(result) if result else Collection([])
         else:
             return result or None
-
-    async def _register_relationships_to_model(
-        self, related_result, hydrated_model, relation_key, related
-    ):
-        """Register the relationship to the model.
-
-        Args:
-            related_result (Model|Collection): Will be the related result based on the type of relationship.
-            hydrated_model (Model|Collection): If a collection we will need to loop through the collection of models
-                                                and register each one individually. Else we can just load the
-                                                related_result into the hydrated_models
-            relation_key (string): A key to bind the relationship with. Defaults to None.
-
-        Returns:
-            self
-        """
-        if isinstance(hydrated_model, Collection):
-            map_related = self._map_related(related_result, related)
-            if inspect.isawaitable(map_related):
-                map_related = await map_related
-
-            for model in hydrated_model:
-                if isinstance(related_result, Collection):
-                    related.register_related(relation_key, model, map_related)
-                else:
-                    # Single relationship (BelongsTo, HasOne, etc)
-                    if map_related:
-                        related.register_related(relation_key, model, map_related)
-                    else:
-                        model.add_relation({relation_key: None})
-        else:
-            hydrated_model.add_relation({relation_key: related_result or None})
-        return self

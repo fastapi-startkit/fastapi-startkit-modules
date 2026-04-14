@@ -2103,6 +2103,8 @@ class QueryBuilder(ObservesEvents):
                 else:
                     model.add_relation({relation_key: map_related or None})
         else:
+            from dumpdie import dd
+            dd(hydrated_model)
             hydrated_model.add_relation({relation_key: related_result or None})
         return self
 
