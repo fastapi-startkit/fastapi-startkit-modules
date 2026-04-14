@@ -23,9 +23,9 @@ async def get_users():
 @public.get("/posts")
 async def get_posts():
     # Example of fetching posts with relationships
-    posts = await Post.with_("author", "tags", "media").get()
+    posts = await Post.with_("author").get()
     return JSONResponse([{
         'id': post.id,
         'author': post.author.name,
-        'tags': [tag.name for tag in post.tags]
+        # 'tags': [tag.name for tag in post.tags]
     } for post in posts])

@@ -1,12 +1,19 @@
 from ..collection import Collection
-from .BaseRelationship import BaseRelationship
+from .BaseRelation import BaseRelation
 
 
-class BelongsTo(BaseRelationship):
+class BelongsTo(BaseRelation):
     """Belongs To Relationship Class."""
 
-    def __init__(self, fn=None, local_key=None, foreign_key=None):
-        super().__init__(fn, local_key, foreign_key)
+    def __init__(self, fn, local_key=None, foreign_key=None):
+        if isinstance(fn, str):
+            self.fn = None
+            self.local_key = fn or "id"
+            self.foreign_key = local_key
+        else:
+            self.fn = fn
+            self.local_key = local_key or "id"
+            self.foreign_key = foreign_key
 
     def set_keys(self, owner, attribute):
         self.local_key = self.local_key or f"{attribute}_id"
@@ -63,7 +70,6 @@ class BelongsTo(BaseRelationship):
         Returns:
             Model|Collection
         """
-        self.set_keys(self._owner, self._name)
         builder = self.get_builder().with_(eagers)
         if callback:
             callback(builder)
@@ -92,12 +98,9 @@ class BelongsTo(BaseRelationship):
         foreign_key_value = getattr(related_record, self.foreign_key)
         if not current_model.is_created():
             current_model.fill({self.local_key: foreign_key_value})
-            return current_model.create(
-                current_model.all_attributes(), cast=True
-            )
+            return current_model.create(current_model.all_attributes(), cast=True)
 
-        current_model.update({self.local_key: foreign_key_value})
-        return current_model
+        return current_model.update({self.local_key: foreign_key_value})
 
     def detach(self, current_model, related_record):
         return current_model.update({self.local_key: None})
@@ -105,14 +108,8 @@ class BelongsTo(BaseRelationship):
     def relate(self, related_record):
         return (
             self.get_builder()
-            .where(
-                self.foreign_key, related_record.__attributes__[self.local_key]
-            )
+            .where(self.foreign_key, related_record.__attributes__[self.local_key])
             ._set_creates_related(
-                {
-                    self.foreign_key: related_record.__attributes__[
-                        self.local_key
-                    ]
-                }
+                {self.foreign_key: related_record.__attributes__[self.local_key]}
             )
         )
