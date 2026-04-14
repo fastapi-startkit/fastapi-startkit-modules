@@ -1,4 +1,5 @@
 from .BelongsTo import BelongsTo as belongs_to, BelongsTo
+from .BelongsToRelation import BelongsToRelation
 from .BelongsToMany import BelongsToMany as belongs_to_many, BelongsToMany
 from .HasMany import HasMany as has_many, HasMany
 from .HasManyThrough import HasManyThrough as has_many_through, HasManyThrough

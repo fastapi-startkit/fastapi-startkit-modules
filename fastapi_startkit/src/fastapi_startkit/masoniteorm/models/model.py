@@ -10,7 +10,7 @@ from pendulum import DateTime
 
 from .caster import Caster
 from .fields import Field
-from .registry import Registry
+from fastapi_startkit.masoniteorm.models.registry import Registry
 from pydantic.fields import FieldInfo
 from ..config import load_config
 from ..query import AsyncQueryBuilder
@@ -380,7 +380,7 @@ class Model(TimeStampsMixin):
         return record
 
     def get_related(self, relation):
-        related = getattr(self.__class__, relation)
+        related = self.__class__.__dict__.get(relation)
         return related
 
     @classmethod

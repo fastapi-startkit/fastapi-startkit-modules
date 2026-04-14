@@ -1,4 +1,5 @@
 import inspect
+from dumpdie import dd
 from fastapi_startkit.masoniteorm.exceptions import InvalidArgument
 from fastapi_startkit.masoniteorm.query import QueryBuilder
 from ..expressions.expressions import UpdateQueryExpression
@@ -282,15 +283,10 @@ class AsyncQueryBuilder(QueryBuilder):
         if self._connection:
             return self._connection
 
-        self._connection = self.connection_class(
-            name=self.connection,
-            full_details=self.get_connection_information().get("full_details"),
-            session_factory=self._resolver.get_session_factory(self.connection)
-        ).set_schema(self._schema)
-
-        await self._connection.make_connection()
+        self._connection = await self._db_manager.new_connection(self.connection_name)
 
         return self._connection
+
     async def prepare_result(self, result, collection=False):
         if self._model and result:
             # eager load here
@@ -337,12 +333,9 @@ class AsyncQueryBuilder(QueryBuilder):
                             else:
                                 related = self._model.get_related(eager)
 
-                            result_set = related.get_related(
+                            result_set = await related.get_related(
                                 self, hydrated_model
                             )
-
-                            if inspect.isawaitable(result_set):
-                                result_set = await result_set
 
                             await self._register_relationships_to_model(
                                 result_set,
@@ -380,7 +373,7 @@ class AsyncQueryBuilder(QueryBuilder):
             map_related = self._map_related(related_result, related)
             if inspect.isawaitable(map_related):
                 map_related = await map_related
-            
+
             for model in hydrated_model:
                 if isinstance(related_result, Collection):
                     related.register_related(relation_key, model, map_related)

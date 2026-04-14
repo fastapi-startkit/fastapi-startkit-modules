@@ -3,8 +3,9 @@ import pendulum
 from inflection import singularize
 
 from ..collection import Collection
-from ..models.Pivot import Pivot
+from ..models.registry import Registry
 from .BaseRelationship import BaseRelationship
+from fastapi_startkit.masoniteorm.models.pivot import Pivot
 
 
 class BelongsToMany(BaseRelationship):
@@ -283,7 +284,7 @@ class BelongsToMany(BaseRelationship):
             model.__original_attributes__.update(
                 {
                     self._as: (
-                        Pivot.on(builder.connection)
+                        Pivot.on(builder.connection_name)
                         .table(self._table)
                         .hydrate(pivot_data)
                         .activate_timestamps(self.with_timestamps)

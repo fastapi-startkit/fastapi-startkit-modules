@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi_startkit.masoniteorm.connections import ConnectionResolver
+from fastapi_startkit.masoniteorm.connections_backup import ConnectionResolver
 
 DATABASES = {
     "default": "postgres",

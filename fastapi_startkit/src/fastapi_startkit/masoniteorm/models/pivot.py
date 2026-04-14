@@ -1,43 +1,5 @@
-class Registry:
-    _models: dict[str, type] = {}
-    _morph_map: dict[str, type] = {}
-    _reverse_map: dict[type, str] = {}
+from .model import Model
 
-    @classmethod
-    def register(cls, model: type):
-        name = model.__name__
-        morph_name = model.get_morph_class() if hasattr(model, "get_morph_class") else name
 
-        cls._models[name] = model
-
-        # priority is given to morph_name for resolution
-        if morph_name not in cls._morph_map:
-            cls._morph_map[morph_name] = model
-            cls._reverse_map[model] = morph_name
-
-        return model
-
-    @classmethod
-    def morph_map(cls, mapping: dict[str, type]):
-        for alias, model in mapping.items():
-            cls._morph_map[alias] = model
-            cls._reverse_map[model] = alias  # override reverse lookup
-
-    @classmethod
-    def get_morph_map(cls) -> dict[str, type]:
-        return cls._morph_map
-
-    @classmethod
-    def resolve(cls, name: str) -> type:
-        # priority: morph_map > default registry
-        if name in cls._morph_map:
-            return cls._morph_map[name]
-
-        if name in cls._models:
-            return cls._models[name]
-
-        raise ValueError(f"Model '{name}' not found in registry.")
-
-    @classmethod
-    def get_morph_name(cls, model: type) -> str:
-        return cls._reverse_map.get(model, model.__name__)
+class Pivot(Model):
+    __primary_key__ = "id"

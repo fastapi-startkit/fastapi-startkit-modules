@@ -87,11 +87,11 @@ class ConnectionResolver:
         if name in self._sticky_sessions:
             # Return a mock factory that returns the sticky session
             session = self._sticky_sessions[name]
-            
+
             # Since async_sessionmaker is used as Session(), we return a callable
             async def factory():
                 return session
-            
+
             return factory
 
         if name in self._sessions:
@@ -104,7 +104,6 @@ class ConnectionResolver:
             expire_on_commit=False,
         )
 
-        self._sessions[name] = Session
         return Session
 
     # -------------------------
@@ -168,6 +167,9 @@ class ConnectionResolver:
 
         if name in self._sessions:
             del self._sessions[name]
+
+        from dumpdie import dd
+        dd(self._engines)
 
     # compatibility methods for QueryBuilder
     def get_query_builder(self, connection="default"):

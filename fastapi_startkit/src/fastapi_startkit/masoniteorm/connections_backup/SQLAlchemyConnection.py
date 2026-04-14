@@ -48,6 +48,8 @@ class SQLAlchemyConnection(BaseConnection):
         return self
 
     async def query(self, query, bindings=(), results="*"):
+        from dumpdie import dd
+        dd(self._session)
         """Execute a query using SQLAlchemy session."""
         if not self._session:
             self._session = self.session_factory()
