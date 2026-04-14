@@ -5,24 +5,10 @@ import os
 
 from dotenv import load_dotenv
 
-from fastapi_startkit.masoniteorm.connections import ConnectionResolver
+from fastapi_startkit.masoniteorm.connections.manager import DBManager
 
-"""
-|--------------------------------------------------------------------------
-| Load Environment Variables
-|--------------------------------------------------------------------------
-|
-| Loads in the environment variables when this page is imported.
-|
-"""
 
 load_dotenv(".env")
-
-
-"""
-The connections here don't determine the database but determine the "connection".
-They can be named whatever you want.
-"""
 
 
 DATABASES = {
@@ -119,7 +105,7 @@ DATABASES = {
     },
 }
 
-DB = ConnectionResolver(connection_details=DATABASES)
+DB = DBManager(connection_details=DATABASES)
 
 logger = logging.getLogger("masoniteorm.connection.queries")
 logger.setLevel(logging.DEBUG)
@@ -131,26 +117,3 @@ file_handler = logging.FileHandler("queries.log")
 
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
-
-
-# DB = QueryBuilder(connection_details=DATABASES)
-
-# DATABASES = {
-#     'default': os.environ.get('DB_DRIVER'),
-#     'sqlite': {
-#         'driver': 'sqlite',
-#         'database': os.environ.get('DB_DATABASE')
-#     },
-#     'postgres': {
-#         'driver': 'postgres',
-#         'host': env('DB_HOST'),
-#         'database': env('DB_DATABASE'),
-#         'port': env('DB_PORT'),
-#         'user': env('DB_USERNAME'),
-#         'password': env('DB_PASSWORD'),
-#         'log_queries': env('DB_LOG'),
-#     },
-# }
-
-# DB = DatabaseManager(DATABASES)
-# Model.set_connection_resolver(DB)

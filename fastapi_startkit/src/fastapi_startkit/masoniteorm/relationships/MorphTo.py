@@ -87,7 +87,7 @@ class MorphTo(BaseRelationship):
                         Collection(items)
                         .pluck(self.morph_id, keep_nulls=False)
                         .unique(),
-                    ).get()
+                        ).get()
                 )
             return relations
         else:
@@ -105,8 +105,7 @@ class MorphTo(BaseRelationship):
         model.add_relation({key: related})
 
     def morph_map(self):
-        from ..models.registry import Registry
-        return Registry.get_morph_map()
+        return load_config().DB._morph_map
 
     def map_related(self, related_result):
         return related_result

@@ -803,15 +803,29 @@ class Blueprint:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         if self._dry:
             return
-        return self.connection.query(self.to_sql(), ())
+
+        # TODO: review
+        sql = self.to_sql()
+        if isinstance(sql, list):
+            for q in sql:
+                self.connection.query(q, ())
+            return
+        return self.connection.query(sql, ())
 
     async def __aenter__(self):
         return self
 
+    # TODO: review
     async def __aexit__(self, exc_type, exc_value, exc_traceback):
         if self._dry:
             return
-        return await self.connection.query(self.to_sql(), ())
+
+        sql = self.to_sql()
+        if isinstance(sql, list):
+            for q in sql:
+                await self.connection.query(q, ())
+            return
+        return await self.connection.query(sql, ())
 
     def nullable(self):
         """Sets the last columns created as nullable

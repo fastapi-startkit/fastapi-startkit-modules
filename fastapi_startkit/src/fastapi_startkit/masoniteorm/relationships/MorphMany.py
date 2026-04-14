@@ -92,8 +92,7 @@ class MorphMany(BaseRelationship):
                     ).where_in(
                         self.morph_id,
                         relation.pluck(
-                            relation.first().get_primary_key(),
-                            keep_nulls=False,
+                            relation.first().get_primary_key(), keep_nulls=False
                         ).unique(),
                     )
                 ).get()
@@ -116,9 +115,9 @@ class MorphMany(BaseRelationship):
 
             if callback:
                 return callback(
-                    self.polymorphic_builder.where(
-                        self.morph_key, record_type
-                    ).where(self.morph_id, relation.get_primary_key_value())
+                    self.polymorphic_builder.where(self.morph_key, record_type).where(
+                        self.morph_id, relation.get_primary_key_value()
+                    )
                 ).get()
             return (
                 self.polymorphic_builder.where(self.morph_key, record_type)
@@ -135,8 +134,7 @@ class MorphMany(BaseRelationship):
         model.add_relation({key: related})
 
     def morph_map(self):
-        from ..models.registry import Registry
-        return Registry.get_morph_map()
+        return load_config().DB._morph_map
 
     def get_record_key_lookup(self, relation):
         record_type = None

@@ -1,23 +1,17 @@
-import importlib
-from typing import get_type_hints
+from fastapi_startkit.masoniteorm.models import registry
+from typing import Callable
+
 
 class BaseRelationship:
-    def __init__(self, fn=None, local_key=None, foreign_key=None):
-        self._name = None
-        self._owner = None
-        self._model = None
+    def __init__(self, fn: Callable | str, local_key=None, foreign_key=None):
+        # If user provides string instead of Model, we will resolve it here
+        if isinstance(fn, str):
+            self.fn = lambda x: registry.Registry.resolve(fn)
 
-        if callable(fn):
-            self.fn = fn
-            self.local_key = local_key
-            self.foreign_key = foreign_key
-        else:
-            self.fn = None
-            self._model = fn
-            self.local_key = local_key
-            self.foreign_key = foreign_key
+        self.local_key = local_key
+        self.foreign_key = foreign_key
 
-    def __set_name__(self, owner, name):
+    def __set_name__(self, cls, name):
         """This method is called right after the decorator is registered.
 
         At this point we finally have access to the model cls
@@ -25,8 +19,7 @@ class BaseRelationship:
         Arguments:
             name {object} -- The model class.
         """
-        self._name = name
-        self._owner = owner
+        pass
 
     def __call__(self, fn=None, *args, **kwargs):
         """This method is called when the decorator contains arguments.
@@ -58,76 +51,23 @@ class BaseRelationship:
         Returns:
             object -- Either returns a builder or a hydrated model.
         """
-        if instance is None:
-            return self
 
-        attribute = self._name or (self.fn.__name__ if self.fn else None)
-        if not attribute:
-            raise AttributeError("Relationship attribute name could not be determined")
-
-        if attribute in instance._relationships:
-            return instance._relationships[attribute]
-
+        attribute = self.fn.__name__
+        relationship = self.fn(instance)()
         self.set_keys(instance, attribute)
-
-        if self.fn:
-            relationship = self.fn(instance)()
-            builder = relationship.builder
-        else:
-            model = self.resolve_model(owner)
-            if not model:
-                raise ValueError(f"Could not resolve related model for relationship '{attribute}'")
-            builder = model().get_builder()
-
-        self._related_builder = builder
+        self._related_builder = relationship.builder
 
         if not instance.is_loaded():
             return self
 
+        if attribute in instance._relationships:
+            return instance._relationships[attribute]
+
         return self.apply_query(self._related_builder, instance)
 
-    def resolve_model(self, owner):
-        if self._model and not isinstance(self._model, str):
-            return self._model
-
-        # Try to infer from type hints if _model is not set
-        if not self._model:
-            try:
-                hints = get_type_hints(owner)
-                hint = hints.get(self._name)
-                if hint:
-                    self._model = hint
-            except Exception:
-                pass
-
-        # If it's a string, attempt to resolve via Registry
-        if isinstance(self._model, str):
-            from ..models.registry import Registry
-            try:
-                self._model = Registry.resolve(self._model)
-                return self._model
-            except ValueError:
-                pass
-
-            # Fallback to module lookup if registry fails
-            try:
-                module = importlib.import_module(owner.__module__)
-                self._model = getattr(module, self._model, None)
-            except (ImportError, AttributeError):
-                pass
-
-        return self._model
-
     def __getattr__(self, attribute):
-        if self.fn:
-            relationship = self.fn(self)()
-            return getattr(relationship.builder, attribute)
-        
-        model = self.resolve_model(self._owner)
-        if model:
-            return getattr(model().get_builder(), attribute)
-        
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attribute}'")
+        relationship = self.fn(self)()
+        return relationship.get_builder()
 
     def apply_query(self, foreign, owner):
         """Return a dictionary to hydrate the model with
@@ -220,5 +160,5 @@ class BaseRelationship:
     def map_related(self, related_result):
         klass = self.__class__.__name__
         raise NotImplementedError(
-            f"{klass} relationship does not implement the 'related_result' method"
+            f"{klass} relationship does not implement the 'map_related' method"
         )

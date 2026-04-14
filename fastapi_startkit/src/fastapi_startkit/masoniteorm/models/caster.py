@@ -123,6 +123,9 @@ class Caster:
         from .registry import Registry
         annotations = get_type_hints(cls, globalns=Registry._models)
 
+        # Ignore the builder
+        annotations = {k:v for k, v in annotations.items() if k != "builder"}
+
         # Internal map of type to Cast Class
         cast_class_map = {
             "bool": BoolCast,
@@ -147,7 +150,7 @@ class Caster:
         for field_name in all_field_names:
             # 2. Get Type Hint and FieldInfo
             typ = annotations.get(field_name) or "str"
-            descriptor = descriptors.get(field_name) or getattr(cls, field_name, None)
+            descriptor = descriptors.get(field_name, None)
             field_info = descriptor.field_info if isinstance(descriptor, FieldDescriptor) else None
 
             caster = Caster.normalize_type(typ)

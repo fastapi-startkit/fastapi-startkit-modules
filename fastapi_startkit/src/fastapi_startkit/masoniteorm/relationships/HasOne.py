@@ -1,5 +1,6 @@
 from ..collection import Collection
 from .BaseRelationship import BaseRelationship
+from fastapi_startkit.masoniteorm.models import registry
 
 
 class HasOne(BaseRelationship):
@@ -7,12 +8,10 @@ class HasOne(BaseRelationship):
 
     def __init__(self, fn, foreign_key=None, local_key=None):
         if isinstance(fn, str):
-            self.foreign_key = fn
-            self.local_key = foreign_key or "id"
-        else:
-            self.fn = fn
-            self.local_key = local_key or "id"
-            self.foreign_key = foreign_key
+            self.fn = lambda x: registry.Registry.resolve(fn)
+
+        self.local_key = local_key or "id"
+        self.foreign_key = foreign_key
 
     def set_keys(self, owner, attribute):
         self.local_key = self.local_key or "id"
@@ -100,12 +99,9 @@ class HasOne(BaseRelationship):
         local_key_value = getattr(current_model, self.local_key)
         if not related_record.is_created():
             related_record.fill({self.foreign_key: local_key_value})
-            return related_record.create(
-                related_record.all_attributes(), cast=True
-            )
+            return related_record.create(related_record.all_attributes(), cast=True)
 
-        related_record.update({self.foreign_key: local_key_value})
-        return related_record
+        return related_record.update({self.foreign_key: local_key_value})
 
     def detach(self, current_model, related_record):
         return related_record.update({self.foreign_key: None})

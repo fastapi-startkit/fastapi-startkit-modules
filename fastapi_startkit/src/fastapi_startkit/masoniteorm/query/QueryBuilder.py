@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from ..collection.Collection import Collection
 from ..config import load_config
-from ..connections import ConnectionResolver, SQLAlchemyConnection
+from ..connections.manager import DBManager
 from ..exceptions import (
     HTTP404,
     ConnectionNotRegistered,
@@ -27,7 +27,9 @@ from ..expressions.expressions import (
     SubSelectExpression,
     UpdateQueryExpression,
 )
-from ..models_backup import Model
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..models.model import Model
 from ..observers import ObservesEvents
 from ..pagination import LengthAwarePaginator, SimplePaginator
 from ..schema import Schema
@@ -66,11 +68,6 @@ class QueryBuilder(ObservesEvents):
         self.table(table)
         self.dry = dry
         self._creates_related = {}
-        self.connection = connection
-        self.connection_class = connection_class
-        self._connection = None
-        self._connection_details = connection_details or {}
-        self._connection_driver = connection_driver
         self._scopes = scopes or {}
         self.lock = False
         self._schema = schema
@@ -107,11 +104,18 @@ class QueryBuilder(ObservesEvents):
         self._model = model
         self.set_action("select")
 
+
+        self.connection_name = connection
+        self.connection_class = connection_class
+        self._connection = None
+        self._connection_details = connection_details or {}
+        self._connection_driver = connection_driver
+
         if not self._connection_details:
-            self._resolver = load_config(config_path=self.config_path).DB
-            self._connection_details = self._resolver.get_connection_details()
+            self._db_manager = load_config(config_path=self.config_path).DB
+            self._connection_details = self._db_manager.get_connection_details()
         else:
-            self._resolver = ConnectionResolver(connection_details=self._connection_details)
+            self._db_manager = DBManager(connection_details=self._connection_details)
 
         self.on(connection)
 
@@ -156,28 +160,28 @@ class QueryBuilder(ObservesEvents):
 
     def get_connection_information(self):
         return {
-            "host": self._connection_details.get(self.connection, {}).get(
+            "host": self._connection_details.get(self.connection_name, {}).get(
                 "host"
             ),
-            "database": self._connection_details.get(self.connection, {}).get(
+            "database": self._connection_details.get(self.connection_name, {}).get(
                 "database"
             ),
-            "user": self._connection_details.get(self.connection, {}).get(
+            "user": self._connection_details.get(self.connection_name, {}).get(
                 "user"
             ),
-            "port": self._connection_details.get(self.connection, {}).get(
+            "port": self._connection_details.get(self.connection_name, {}).get(
                 "port"
             ),
-            "password": self._connection_details.get(self.connection, {}).get(
+            "password": self._connection_details.get(self.connection_name, {}).get(
                 "password"
             ),
-            "prefix": self._connection_details.get(self.connection, {}).get(
+            "prefix": self._connection_details.get(self.connection_name, {}).get(
                 "prefix"
             ),
-            "options": self._connection_details.get(self.connection, {}).get(
+            "options": self._connection_details.get(self.connection_name, {}).get(
                 "options", {}
             ),
-            "full_details": self._connection_details.get(self.connection, {}),
+            "full_details": self._connection_details.get(self.connection_name, {}),
         }
 
     def table(self, table, raw=False):
@@ -402,37 +406,12 @@ class QueryBuilder(ObservesEvents):
 
     def on(self, connection):
         if connection == "default":
-            self.connection = self._connection_details.get("default")
+            self.connection_name = self._connection_details.get("default")
         else:
-            self.connection = connection
+            self.connection_name = connection
 
-        if self.connection not in self._connection_details:
-            raise ConnectionNotRegistered(
-                f"Could not find the '{self.connection}' connection details"
-            )
-
-        self._connection_driver = self._connection_details.get(
-            self.connection
-        ).get("driver")
-
-        from ..connections import (
-            SQLAlchemyConnection,
-            SQLiteSQLAlchemyConnection,
-            PostgresSQLAlchemyConnection,
-            MySQLSQLAlchemyConnection,
-            MSSQLSQLAlchemyConnection
-        )
-
-        DRIVERS = {
-            "sqlite": SQLiteSQLAlchemyConnection,
-            "postgres": PostgresSQLAlchemyConnection,
-            "postgresql": PostgresSQLAlchemyConnection,
-            "mysql": MySQLSQLAlchemyConnection,
-            "mssql": MSSQLSQLAlchemyConnection,
-        }
-
-        self.connection_class = DRIVERS.get(self._connection_driver, SQLAlchemyConnection)
-        self.grammar = self.connection_class.get_default_query_grammar()
+        conn = self._db_manager.connection(self.connection_name)
+        self.grammar = conn.get_default_query_grammar()
 
         return self
 
@@ -487,8 +466,13 @@ class QueryBuilder(ObservesEvents):
         self._columns += (SelectExpression(query, raw=True),)
         return self
 
+    # TODO: review
     def get_processor(self):
-        return self.connection_class.get_default_post_processor()()
+        if self.connection_class:
+            return self.connection_class.get_default_post_processor()()
+        if hasattr(self, "_connection") and self._connection:
+            return self._connection.get_default_post_processor()()
+        raise AttributeError("QueryBuilder lacks an active connection_class or _connection")
 
     def bulk_create(
         self,
@@ -497,7 +481,7 @@ class QueryBuilder(ObservesEvents):
         cast: bool = True,
     ):
         self.set_action("bulk_create")
-        model: Model = None
+        model: "Model" = None
 
         if self._model:
             model = self._model
@@ -1539,7 +1523,7 @@ class QueryBuilder(ObservesEvents):
         Returns:
             self
         """
-        model: Model = None
+        model: "Model" = None
 
         additional = {}
 
@@ -2088,8 +2072,8 @@ class QueryBuilder(ObservesEvents):
 
                             self._register_relationships_to_model(
                                 related,
-                                result_set,
-                                hydrated_model,
+                                related_result=result_set,
+                                hydrated_model=hydrated_model,
                                 relation_key=eager,
                             )
 
@@ -2103,7 +2087,7 @@ class QueryBuilder(ObservesEvents):
         else:
             return result or None
 
-    def _register_relationships_to_model(
+    async def _register_relationships_to_model(
         self, related, related_result, hydrated_model, relation_key
     ):
         """Takes a related result and a hydrated model and registers them to eachother using the relation key.
@@ -2165,13 +2149,7 @@ class QueryBuilder(ObservesEvents):
         if self._connection:
             return self._connection
 
-        self._connection = (
-            self.connection_class(
-                **self.get_connection_information(), name=self.connection
-            )
-            .set_schema(self._schema)
-            .make_connection()
-        )
+        self._connection = self._db_manager.connection(self.connection_name)
         return self._connection
 
     def get_connection(self):
@@ -2307,7 +2285,7 @@ class QueryBuilder(ObservesEvents):
         builder = QueryBuilder(
             grammar=self.grammar,
             connection_class=self.connection_class,
-            connection=self.connection,
+            connection=self.connection_name,
             connection_driver=self._connection_driver,
             model=self._model,
         )
@@ -2439,7 +2417,7 @@ class QueryBuilder(ObservesEvents):
         builder = QueryBuilder(
             grammar=self.grammar,
             connection_class=self.connection_class,
-            connection=self.connection,
+            connection=self.connection_name,
             connection_driver=self._connection_driver,
         )
 
@@ -2467,7 +2445,7 @@ class QueryBuilder(ObservesEvents):
 
     def get_schema(self):
         return Schema(
-            connection=self.connection,
+            connection=self.connection_name,
             connection_details=self._connection_details,
         )
 

@@ -1,6 +1,8 @@
+import inspect
 from fastapi_startkit.masoniteorm.exceptions import InvalidArgument
 from fastapi_startkit.masoniteorm.query import QueryBuilder
 from ..expressions.expressions import UpdateQueryExpression
+from ..collection.Collection import Collection
 
 
 class AsyncQueryBuilder(QueryBuilder):
@@ -19,7 +21,7 @@ class AsyncQueryBuilder(QueryBuilder):
             results=1
         )
 
-        return self.prepare_result(result)
+        return await self.prepare_result(result)
 
     async def find(self, record_id: str | int, column=None, query=False):
         if not column:
@@ -44,7 +46,7 @@ class AsyncQueryBuilder(QueryBuilder):
         self.select(*selects)
         result = await (await self.new_connection()).query(self.to_qmark(), self._bindings)
 
-        return self.prepare_result(result, collection=True)
+        return await self.prepare_result(result, collection=True)
 
     async def all(self, selects=None, query=False):
         if selects is None:
@@ -58,13 +60,13 @@ class AsyncQueryBuilder(QueryBuilder):
             await (await self.new_connection()).query(self.to_qmark(), self._bindings) or []
         )
 
-        return self.prepare_result(result, collection=True)
+        return await self.prepare_result(result, collection=True)
 
     async def statement(self, query, bindings=None):
         if bindings is None:
             bindings = []
         result = await (await self.new_connection()).query(query, bindings)
-        return self.prepare_result(result)
+        return await self.prepare_result(result)
 
     async def create(
         self,
@@ -268,7 +270,7 @@ class AsyncQueryBuilder(QueryBuilder):
         async for result in chunk_connection.select_many(
             self.to_sql(), (), chunk_amount
         ):
-            yield self.prepare_result(result)
+            yield await self.prepare_result(result)
 
     async def exists(self):
         if await self.first():
@@ -280,12 +282,73 @@ class AsyncQueryBuilder(QueryBuilder):
         if self._connection:
             return self._connection
 
-        self._connection = self.connection_class(
-            name=self.connection,
-            full_details=self.get_connection_information().get("full_details"),
-            session_factory=self._resolver.get_session_factory(self.connection)
-        ).set_schema(self._schema)
-
-        await self._connection.make_connection()
+        self._connection = await self._db_manager.new_connection(self.connection_name)
 
         return self._connection
+
+    async def prepare_result(self, result, collection=False):
+        if self._model and result:
+            # eager load here
+            hydrated_model = self._model.hydrate(result)
+            if (
+                self._eager_relation.eagers
+                or self._eager_relation.nested_eagers
+                or self._eager_relation.callback_eagers
+            ) and hydrated_model:
+                for eager_load in self._eager_relation.get_eagers():
+                    if isinstance(eager_load, dict):
+                        # Nested
+                        for relation, eagers in eager_load.items():
+                            callback = None
+                            if inspect.isclass(self._model):
+                                related = getattr(self._model, relation)
+                            elif callable(eagers):
+                                related = getattr(self._model, relation)
+                                callback = eagers
+                            else:
+                                related = self._model.get_related(relation)
+
+                            result_set = related.get_related(
+                                self,
+                                hydrated_model,
+                                eagers=eagers,
+                                callback=callback,
+                            )
+
+                            if inspect.isawaitable(result_set):
+                                result_set = await result_set
+
+                            await self._register_relationships_to_model(
+                                result_set,
+                                hydrated_model,
+                                relation,
+                                related,
+                            )
+                    else:
+                        # Not Nested
+                        for eager in eager_load:
+                            if inspect.isclass(self._model):
+                                related = getattr(self._model, eager)
+                            else:
+                                related = self._model.get_related(eager)
+
+                            result_set = await related.get_related(
+                                self, hydrated_model
+                            )
+
+                            await self._register_relationships_to_model(
+                                related_result=result_set,
+                                hydrated_model=hydrated_model,
+                                relation_key= eager,
+                                related=related,
+                            )
+
+            if collection:
+                return hydrated_model if result else Collection([])
+            else:
+                return hydrated_model if result else None
+
+        if collection:
+            return Collection(result) if result else Collection([])
+        else:
+            return result or None
