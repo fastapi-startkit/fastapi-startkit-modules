@@ -102,7 +102,7 @@ class Schema:
                 f"Could not find the '{connection_key}' connection details"
             )
 
-        self.connection_class = resolver.connection_factory.make(
+        self.connection_class = resolver._drivers.get(
             self._connection_driver
         )
 
@@ -215,11 +215,13 @@ class Schema:
         if self._dry:
             return
 
-        self._connection = (
-            await self.connection_class(**self.get_connection_information())
-            .set_schema(self.schema)
-            .make_connection()
-        )
+        # TODO: review
+        if not self._connection:
+            connection_details = self.get_connection_information().get("full_details")
+            self._connection = self.connection_class(connection_details=connection_details, name=self.connection)
+            if hasattr(self._connection, "set_schema"):
+                self._connection.set_schema(self.schema)
+            await self._connection.make_connection()
 
         return self._connection
 

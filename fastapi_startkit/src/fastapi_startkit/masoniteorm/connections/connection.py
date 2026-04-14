@@ -22,6 +22,10 @@ class BaseConnection:
         """Should be implemented by the driver subclass."""
         raise NotImplementedError("Drivers must implement get_connection_url()")
 
+    def set_schema(self, schema):
+        self.schema = schema
+        return self
+
     async def make_connection(self):
         """Initializes the async engine and acquires a connection from the pool."""
         if not self._engine:

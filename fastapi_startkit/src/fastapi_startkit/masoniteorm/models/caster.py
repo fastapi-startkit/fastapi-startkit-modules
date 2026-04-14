@@ -150,9 +150,6 @@ class Caster:
         for field_name in all_field_names:
             # 2. Get Type Hint and FieldInfo
             typ = annotations.get(field_name) or "str"
-            from dumpdie import dump
-            # dump("class is"+str(cls), field_name)
-            # descriptor = cls.__dict__.get(field_name)
             descriptor = descriptors.get(field_name, None)
             field_info = descriptor.field_info if isinstance(descriptor, FieldDescriptor) else None
 

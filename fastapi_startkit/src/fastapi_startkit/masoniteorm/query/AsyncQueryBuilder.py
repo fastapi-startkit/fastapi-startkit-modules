@@ -1,5 +1,4 @@
 import inspect
-from dumpdie import dd
 from fastapi_startkit.masoniteorm.exceptions import InvalidArgument
 from fastapi_startkit.masoniteorm.query import QueryBuilder
 from ..expressions.expressions import UpdateQueryExpression

@@ -1,5 +1,5 @@
-from fastapi_startkit.logging import Logger
 from fastapi_startkit.masoniteorm.seeds import Seeder
+
 from app.models import Post, User, Tag, PostTag
 
 
@@ -20,7 +20,7 @@ class PostSeeder(Seeder):
             title="Laravel and Databases",
             content="This is a post about Laravel framework and its database capabilities."
         )
-        
+
         # Attach tags to first post
         await PostTag.first_or_create({"post_id": post1.id, "tag_id": tag_laravel.id})
         await PostTag.first_or_create({"post_id": post1.id, "tag_id": tag_database.id})
@@ -31,7 +31,7 @@ class PostSeeder(Seeder):
             title="FastAPI and Databases",
             content="This is a post about FastAPI performance and database handling."
         )
-        
+
         # Attach tags to second post
         await PostTag.first_or_create({"post_id": post2.id, "tag_id": tag_fastapi.id})
         await PostTag.first_or_create({"post_id": post2.id, "tag_id": tag_database.id})

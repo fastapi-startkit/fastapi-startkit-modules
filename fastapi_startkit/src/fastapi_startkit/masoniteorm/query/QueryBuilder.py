@@ -27,7 +27,9 @@ from ..expressions.expressions import (
     SubSelectExpression,
     UpdateQueryExpression,
 )
-from ..models.model import Model
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..models.model import Model
 from ..observers import ObservesEvents
 from ..pagination import LengthAwarePaginator, SimplePaginator
 from ..schema import Schema
@@ -464,6 +466,7 @@ class QueryBuilder(ObservesEvents):
         self._columns += (SelectExpression(query, raw=True),)
         return self
 
+    # TODO: review
     def get_processor(self):
         if self.connection_class:
             return self.connection_class.get_default_post_processor()()
@@ -478,7 +481,7 @@ class QueryBuilder(ObservesEvents):
         cast: bool = True,
     ):
         self.set_action("bulk_create")
-        model: Model = None
+        model: "Model" = None
 
         if self._model:
             model = self._model
@@ -1520,7 +1523,7 @@ class QueryBuilder(ObservesEvents):
         Returns:
             self
         """
-        model: Model = None
+        model: "Model" = None
 
         additional = {}
 
@@ -2107,8 +2110,6 @@ class QueryBuilder(ObservesEvents):
                 else:
                     model.add_relation({relation_key: map_related or None})
         else:
-            from dumpdie import dd
-            dd(hydrated_model)
             hydrated_model.add_relation({relation_key: related_result or None})
         return self
 

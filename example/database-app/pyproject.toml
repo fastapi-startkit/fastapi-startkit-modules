@@ -5,8 +5,6 @@ description = "FastAPI application example using fastapi-startkit with PostgreSQ
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "aiosqlite>=0.22.1",
-    "asyncpg>=0.31.0",
     "fastapi-startkit[postgres,fastapi]",
 ]
 
