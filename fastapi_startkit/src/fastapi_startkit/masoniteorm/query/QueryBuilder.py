@@ -2065,8 +2065,8 @@ class QueryBuilder(ObservesEvents):
 
                             self._register_relationships_to_model(
                                 related,
-                                result_set,
-                                hydrated_model,
+                                related_result=result_set,
+                                hydrated_model=hydrated_model,
                                 relation_key=eager,
                             )
 
@@ -2080,7 +2080,7 @@ class QueryBuilder(ObservesEvents):
         else:
             return result or None
 
-    def _register_relationships_to_model(
+    async def _register_relationships_to_model(
         self, related, related_result, hydrated_model, relation_key
     ):
         """Takes a related result and a hydrated model and registers them to eachother using the relation key.

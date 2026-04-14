@@ -338,10 +338,10 @@ class AsyncQueryBuilder(QueryBuilder):
                             )
 
                             await self._register_relationships_to_model(
-                                result_set,
-                                hydrated_model,
-                                eager,
-                                related,
+                                related_result=result_set,
+                                hydrated_model=hydrated_model,
+                                relation_key= eager,
+                                related=related,
                             )
 
             if collection:
