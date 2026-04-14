@@ -1,13 +1,15 @@
+from fastapi_startkit.masoniteorm.models import registry
+from typing import Callable
+
+
 class BaseRelationship:
-    def __init__(self, fn, local_key=None, foreign_key=None):
+    def __init__(self, fn: Callable | str, local_key=None, foreign_key=None):
+        # If user provides string instead of Model, we will resolve it here
         if isinstance(fn, str):
-            self.fn = None
-            self.local_key = fn
-            self.foreign_key = local_key
-        else:
-            self.fn = fn
-            self.local_key = local_key
-            self.foreign_key = foreign_key
+            self.fn = lambda x: registry.Registry.resolve(fn)
+
+        self.local_key = local_key
+        self.foreign_key = foreign_key
 
     def __set_name__(self, cls, name):
         """This method is called right after the decorator is registered.
@@ -49,6 +51,7 @@ class BaseRelationship:
         Returns:
             object -- Either returns a builder or a hydrated model.
         """
+
         attribute = self.fn.__name__
         relationship = self.fn(instance)()
         self.set_keys(instance, attribute)
@@ -64,7 +67,7 @@ class BaseRelationship:
 
     def __getattr__(self, attribute):
         relationship = self.fn(self)()
-        return getattr(relationship.builder, attribute)
+        return relationship.get_builder()
 
     def apply_query(self, foreign, owner):
         """Return a dictionary to hydrate the model with

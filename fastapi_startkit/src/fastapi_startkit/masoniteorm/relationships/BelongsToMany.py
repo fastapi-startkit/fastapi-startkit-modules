@@ -1,38 +1,46 @@
-import inspect
 import pendulum
 from inflection import singularize
 
 from ..collection import Collection
-from ..models.registry import Registry
+from ..models.pivot import Pivot
 from .BaseRelationship import BaseRelationship
-from fastapi_startkit.masoniteorm.models.pivot import Pivot
+from fastapi_startkit.masoniteorm.models import registry
 
 
 class BelongsToMany(BaseRelationship):
     """Has Many Relationship Class."""
 
     def __init__(
-        self,
-        fn=None,
-        local_foreign_key=None,
-        other_foreign_key=None,
-        local_owner_key=None,
-        other_owner_key=None,
-        table=None,
-        with_timestamps=False,
-        pivot_id="id",
-        attribute="pivot",
-        with_fields=[],
+            self,
+            fn=None,
+            local_foreign_key=None,
+            other_foreign_key=None,
+            local_owner_key=None,
+            other_owner_key=None,
+            table=None,
+            with_timestamps=False,
+            pivot_id="id",
+            attribute="pivot",
+            with_fields=[],
     ):
-        super().__init__(fn, local_foreign_key, other_foreign_key)
+        if isinstance(fn, str):
+            self.fn = self.fn = lambda x: registry.Registry.resolve(fn)
+
+        self.local_key = local_foreign_key
+        self.foreign_key = other_foreign_key
         self.local_owner_key = local_owner_key or "id"
         self.other_owner_key = other_owner_key or "id"
+
         self._table = table
         self.with_timestamps = with_timestamps
         self._as = attribute
         self.pivot_id = pivot_id
         self.with_fields = with_fields
 
+    def set_keys(self, owner, attribute):
+        self.local_key = self.local_key or "id"
+        self.foreign_key = self.foreign_key or f"{attribute}_id"
+        return self
 
     def apply_query(self, query, owner):
         """Apply the query and return a dictionary to be hydrated.
@@ -93,8 +101,7 @@ class BelongsToMany(BaseRelationship):
 
         if hasattr(owner, self.local_owner_key):
             result.where(
-                f"{table1}.{self.local_owner_key}",
-                getattr(owner, self.local_owner_key),
+                f"{table1}.{self.local_owner_key}", getattr(owner, self.local_owner_key)
             )
 
         if self.with_fields:
@@ -121,9 +128,7 @@ class BelongsToMany(BaseRelationship):
             model.delete_attribute("m_reserved2")
 
             if self.pivot_id:
-                pivot_data.update(
-                    {self.pivot_id: getattr(model, "m_reserved3")}
-                )
+                pivot_data.update({self.pivot_id: getattr(model, "m_reserved3")})
                 model.delete_attribute("m_reserved3")
 
             if self.with_fields:
@@ -153,7 +158,7 @@ class BelongsToMany(BaseRelationship):
 
         return builder
 
-    def make_query(self, query, relation, eagers=None, callback=None):
+    async def make_query(self, query, relation, eagers=None, callback=None):
         """Used during eager loading a relationship
 
         Args:
@@ -165,7 +170,7 @@ class BelongsToMany(BaseRelationship):
             [type]: [description]
         """
         eagers = eagers or []
-        builder = self.make_builder(eagers)
+        builder = self.get_builder().with_(eagers)
 
         if not self._table:
             pivot_tables = [
@@ -227,33 +232,21 @@ class BelongsToMany(BaseRelationship):
             callback(result)
 
         if isinstance(relation, Collection):
-            return result.where_in(
+            return await result.where_in(
                 self.local_owner_key,
                 Collection(relation._get_value(self.local_owner_key)).unique(),
             ).get()
         else:
-            return result.where(
+            return await result.where(
                 self.local_owner_key, getattr(relation, self.local_owner_key)
             ).get()
 
-    def get_related(self, query, relation, eagers=None, callback=None):
-        builder = self.make_builder(eagers)
-        final_result = self.make_query(
+    async def get_related(self, query, relation, eagers=None, callback=None):
+        final_result = await self.make_query(
             query, relation, eagers=eagers, callback=callback
         )
+        builder = self.make_builder(eagers)
 
-        if inspect.isawaitable(final_result):
-            return self._get_related_async(final_result, builder)
-
-        return self._post_process_related(final_result, builder)
-
-    def map_related(self, related_result):
-        return related_result.group_by(f"{self._table}_id")
-
-    async def _get_related_async(self, final_result, builder):
-        return self._post_process_related(await final_result, builder)
-
-    def _post_process_related(self, final_result, builder):
         for model in final_result:
             pivot_data = {
                 self.local_key: getattr(model, f"{self._table}_id"),
@@ -271,9 +264,7 @@ class BelongsToMany(BaseRelationship):
                 )
 
             if self.pivot_id:
-                pivot_data.update(
-                    {self.pivot_id: getattr(model, "m_reserved3")}
-                )
+                pivot_data.update({self.pivot_id: getattr(model, "m_reserved3")})
                 model.delete_attribute("m_reserved3")
 
             if self.with_fields:
@@ -345,8 +336,7 @@ class BelongsToMany(BaseRelationship):
 
         if hasattr(owner, self.local_owner_key):
             result.where(
-                f"{table1}.{self.local_owner_key}",
-                getattr(owner, self.local_owner_key),
+                f"{table1}.{self.local_owner_key}", getattr(owner, self.local_owner_key)
             )
 
         if self.with_fields:
@@ -445,8 +435,7 @@ class BelongsToMany(BaseRelationship):
                 f"{builder.get_table_name()}.{self.local_owner_key}",
             )
             .where_in(
-                self.other_owner_key,
-                callback(query.select(self.other_owner_key)),
+                self.other_owner_key, callback(query.select(self.other_owner_key))
             )
         )
 
@@ -572,7 +561,7 @@ class BelongsToMany(BaseRelationship):
 
         return (
             Pivot.table(self._table)
-            .on(current_model.get_builder().connection)
+            .on(current_model.get_builder().connection_name)
             .without_global_scopes()
             .create(data)
         )
@@ -596,7 +585,7 @@ class BelongsToMany(BaseRelationship):
             )
 
         return (
-            Pivot.on(current_model.get_builder().connection)
+            Pivot.on(current_model.get_builder().connection_name)
             .table(self._table)
             .without_global_scopes()
             .where(data)

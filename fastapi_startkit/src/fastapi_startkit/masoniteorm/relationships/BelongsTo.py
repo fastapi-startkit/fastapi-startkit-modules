@@ -1,19 +1,20 @@
+from typing import Callable
+
 from ..collection import Collection
-from .BaseRelation import BaseRelation
+from . import BaseRelationship
+from fastapi_startkit.masoniteorm.models import registry
 
 
-class BelongsTo(BaseRelation):
+class BelongsTo(BaseRelationship):
     """Belongs To Relationship Class."""
 
-    def __init__(self, fn, local_key=None, foreign_key=None):
+    def __init__(self, fn: Callable | str, local_key=None, foreign_key=None):
+        # If user provides string instead of Model, we will resolve it here
         if isinstance(fn, str):
-            self.fn = None
-            self.local_key = fn or "id"
-            self.foreign_key = local_key
-        else:
-            self.fn = fn
-            self.local_key = local_key or "id"
-            self.foreign_key = foreign_key
+            self.fn = lambda x: registry.Registry.resolve(fn)
+
+        self.local_key = local_key or "id"
+        self.foreign_key = foreign_key
 
     def set_keys(self, owner, attribute):
         self.local_key = self.local_key or f"{attribute}_id"
