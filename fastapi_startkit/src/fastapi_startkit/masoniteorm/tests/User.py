@@ -1,6 +1,6 @@
 """ User Model """
 
-from src.masoniteorm import Model
+from fastapi_startkit.masoniteorm.models import Model
 
 
 class User(Model):

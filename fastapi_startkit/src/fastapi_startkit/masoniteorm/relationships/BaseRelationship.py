@@ -67,7 +67,7 @@ class BaseRelationship:
 
     def __getattr__(self, attribute):
         relationship = self.fn(self)()
-        return relationship.get_builder()
+        return getattr(relationship.builder, attribute)
 
     def apply_query(self, foreign, owner):
         """Return a dictionary to hydrate the model with

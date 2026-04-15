@@ -1,64 +1,74 @@
-import unittest
+import pytest_asyncio
 
-from src.masoniteorm.collection import Collection
-from src.masoniteorm.models import Model
-from src.masoniteorm.relationships import has_many_through
+from fastapi_startkit.masoniteorm.collection import Collection
+from fastapi_startkit.masoniteorm.connections.sqlite_connection import SQLiteConnection
+from fastapi_startkit.masoniteorm.models import Model
+from fastapi_startkit.masoniteorm.relationships import HasManyThrough
+from fastapi_startkit.masoniteorm.schema import Schema
+from fastapi_startkit.masoniteorm.schema.platforms import SQLitePlatform
 from tests.integrations.config.database import DATABASES
-from src.masoniteorm.schema import Schema
-from src.masoniteorm.schema.platforms import SQLitePlatform
 
 
 class Enrolment(Model):
     __table__ = "enrolment"
     __connection__ = "dev"
-    __fillable__ = ["active_student_id", "in_course_id"]
+
+    active_student_id = int
+    in_course_id: int
 
 
 class Student(Model):
     __table__ = "student"
     __connection__ = "dev"
-    __fillable__ = ["student_id", "name"]
+
+    student_id: int
+    name: str
 
 
 class Course(Model):
     __table__ = "course"
     __connection__ = "dev"
-    __fillable__ = ["course_id", "name"]
 
-    @has_many_through(
-        None,
+    course_id: int
+    name: str
+
+    students: list[Student] = HasManyThrough(
+        ['Student', 'Enrolment'],
         "in_course_id",
         "active_student_id",
         "course_id",
         "student_id"
     )
-    def students(self):
-        return [Student, Enrolment]
 
 
-class TestHasManyThroughRelationship(unittest.TestCase):
-    def setUp(self):
+class TestHasManyThroughRelationship:
+    @pytest_asyncio.fixture(autouse=True)
+    async def setup(self):
+        # Reset shared engine cache so each test class gets a fresh in-memory DB.
+        SQLiteConnection._shared_engines.clear()
+
         self.schema = Schema(
             connection="dev",
             connection_details=DATABASES,
             platform=SQLitePlatform,
+            config_path='tests/integrations/config/database.py'
         ).on("dev")
 
-        with self.schema.create_table_if_not_exists("student") as table:
+        async with (await self.schema.create_table_if_not_exists("student")) as table:
             table.integer("student_id").primary()
             table.string("name")
 
-        with self.schema.create_table_if_not_exists("course") as table:
+        async with (await self.schema.create_table_if_not_exists("course")) as table:
             table.integer("course_id").primary()
             table.string("name")
 
-        with self.schema.create_table_if_not_exists("enrolment") as table:
+        async with (await self.schema.create_table_if_not_exists("enrolment")) as table:
             table.integer("enrolment_id").primary()
             table.integer("active_student_id")
             table.integer("in_course_id")
 
-        if not Course.count():
-            Course.builder.new().bulk_create(
+        if not await Course.count():
+            await Course().get_builder().bulk_create(
                 [
                     {"course_id": 10, "name": "Math 101"},
                     {"course_id": 20, "name": "History 101"},
@@ -67,8 +77,8 @@ class TestHasManyThroughRelationship(unittest.TestCase):
                 ]
             )
 
-        if not Student.count():
-            Student.builder.new().bulk_create(
+        if not await Student.count():
+            await Student().get_builder().bulk_create(
                 [
                     {"student_id": 100, "name": "Bob"},
                     {"student_id": 200, "name": "Alice"},
@@ -77,8 +87,8 @@ class TestHasManyThroughRelationship(unittest.TestCase):
                 ]
             )
 
-        if not Enrolment.count():
-            Enrolment.builder.new().bulk_create(
+        if not await Enrolment.count():
+            await Enrolment().get_builder().bulk_create(
                 [
                     {"active_student_id": 100, "in_course_id": 30},
                     {"active_student_id": 200, "in_course_id": 10},
@@ -87,58 +97,70 @@ class TestHasManyThroughRelationship(unittest.TestCase):
                 ]
             )
 
-    def test_has_many_through_can_eager_load(self):
-        courses = Course.where("name", "Math 101").with_("students").get()
-        students = courses.first().students
+        yield
 
-        self.assertIsInstance(students, Collection)
-        self.assertEqual(students.count(), 2)
+        # Teardown: drop tables and clear engine cache so tests stay isolated.
+        await self.schema.drop_table_if_exists("enrolment")
+        await self.schema.drop_table_if_exists("student")
+        await self.schema.drop_table_if_exists("course")
+        SQLiteConnection._shared_engines.clear()
+
+    async def test_has_many_through_can_eager_load(self):
+        courses = await Course.where("name", "Math 101").with_("students").get()
+        students = await courses.first().students
+
+        assert isinstance(students, Collection)
+        assert students.count() == 2
 
         student1 = students.shift()
-        self.assertIsInstance(student1, Student)
-        self.assertEqual(student1.name, "Alice")
+        assert isinstance(student1, Student)
+        assert student1.name == "Alice"
 
         student2 = students.shift()
-        self.assertIsInstance(student2, Student)
-        self.assertEqual(student2.name, "Bob")
+        assert isinstance(student2, Student)
+        assert student2.name == "Bob"
 
         # check .first() and .get() produce the same result
-        single = (
+        single = await (
             Course.where("name", "History 101")
             .with_("students")
             .first()
         )
-        self.assertIsInstance(single.students, Collection)
+        assert isinstance(await single.students, Collection)
 
-        single_get = (
+        single_get = await (
             Course.where("name", "History 101").with_("students").get()
         )
 
-        print(single.students)
-        print(single_get.first().students)
-        self.assertEqual(single.students.count(), 1)
-        self.assertEqual(single_get.first().students.count(), 1)
+        single_students = await single.students
+        single_get_students = await single_get.first().students
 
-        single_name = single.students.first().name
-        single_get_name = single_get.first().students.first().name
-        self.assertEqual(single_name, single_get_name)
+        assert single_students.count() == 1
+        assert single_get_students.count() == 1
 
-    def test_has_many_through_eager_load_can_be_empty(self):
-        courses = (
+        single_name = single_students.first().name
+        single_get_name = single_get_students.first().name
+        assert single_name == single_get_name
+
+    async def test_has_many_through_eager_load_can_be_empty(self):
+        courses = await (
             Course.where("name", "Biology 302")
             .with_("students")
             .get()
         )
-        self.assertIsNone(courses.first().students)
 
-    def test_has_many_through_can_get_related(self):
-        course = Course.where("name", "Math 101").first()
-        self.assertIsInstance(course.students, Collection)
-        self.assertIsInstance(course.students.first(), Student)
-        self.assertEqual(course.students.count(), 2)
+        students: Collection = await courses.first().students
+        assert students.is_empty() == True
 
-    def test_has_many_through_has_query(self):
-        courses = Course.where_has(
+    async def test_has_many_through_can_get_related(self):
+        course = await Course.where("name", "Math 101").first()
+        students = await course.students
+        assert isinstance(students, Collection)
+        assert isinstance(students.first(), Student)
+        assert students.count() == 2
+
+    async def test_has_many_through_has_query(self):
+        courses = await Course.where_has(
             "students", lambda query: query.where("name", "Bob")
-        )
-        self.assertEqual(courses.count(), 2)
+        ).get()
+        assert courses.count() == 2

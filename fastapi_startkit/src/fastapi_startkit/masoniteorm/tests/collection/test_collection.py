@@ -1,8 +1,8 @@
 import unittest
 
-from src.masoniteorm.collection import Collection
-from src.masoniteorm.factories import Factory as factory
-from src.masoniteorm.models import Model
+from fastapi_startkit.masoniteorm.collection import Collection
+from fastapi_startkit.masoniteorm.factories import Factory as factory
+from fastapi_startkit.masoniteorm.models import Model
 from tests.User import User
 
 
