@@ -1,18 +1,18 @@
+from fastapi_startkit.masoniteorm.models import registry
 from ..collection import Collection
 from ..config import load_config
 from .BaseRelationship import BaseRelationship
 
 
 class MorphTo(BaseRelationship):
-    def __init__(self, fn, morph_key="record_type", morph_id="record_id"):
-        if isinstance(fn, str):
-            self.fn = None
-            self.morph_key = fn
-            self.morph_id = morph_key
-        else:
-            self.fn = fn
-            self.morph_id = morph_id
-            self.morph_key = morph_key
+    def __init__(self, fn: str, morph_key="record_type", morph_id="record_id"):
+        self.fn = fn
+        self.morph_id = morph_id
+        self.morph_key = morph_key
+        self.attribute = None
+
+    def __set_name__(self, owner, name):
+        self.attribute = name
 
     def get_builder(self):
         return self._related_builder
@@ -34,15 +34,15 @@ class MorphTo(BaseRelationship):
         Returns:
             object -- Either returns a builder or a hydrated model.
         """
-        attribute = self.fn.__name__
-        self._related_builder = instance.builder
+        relationship = registry.Registry.resolve(self.fn)()
+        self._related_builder = relationship.get_builder()
         self.set_keys(owner, self.fn)
 
-        if not instance.is_loaded():
+        if instance is None or not instance.is_loaded():
             return self
 
-        if attribute in instance._relationships:
-            return instance._relationships[attribute]
+        if self.attribute in instance._relationships:
+            return instance._relationships[self.attribute]
 
         return self.apply_query(self._related_builder, instance)
 
@@ -65,7 +65,7 @@ class MorphTo(BaseRelationship):
 
         return model.where(model.get_primary_key(), record).first()
 
-    def get_related(self, query, relation, eagers=None, callback=None):
+    async def get_related(self, query, relation, eagers=None, callback=None):
         """Gets the relation needed between the relation and the related builder. If the relation is a collection
         then will need to pluck out all the keys from the collection and fetch from the related builder. If
         relation is just a Model then we can just call the model based on the value of the related
@@ -82,7 +82,7 @@ class MorphTo(BaseRelationship):
             for group, items in relation.group_by(self.morph_key).items():
                 morphed_model = self.morph_map().get(group)
                 relations.merge(
-                    morphed_model.where_in(
+                    await morphed_model.where_in(
                         f"{morphed_model.get_table_name()}.{morphed_model.get_primary_key()}",
                         Collection(items)
                         .pluck(self.morph_id, keep_nulls=False)
@@ -91,9 +91,9 @@ class MorphTo(BaseRelationship):
                 )
             return relations
         else:
-            model = self.morph_map().get(getattr(relation, self.morph_key))
+            model = await self.morph_map().get(getattr(relation, self.morph_key))
             if model:
-                return model.find(getattr(relation, self.morph_id))
+                return await model.find(getattr(relation, self.morph_id))
 
     def register_related(self, key, model, collection):
         morphed_model = self.morph_map().get(getattr(model, self.morph_key))

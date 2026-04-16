@@ -11,9 +11,15 @@ class DBManager:
         "sqlite": SQLiteConnection,
     }
 
+    _morph_map = {}
+
     def __init__(self, connection_details=None):
         self.connection_details = connection_details or {}
         self._connections = {}
+
+    def morph_map(self, map):
+        self._morph_map = map
+        return self
 
     def get_connection_details(self):
         """Returns the full connection configuration dictionary."""

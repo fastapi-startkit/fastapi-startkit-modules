@@ -6,7 +6,7 @@ from enum import Enum
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, get_type_hints, Optional
 from pydantic.fields import FieldInfo
-from ...carbon import Carbon
+from fastapi_startkit.carbon import Carbon
 
 if TYPE_CHECKING:
     from .model import Model

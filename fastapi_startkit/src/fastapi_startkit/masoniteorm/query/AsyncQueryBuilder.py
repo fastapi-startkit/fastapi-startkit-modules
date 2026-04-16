@@ -352,7 +352,7 @@ class AsyncQueryBuilder(QueryBuilder):
                             if inspect.isclass(self._model):
                                 related = getattr(self._model, eager)
                             else:
-                                related = self._model.get_related(eager)
+                                related = await self._model.get_related(eager)
                             result_set = await related.get_related(
                                 self, hydrated_model
                             )

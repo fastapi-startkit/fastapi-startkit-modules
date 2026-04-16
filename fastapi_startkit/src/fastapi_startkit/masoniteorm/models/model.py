@@ -1,20 +1,15 @@
-import datetime
 from typing import TypeVar, Type
 
 from inflection import tableize
 
 import logging
 from fastapi_startkit.carbon import Carbon
-
-from pendulum import DateTime
-
+from fastapi_startkit.masoniteorm.models.registry import Registry
 from .caster import Caster
 from .fields import Field
-from fastapi_startkit.masoniteorm.models.registry import Registry
-from pydantic.fields import FieldInfo
+from ..collection.Collection import Collection
 from ..config import load_config
 from ..query import AsyncQueryBuilder
-from ..collection.Collection import Collection
 from ..scopes.TimeStampsMixin import TimeStampsMixin
 
 T = TypeVar("T", bound="Model")
@@ -106,6 +101,7 @@ class Model(TimeStampsMixin):
         if attribute in self.__passthrough__:
             def method(*args, **kwargs):
                 return getattr(self.get_builder(), attribute)(*args, **kwargs)
+
             return method
 
         if attribute in self.__dict__.get("_relationships", {}):
@@ -178,8 +174,9 @@ class Model(TimeStampsMixin):
         resolver = load_config().DB
         return resolver.get_connection_details()
 
-    def get_primary_key(self):
-        return self.__primary_key__
+    @classmethod
+    def get_primary_key(cls):
+        return cls.__primary_key__
 
     def get_primary_key_value(self):
         return self.__attributes__.get(self.get_primary_key())
@@ -271,6 +268,10 @@ class Model(TimeStampsMixin):
         return self.__selects__
 
     @classmethod
+    async def get(cls):
+        return await cls().get_builder().get()
+
+    @classmethod
     async def all(cls):
         return await cls().get_builder().all()
 
@@ -289,6 +290,10 @@ class Model(TimeStampsMixin):
     @classmethod
     def oldest(cls, column="created_at"):
         return cls().get_builder().oldest(column)
+
+    @classmethod
+    def where_in(cls, column: str, wheres):
+        return cls().get_builder().where_in(column=column, wheres=wheres)
 
     @classmethod
     def where_has(cls, relationship, callback):
@@ -379,7 +384,7 @@ class Model(TimeStampsMixin):
             return await self.create(total, id_key=cls().get_primary_key())
         return record
 
-    def get_related(self, relation):
+    async def get_related(self, relation):
         related = getattr(self.__class__, relation)
         return related
 
