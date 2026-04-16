@@ -1,51 +1,62 @@
-# TODO
-# test case 1
-# only the properties defined in the model class are fillables
-# can use Guard __guarded__ to prevent fillable
+from fastapi_startkit.masoniteorm.testing import TestCase
+from fastapi_startkit.masoniteorm.tests.integrations.model import User, Gender, Address
 
-# test case 2: Test tables names, primary_id, database Connections timestamp etc,
-# give default value example
-# class User:
-#    status: Status = Status.Pending
-#
+class TestModelCast(TestCase):
+    migration_directory = "src/fastapi_startkit/masoniteorm/tests/integrations/databases/migrations"
 
-# test cases 3:
-# model retrivuve
-# await User.query().get()
-# await User.query().where('status').get()
-# Sub queries
-# use App\Models\Destination;
-# use App\Models\Flight;
-#  example similar in python
-# return Destination::addSelect(['last_flight' => Flight::select('name')
-#     ->whereColumn('destination_id', 'destinations.id')
-#     ->orderByDesc('arrived_at')
-#     ->limit(1)
-# ])->get();
+    async def test_database_is_isolated(self):
+        user = await User.first()
+        self.assertIsNone(user)
 
+    async def test_first_record_can_be_fetch(self):
+        await User.create(name="Joe", username="joe", email="joe@test.com", password="password")
 
+        user = await User.first()
+        self.assertEqual(user.name, "Joe")
+        self.assertEqual(user.username, "joe")
+        self.assertEqual(user.email, "joe@test.com")
+        self.assertEqual(user.password, "password")
 
-# ## Creation methods
-# use App\Models\Flight;
-#
-# // Retrieve flight by name or create it if it doesn't exist...
-# $flight = Flight::firstOrCreate([
-#     'name' => 'London to Paris'
-# ]);
-#
-# // Retrieve flight by name or create it with the name, delayed, and arrival_time attributes...
-# $flight = Flight::firstOrCreate(
-#     ['name' => 'London to Paris'],
-# ['delayed' => 1, 'arrival_time' => '11:30']
-# );
-#
-# // Retrieve flight by name or instantiate a new Flight instance...
-# $flight = Flight::firstOrNew([
-#     'name' => 'London to Paris'
-# ]);
-#
-# // Retrieve flight by name or instantiate with the name, delayed, and arrival_time attributes...
-# $flight = Flight::firstOrNew(
-#     ['name' => 'Tokyo to Sydney'],
-# ['delayed' => 1, 'arrival_time' => '11:30']
-# );
+    async def test_can_create_with_dict(self):
+        await User.create({"name": "Jane", "username": "jane", "email": "jane@test.com", "password": "password"})
+
+        user = await User.first()
+        self.assertEqual(user.name, "Jane")
+
+    async def test_can_insert_all_types(self):
+        data = {
+            "name": "All Types",
+            "username": "alltypes",
+            "email": "all@types.com",
+            "password": "password",
+            "age": 25,
+            "balance": 1000.50,
+            "metadata": {"key": "value", "active": True},
+            "is_active": True,
+            "bio": "A long text for bio...",
+            "price": 19.99,
+            "gender": Gender.MALE,
+            "address": {"city": "New York", "country": "USA", "street": "Broadway"}
+        }
+        await User.create(data)
+
+        user = await User.where("username", "alltypes").first()
+        self.assertEqual(user.name, "All Types")
+        self.assertEqual(user.age, 25)
+        self.assertEqual(user.balance, 1000.50)
+
+        # Test JSON
+        self.assertEqual(user.metadata, {"key": "value", "active": True})
+
+        self.assertTrue(user.is_active)
+        self.assertEqual(user.bio, "A long text for bio...")
+        self.assertEqual(float(user.price), 19.99)
+
+        # Test Gender
+        self.assertEqual(user.gender, Gender.MALE)
+
+        # Test Address
+        self.assertIsInstance(user.address, Address)
+        self.assertEqual(user.address.city, "New York")
+        self.assertEqual(user.address.country, "USA")
+        self.assertEqual(user.address.street, "Broadway")

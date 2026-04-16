@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import pendulum
 
-from src.masoniteorm.models import Model
+from fastapi_startkit.masoniteorm.models import Model
 
 
 class ModelTest(Model):
