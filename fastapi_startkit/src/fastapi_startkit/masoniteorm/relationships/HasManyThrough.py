@@ -25,6 +25,9 @@ class HasManyThrough(BaseRelationship):
         self.attribute = fn[0].lower()
         self.distant_builder = None
 
+    def __set_name__(self, owner, name):
+        self.attribute = name
+
     def __getattr__(self, attribute):
         relationship = self.fn(self)[0]()
         return getattr(relationship.get_builder(), attribute)

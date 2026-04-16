@@ -1,5 +1,6 @@
 from ..collection import Collection
 from .BaseRelationship import BaseRelationship
+from fastapi_startkit.masoniteorm.models import registry
 
 
 class HasOneThrough(BaseRelationship):
@@ -7,28 +8,28 @@ class HasOneThrough(BaseRelationship):
 
     def __init__(
             self,
-            fn=None,
+            fn=list[str],
             local_foreign_key=None,
             other_foreign_key=None,
             local_owner_key=None,
             other_owner_key=None,
     ):
-        if isinstance(fn, str):
-            self.fn = None
-            self.local_key = fn
-            self.foreign_key = local_foreign_key
-            self.local_owner_key = other_foreign_key or "id"
-            self.other_owner_key = local_owner_key or "id"
-        else:
-            self.fn = fn
-            self.local_key = local_foreign_key
-            self.foreign_key = other_foreign_key
-            self.local_owner_key = local_owner_key or "id"
-            self.other_owner_key = other_owner_key or "id"
+        self.fn = lambda x: [
+            registry.Registry.resolve(class_str) for class_str in fn
+        ]
+
+        self.local_key = local_foreign_key
+        self.foreign_key = other_foreign_key
+        self.local_owner_key = local_owner_key or "id"
+        self.other_owner_key = other_owner_key or "id"
+        self.attribute = fn[0].lower()
+
+    def __set_name__(self, owner, name):
+        self.attribute = name
 
     def __getattr__(self, attribute):
         relationship = self.fn(self)[1]()
-        return getattr(relationship.builder, attribute)
+        return getattr(relationship.get_builder(), attribute)
 
     def set_keys(self, distant_builder, intermediary_builder, attribute):
         self.local_key = self.local_key or "id"
@@ -49,24 +50,21 @@ class HasOneThrough(BaseRelationship):
         Returns
             QueryBuilder|Model: Either returns a builder or a hydrated model.
         """
-
-        attribute = self.fn.__name__
-        self.attribute = attribute
         relationship1 = self.fn(self)[0]()
         relationship2 = self.fn(self)[1]()
-        self.distant_builder = relationship1.builder
-        self.intermediary_builder = relationship2.builder
-        self.set_keys(self.distant_builder, self.intermediary_builder, attribute)
+        self.distant_builder = relationship1.get_builder()
+        self.intermediary_builder = relationship2.get_builder()
+        self.set_keys(self.distant_builder, self.intermediary_builder, self.attribute)
 
-        if instance.is_loaded():
-            if attribute in instance._relationships:
-                return instance._relationships[attribute]
-
-            return self.apply_relation_query(
-                self.distant_builder, self.intermediary_builder, instance
-            )
-        else:
+        if instance is None or not instance.is_loaded():
             return self
+
+        if self.attribute in instance._relationships:
+            return instance._relationships[self.attribute]
+
+        return self.apply_relation_query(
+            self.distant_builder, self.intermediary_builder, instance
+        )
 
     def apply_relation_query(self, distant_builder, intermediary_builder, owner):
         """
@@ -142,7 +140,7 @@ class HasOneThrough(BaseRelationship):
         related = collection.get(getattr(model, self.local_key), None)
         model.add_relation({key: related[0] if related else None})
 
-    def get_related(self, current_builder, relation, eagers=None, callback=None):
+    async def get_related(self, current_builder, relation, eagers=None, callback=None):
         """
         Get the data to hydrate the model for the distant table with
         Used when eager loading the model attribute
@@ -175,12 +173,12 @@ class HasOneThrough(BaseRelationship):
         )
 
         if isinstance(relation, Collection):
-            return self.distant_builder.where_in(
+            return await self.distant_builder.where_in(
                 f"{int_table}.{self.local_owner_key}",
                 Collection(relation._get_value(self.local_key)).unique(),
             ).get()
         else:
-            return self.distant_builder.where(
+            return await self.distant_builder.where(
                 f"{int_table}.{self.local_owner_key}",
                 getattr(relation, self.local_key),
             ).first()
