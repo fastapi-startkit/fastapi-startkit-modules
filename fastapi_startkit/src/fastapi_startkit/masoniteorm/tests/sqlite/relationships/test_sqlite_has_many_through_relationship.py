@@ -51,7 +51,7 @@ class TestHasManyThroughRelationship:
             connection="dev",
             connection_details=DATABASES,
             platform=SQLitePlatform,
-            config_path='tests/integrations/config/database.py'
+            config_path='fastapi_startkit/masoniteorm/tests/integrations/config/database'
         ).on("dev")
 
         async with (await self.schema.create_table_if_not_exists("student")) as table:
@@ -107,7 +107,7 @@ class TestHasManyThroughRelationship:
 
     async def test_has_many_through_can_eager_load(self):
         courses = await Course.where("name", "Math 101").with_("students").get()
-        students = await courses.first().students
+        students = courses.first().students
 
         assert isinstance(students, Collection)
         assert students.count() == 2
@@ -126,14 +126,14 @@ class TestHasManyThroughRelationship:
             .with_("students")
             .first()
         )
-        assert isinstance(await single.students, Collection)
+        assert isinstance(single.students, Collection)
 
         single_get = await (
             Course.where("name", "History 101").with_("students").get()
         )
 
-        single_students = await single.students
-        single_get_students = await single_get.first().students
+        single_students = single.students
+        single_get_students = single_get.first().students
 
         assert single_students.count() == 1
         assert single_get_students.count() == 1
@@ -149,8 +149,8 @@ class TestHasManyThroughRelationship:
             .get()
         )
 
-        students: Collection = await courses.first().students
-        assert students.is_empty() == True
+        students: Collection = courses.first().students
+        assert students is None
 
     async def test_has_many_through_can_get_related(self):
         course = await Course.where("name", "Math 101").first()

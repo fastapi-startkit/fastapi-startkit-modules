@@ -1,5 +1,6 @@
 import os
 import pydoc
+import sys
 import urllib.parse as urlparse
 
 from .exceptions import ConfigurationNotFound, InvalidUrlConfiguration
@@ -21,10 +22,11 @@ def load_config(config_path=None):
     selected_config_path = (
         selected_config_path.replace("/", ".").replace("\\", ".").rstrip(".py")
     )
+
     config_module = pydoc.locate(selected_config_path)
     if config_module is None:
         raise ConfigurationNotFound(
-            f"ORM configuration file has not been found in {selected_config_path}."
+            f"ORM configuration file has not been found in {selected_config_path}"
         )
     return config_module
 
