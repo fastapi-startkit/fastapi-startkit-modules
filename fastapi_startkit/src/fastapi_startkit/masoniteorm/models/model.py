@@ -5,6 +5,7 @@ from inflection import tableize
 import logging
 from fastapi_startkit.carbon import Carbon
 from fastapi_startkit.masoniteorm.models.registry import Registry
+from observers import ObservesEvents
 from .caster import Caster
 from .fields import Field
 from ..collection.Collection import Collection
@@ -15,7 +16,7 @@ from ..scopes.TimeStampsMixin import TimeStampsMixin
 T = TypeVar("T", bound="Model")
 
 
-class Model(TimeStampsMixin):
+class Model(TimeStampsMixin, ObservesEvents):
     __dry__ = False
     __table__ = None
     __connection__ = "default"
@@ -46,9 +47,6 @@ class Model(TimeStampsMixin):
     __timezone__ = "UTC"
     __with__ = ()
     __force_update__ = False
-
-    created_at: Carbon = Field(json_schema_extra={"format": "YYYY-MM-DD HH:mm:ss"})
-    updated_at: Carbon = Field(json_schema_extra={"format": "YYYY-MM-DD HH:mm:ss"})
 
     builder: AsyncQueryBuilder
 
@@ -257,9 +255,6 @@ class Model(TimeStampsMixin):
         for key, value in attributes.items():
             attributes[key] = self.caster.set(key, value)
         return attributes
-
-    def observe_events(self, instance, event):
-        pass
 
     def get_dirty_attributes(self):
         return self.__dirty_attributes__

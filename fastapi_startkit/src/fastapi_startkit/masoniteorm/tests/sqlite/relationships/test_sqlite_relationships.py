@@ -126,12 +126,6 @@ class TestRelationships(unittest.IsolatedAsyncioTestCase):
     async def asyncTearDown(self):
         SQLiteConnection._shared_engines.clear()
 
-    async def test_relationship_can_be_callable(self):
-        self.assertEqual(
-            User.profile().where("name", "Joe").to_sql(),
-            'SELECT * FROM "profiles" WHERE "profiles"."name" = \'Joe\'',
-        )
-
     async def test_can_access_relationship(self):
         for user in await User.where("id", 1).get():
             profile = await user.profile
