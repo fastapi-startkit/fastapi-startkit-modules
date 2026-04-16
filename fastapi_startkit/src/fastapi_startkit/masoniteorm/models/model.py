@@ -380,7 +380,7 @@ class Model(TimeStampsMixin):
         return record
 
     def get_related(self, relation):
-        related = self.__class__.__dict__.get(relation)
+        related = getattr(self.__class__, relation)
         return related
 
     @classmethod

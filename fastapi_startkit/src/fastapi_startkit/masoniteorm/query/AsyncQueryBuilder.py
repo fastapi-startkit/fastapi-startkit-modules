@@ -62,6 +62,28 @@ class AsyncQueryBuilder(QueryBuilder):
 
         return await self.prepare_result(result, collection=True)
 
+    async def bulk_create(self, creates: list, query: bool = False, cast: bool = True):
+        from typing import List, Dict, Any
+        self.set_action("bulk_create")
+        model = self._model
+
+        self._creates = []
+        for row in creates:
+            if model:
+                row = model.filter_mass_assignment(row)
+                if cast:
+                    row = model.cast_values(row)
+            self._creates.append(dict(sorted(row.items())))
+
+        if query:
+            return self
+
+        if not self.dry:
+            connection = await self.new_connection()
+            await connection.query(self.to_qmark(), self._bindings)
+
+        return self._creates
+
     async def statement(self, query, bindings=None):
         if bindings is None:
             bindings = []
@@ -331,7 +353,6 @@ class AsyncQueryBuilder(QueryBuilder):
                                 related = getattr(self._model, eager)
                             else:
                                 related = self._model.get_related(eager)
-
                             result_set = await related.get_related(
                                 self, hydrated_model
                             )

@@ -353,12 +353,30 @@ class Collection:
     def shift(self):
         return self.pull(0)
 
-    def sort(self, key=None):
-        if key:
-            self._items.sort(key=lambda x: x[key], reverse=False)
-            return self
+    @staticmethod
+    def val(item, key):
+        if callable(key):
+            return key(item)
 
-        self._items = sorted(self)
+        if key is None:
+            return item
+
+        if isinstance(item, dict):
+            return item.get(key)
+
+        if isinstance(item, (list, tuple)):
+            try:
+                return item[key]
+            except (IndexError, TypeError):
+                return None
+
+        return getattr(item, key, None)
+
+    def sort(self, key=None, reverse=False):
+        self._items.sort(
+            key=lambda item: self.val(item, key),
+            reverse=reverse
+        )
         return self
 
     def sum(self, key=None):
@@ -379,8 +397,7 @@ class Collection:
         self.sort(key)
 
         new_dict = {}
-
-        for k, v in groupby(self._items, key=lambda x: x[key]):
+        for k, v in groupby(self._items, key=lambda x: self.val(x, key)):
             new_dict.update({k: list(v)})
 
         return Collection(new_dict)

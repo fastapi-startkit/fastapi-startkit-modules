@@ -1,3 +1,4 @@
+from fastapi_startkit.masoniteorm.models import registry
 from ..collection import Collection
 from .BaseRelationship import BaseRelationship
 
@@ -7,19 +8,26 @@ class HasManyThrough(BaseRelationship):
 
     def __init__(
             self,
-            fn=None,
+            fn=list[str],
             local_foreign_key=None,
             other_foreign_key=None,
             local_owner_key=None,
             other_owner_key=None,
     ):
-        if isinstance(fn, str):
-            self.fn = lambda x: registry.Registry.resolve(fn)
+        self.fn = lambda x: [
+            registry.Registry.resolve(class_str) for class_str in fn
+        ]
 
         self.local_key = local_foreign_key
         self.foreign_key = other_foreign_key
         self.local_owner_key = local_owner_key or "id"
         self.other_owner_key = other_owner_key or "id"
+        self.attribute = fn[0].lower()
+        self.distant_builder = None
+
+    def __getattr__(self, attribute):
+        relationship = self.fn(self)[0]()
+        return getattr(relationship.get_builder(), attribute)
 
     def set_keys(self, distant_builder, intermediary_builder, attribute):
         self.local_key = self.local_key or "id"
@@ -40,19 +48,17 @@ class HasManyThrough(BaseRelationship):
         Returns:
             object -- Either returns a builder or a hydrated model.
         """
-        attribute = self.fn.__name__
-        self.attribute = attribute
         relationship1 = self.fn(self)[0]()
         relationship2 = self.fn(self)[1]()
-        self.distant_builder = relationship1.builder
-        self.intermediary_builder = relationship2.builder
-        self.set_keys(self.distant_builder, self.intermediary_builder, attribute)
+        self.distant_builder = relationship1.get_builder()
+        self.intermediary_builder = relationship2.get_builder()
+        self.set_keys(self.distant_builder, self.intermediary_builder, self.attribute)
 
-        if not instance.is_loaded():
+        if instance is None or not instance.is_loaded():
             return self
 
-        if attribute in instance._relationships:
-            return instance._relationships[attribute]
+        if self.attribute in instance._relationships:
+            return instance._relationships[self.attribute]
 
         return self.apply_related_query(
             self.distant_builder, self.intermediary_builder, instance
@@ -73,7 +79,6 @@ class HasManyThrough(BaseRelationship):
         Returns
             Collection: Collection of  dicts which will be used for hydrating models.
         """
-
         distant_table = distant_builder.get_table_name()
         intermediate_table = intermediary_builder.get_table_name()
 
@@ -110,7 +115,6 @@ class HasManyThrough(BaseRelationship):
 
     def make_builder(self, eagers=None):
         builder = self.get_builder().with_(eagers)
-
         return builder
 
     def register_related(self, key, model, collection):
@@ -131,7 +135,7 @@ class HasManyThrough(BaseRelationship):
 
         model.add_relation({key: related if related else None})
 
-    def get_related(self, current_builder, relation, eagers=None, callback=None):
+    async def get_related(self, current_builder, relation, eagers=None, callback=None):
         """
         Get a Collection to hydrate the models for the distant table with
         Used when eager loading the model attribute
@@ -145,7 +149,6 @@ class HasManyThrough(BaseRelationship):
         Returns
              Collection the collection of dicts to hydrate the distant models with
         """
-
         distant_table = self.distant_builder.get_table_name()
         intermediate_table = self.intermediary_builder.get_table_name()
 
@@ -164,12 +167,12 @@ class HasManyThrough(BaseRelationship):
         )
 
         if isinstance(relation, Collection):
-            return self.distant_builder.where_in(
+            return await self.distant_builder.where_in(
                 f"{intermediate_table}.{self.local_key}",
                 Collection(relation._get_value(self.local_owner_key)).unique(),
             ).get()
         else:
-            return self.distant_builder.where(
+            return await self.distant_builder.where(
                 f"{intermediate_table}.{self.local_key}",
                 getattr(relation, self.local_owner_key),
             ).get()
