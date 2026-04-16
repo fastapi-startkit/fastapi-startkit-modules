@@ -341,10 +341,10 @@ class AsyncQueryBuilder(QueryBuilder):
                                 result_set = await result_set
 
                             await self._register_relationships_to_model(
-                                result_set,
-                                hydrated_model,
-                                relation,
-                                related,
+                                related=related,
+                                related_result=result_set,
+                                hydrated_model=hydrated_model,
+                                relation_key=relation,
                             )
                     else:
                         # Not Nested
