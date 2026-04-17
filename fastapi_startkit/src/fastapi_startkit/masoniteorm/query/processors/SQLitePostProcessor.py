@@ -24,7 +24,7 @@ class SQLitePostProcessor:
 
         if id_key not in results:
             results.update(
-                {id_key: builder.get_connection().get_cursor().lastrowid}
+                {id_key: builder.get_connection().get_last_row_id()}
             )
 
         return results

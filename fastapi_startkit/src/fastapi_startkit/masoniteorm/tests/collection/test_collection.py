@@ -1,12 +1,53 @@
 import unittest
+import os
 
 from fastapi_startkit.masoniteorm.collection import Collection
 from fastapi_startkit.masoniteorm.factories import Factory as factory
 from fastapi_startkit.masoniteorm.models import Model
-from tests.User import User
+from fastapi_startkit.masoniteorm.schema import Schema
+from fastapi_startkit.masoniteorm.schema.platforms import SQLitePlatform
+from fastapi_startkit.masoniteorm.tests.User import User
+from fastapi_startkit.masoniteorm.tests.integrations.config.database import DATABASES
 
 
-class TestCollection(unittest.TestCase):
+class TestCollection(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        # Set config path for Schema.on() to work in tests
+        os.environ["DB_CONFIG_PATH"] = "fastapi_startkit.masoniteorm.tests.integrations.config.database"
+
+        self.schema = Schema(
+            connection="dev",
+            connection_details=DATABASES,
+            platform=SQLitePlatform,
+            dry=False,
+        ).on("dev")
+
+        # Ensure fresh table
+        await self.schema.drop_table_if_exists("users")
+
+        # Create users table
+        async with await self.schema.create("users") as blueprint:
+            blueprint.increments("id")
+            blueprint.string("name")
+            blueprint.string("email").unique()
+            blueprint.string("password")
+            blueprint.timestamps()
+
+        # Switch User connection to dev for tests
+        self._original_connection = User.__connection__
+        User.__connection__ = "dev"
+
+        # Seed data
+        await User.create({"name": "Joe", "email": "joe@example.com", "password": "password"})
+
+    async def asyncTearDown(self):
+        # Drop table while still on 'dev' connection
+        await self.schema.drop_table_if_exists("users")
+        # Restore connection
+        User.__connection__ = self._original_connection
+        # Clean up env
+        os.environ.pop("DB_CONFIG_PATH", None)
+
     def test_take(self):
         collection = Collection([1, 2, 3, 4])
         self.assertEqual(collection.take(2), [1, 2])
@@ -652,13 +693,13 @@ class TestCollection(unittest.TestCase):
             },
         )
 
-    def test_serialize_with_model_appends(self):
+    async def test_serialize_with_model_appends(self):
         User.__appends__ = ["meta"]
-        users = User.all().serialize()
+        users = (await User.all()).serialize()
         self.assertTrue(users[0].get("meta"))
 
-    def test_serialize_with_on_the_fly_appends(self):
-        users = User.all().set_appends(["meta"]).serialize()
+    async def test_serialize_with_on_the_fly_appends(self):
+        users = (await User.all()).set_appends(["meta"]).serialize()
         self.assertTrue(users[0].get("meta"))
 
     def test_random(self):

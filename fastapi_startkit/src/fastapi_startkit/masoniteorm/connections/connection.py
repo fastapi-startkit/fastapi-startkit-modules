@@ -15,6 +15,7 @@ class BaseConnection:
         self._connection = None
         self._transaction = None
         self._row_count = 0
+        self._last_row_id = None
 
         self.transaction_level = 0
         self.open = 0
@@ -99,6 +100,9 @@ class BaseConnection:
     def get_row_count(self):
         return self._row_count
 
+    def get_last_row_id(self):
+        return self._last_row_id
+
     async def query(self, query, bindings=(), results="*"):
         """Execute async query using SQLAlchemy text() wrapper."""
         try:
@@ -119,6 +123,7 @@ class BaseConnection:
 
             result = await self._connection.execute(statement, bindings if not "?" in query else None)
             self._row_count = result.rowcount
+            self._last_row_id = getattr(result, "lastrowid", None)
 
             if results == 1:
                 try:

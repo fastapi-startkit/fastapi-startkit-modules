@@ -440,6 +440,14 @@ class Model(ObservesEvents):
     def new_collection(cls, items):
         return Collection(items)
 
+    def set_appends(self, appends):
+        """Set the attributes that should be appended to the model's serialization.
+
+        :rtype: self
+        """
+        self.__appends__ += appends
+        return self
+
     def serialize(self, exclude=None, include=None):
         """Takes the data as a model and converts it into a dictionary.
 
