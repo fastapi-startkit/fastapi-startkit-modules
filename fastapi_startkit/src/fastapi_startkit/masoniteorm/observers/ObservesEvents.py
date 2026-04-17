@@ -1,11 +1,12 @@
 class ObservesEvents:
     def observe_events(self, model, event):
         if model.__has_events__ == True:
-            for observer in model.__observers__.get(model.__class__, []):
-                try:
-                    getattr(observer, event)(model)
-                except AttributeError:
-                    pass
+            for klass in type(model).__mro__:
+                for observer in model.__observers__.get(klass, []):
+                    try:
+                        getattr(observer, event)(model)
+                    except AttributeError:
+                        pass
 
     @classmethod
     def observe(cls, observer):

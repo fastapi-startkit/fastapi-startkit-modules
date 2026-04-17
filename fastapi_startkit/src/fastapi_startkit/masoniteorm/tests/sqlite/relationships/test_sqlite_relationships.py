@@ -29,6 +29,8 @@ class Logo(Model):
     __connection__ = "dev"
     __timestamps__ = None
 
+    published_date: Carbon = Field(json_schema_extra={"format": "YYYY-MM-DD HH:mm:ss"})
+
 
 class User(Model):
     __table__ = "users"
@@ -93,6 +95,7 @@ class TestRelationships(unittest.IsolatedAsyncioTestCase):
         async with (await self.schema.create_table_if_not_exists("logos")) as table:
             table.integer("id").primary()
             table.integer("article_id")
+            table.datetime("published_date")
 
         async with (await self.schema.create_table_if_not_exists("users")) as table:
             table.integer("id").primary()
@@ -116,14 +119,27 @@ class TestRelationships(unittest.IsolatedAsyncioTestCase):
             table.integer("store_id")
             table.integer("product_id")
 
+        async with (await self.schema.create_table_if_not_exists("product_store")) as table:
+            table.integer("id").primary()
+            table.integer("store_id")
+            table.integer("product_id")
+            table.datetime("created_at")
+            table.datetime("updated_at")
+
         # Seed Data
         await User().get_builder().create({"id": 1, "name": "Joe", "is_admin": True})
         await Profile().get_builder().create({"id": 1, "name": "Joe Profile", "user_id": 1})
         await Articles().get_builder().create({"id": 1, "title": "Masonite ORM", "user_id": 1,  "published_date": "2020-01-01 00:00:00"})
-        await Logo().get_builder().create({"id": 1, "article_id": 1})
+        await Logo().get_builder().create({"id": 1, "article_id": 1,  "published_date": "2020-01-01 00:00:00"})
 
     async def asyncTearDown(self):
         SQLiteConnection._shared_engines.clear()
+
+    async def test_relationship_can_be_callable(self):
+        self.assertEqual(
+            User.profile().where("name", "Joe").to_sql(),
+            'SELECT * FROM "profiles" WHERE "profiles"."name" = \'Joe\'',
+        )
 
     async def test_can_access_relationship(self):
         for user in await User.where("id", 1).get():
@@ -187,13 +203,13 @@ class TestRelationships(unittest.IsolatedAsyncioTestCase):
         )
 
     async def test_associate_records(self):
-        DB.begin_transaction("dev")
+        await DB.begin_transaction("dev")
         user = await User.first()
 
         articles = [Articles.hydrate({"id": 1, "title": "associate records"})]
 
         await user.save_many("articles", articles)
-        DB.rollback("dev")
+        await DB.rollback_transaction("dev")
 
     async def test_belongs_to_many(self):
         store = Store.hydrate({"id": 2, "name": "Walmart"})

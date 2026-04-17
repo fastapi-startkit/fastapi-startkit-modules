@@ -42,7 +42,7 @@ class BelongsToMany(BaseRelationship):
         self.foreign_key = self.foreign_key or f"{attribute}_id"
         return self
 
-    def apply_query(self, query, owner):
+    async def apply_query(self, query, owner):
         """Apply the query and return a dictionary to be hydrated.
             Used during accessing a relationship on a model
 
@@ -56,7 +56,7 @@ class BelongsToMany(BaseRelationship):
 
         if not self._table:
             pivot_tables = [
-                singularize(owner.builder.get_table_name()),
+                singularize(owner.get_table_name()),
                 singularize(query.get_table_name()),
             ]
             pivot_tables.sort()
@@ -108,7 +108,7 @@ class BelongsToMany(BaseRelationship):
             for field in self.with_fields:
                 result.select(f"{self._table}.{field}")
 
-        result = result.get()
+        result = await result.get()
 
         for model in result:
             pivot_data = {
@@ -291,7 +291,7 @@ class BelongsToMany(BaseRelationship):
 
         if not self._table:
             pivot_tables = [
-                singularize(owner.builder.get_table_name()),
+                singularize(owner.get_table_name()),
                 singularize(query.get_table_name()),
             ]
             pivot_tables.sort()

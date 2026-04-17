@@ -10,9 +10,7 @@ class CreatedAtObserver:
 
     def creating(self, model):
         if model.__timestamps__:
-            model.builder._creates.update({
-                self.field_name: pendulum.now(self.tz).to_datetime_string()
-            })
+            setattr(model, self.field_name, pendulum.now(self.tz).to_datetime_string())
 
 
 class UpdatedAtObserver:
@@ -23,9 +21,7 @@ class UpdatedAtObserver:
 
     def creating(self, model):
         if model.__timestamps__:
-            model.builder._creates.update({
-                self.field_name: pendulum.now(self.tz).to_datetime_string()
-            })
+            setattr(model, self.field_name, pendulum.now(self.tz).to_datetime_string())
 
     def updating(self, model):
         if model.__timestamps__:

@@ -112,21 +112,26 @@ class Model(ObservesEvents):
             raise AttributeError(f"class model '{name}' has no attribute {attribute}")
         return None
 
-    def __setattr__(self, name, value):
-        """Redirct all attribute assignments to the ORM storage."""
-        # 1. Internal/Private attributes or existing dict entries
-        if name.startswith("_") or name == "caster" or name == "builder":
-            super().__setattr__(name, value)
-            return
+    def __setattr__(self, attribute, value):
+        if hasattr(self, "set_" + attribute + "_attribute"):
+            method = getattr(self, "set_" + attribute + "_attribute")
+            value = method(value)
 
-        # 2. Check for descriptors (like properties or relationship descriptors)
-        cls_attr = getattr(self.__class__, name, None)
-        if cls_attr and hasattr(cls_attr, "__set__"):
-            cls_attr.__set__(self, value)
-            return
+        if attribute in self.__casts__:
+            value = self._set_cast_attribute(attribute, value)
 
-        # 3. Default: Store in __attributes__ with casting
-        self.__attributes__[name] = self.caster.set(name, value)
+        # if attribute in self.get_dates():
+        #     value = self.get_new_datetime_string(value)
+
+        try:
+            if attribute in ("builder", "caster"):
+                self.__dict__[attribute] = value
+            elif not attribute.startswith("_"):
+                self.__dict__["__dirty_attributes__"].update({attribute: value})
+            else:
+                self.__dict__[attribute] = value
+        except KeyError:
+            pass
 
     def get_value(self, attribute: str):
         value = self.__attributes__[attribute]
@@ -183,6 +188,9 @@ class Model(ObservesEvents):
 
     def is_loaded(self):
         return bool(self.__attributes__)
+
+    def is_created(self):
+        return self.get_primary_key() in self.__attributes__
 
     def add_relation(self, relations):
         self._relationships.update(relations)
@@ -248,6 +256,10 @@ class Model(ObservesEvents):
 
     def fill(self, attributes):
         self.__attributes__.update(attributes)
+        return self
+
+    def fill_original(self, attributes):
+        self.__original_attributes__.update(attributes)
         return self
 
     def filter_mass_assignment(self, attributes):
@@ -381,9 +393,48 @@ class Model(ObservesEvents):
             return await self.create(total, id_key=cls().get_primary_key())
         return record
 
-    async def get_related(self, relation):
-        related = getattr(self.__class__, relation)
-        return related
+    async def save(self):
+        """Persist the model: update if loaded, create if new."""
+        dirty = self.__dirty_attributes__
+        if self.is_loaded():
+            return await self.get_builder().update(dirty)
+        return await self.get_builder().create(dirty)
+
+    async def attach(self, relation: str, related_record):
+        """Attach a single related model via the named relationship."""
+        relationship = getattr(self.__class__, relation)
+        return await relationship.attach(self, related_record)
+
+    async def save_many(self, relation: str, relating_records):
+        """Persist multiple related models via the named relationship."""
+        if isinstance(relating_records, Model):
+            raise ValueError(
+                "Saving many records requires an iterable like a collection or a list of models "
+                "and not a Model object. To attach a model, use the 'attach' method."
+            )
+        for related_record in relating_records:
+            await self.attach(relation, related_record)
+
+    def get_related(self, relation):
+        return getattr(self.__class__, relation)
+
+    def _set_cast_attribute(self, attribute, value):
+        return self.caster.set(attribute, value)
+
+    def _cast_attribute(self, attribute, value):
+        return self.caster.get(attribute, value)
+
+    def related(self, relation):
+        """Return a query builder for a named relationship pre-filtered by this model's key."""
+        relationship = getattr(self.__class__, relation)
+        related_model = relationship.fn(self)()
+        builder = related_model.get_builder()
+        relationship.set_keys(self, relation)
+        builder = builder.where(
+            f"{builder.get_table_name()}.{relationship.foreign_key}",
+            self.__attributes__[relationship.local_key],
+        )
+        return builder
 
     @classmethod
     def new_collection(cls, items):

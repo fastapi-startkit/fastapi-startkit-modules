@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import text
+from sqlalchemy.exc import ResourceClosedError
 
 from ..exceptions import QueryException
 
@@ -13,6 +14,7 @@ class BaseConnection:
         self._engine = None
         self._connection = None
         self._transaction = None
+        self._row_count = 0
 
         self.transaction_level = 0
         self.open = 0
@@ -94,6 +96,9 @@ class BaseConnection:
     def get_transaction_level(self):
         return self.transaction_level
 
+    def get_row_count(self):
+        return self._row_count
+
     async def query(self, query, bindings=(), results="*"):
         """Execute async query using SQLAlchemy text() wrapper."""
         try:
@@ -113,19 +118,20 @@ class BaseConnection:
                 statement = text(query)
 
             result = await self._connection.execute(statement, bindings if not "?" in query else None)
+            self._row_count = result.rowcount
 
             if results == 1:
                 try:
-                    row = await result.fetchone()
+                    row = result.fetchone()
                     fetched = dict(row._mapping) if row else {}
-                except Exception:
+                except ResourceClosedError:
                     fetched = {}
             else:
                 try:
-                    row_results = await result.fetchall()
+                    row_results = result.fetchall()
                     fetched = [dict(row._mapping) for row in row_results]
-                except Exception:
-                    fetched = {}
+                except ResourceClosedError:
+                    fetched = []
 
             if self.get_transaction_level() <= 0:
                 await self._connection.commit()

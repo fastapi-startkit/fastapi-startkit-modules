@@ -34,13 +34,13 @@ class HasMany(BaseRelationship):
     def map_related(self, related_result):
         return related_result.group_by(self.foreign_key)
 
-    def attach(self, current_model, related_record):
+    async def attach(self, current_model, related_record):
         local_key_value = getattr(current_model, self.local_key)
         if not related_record.is_created():
             related_record.fill({self.foreign_key: local_key_value})
-            return related_record.create(related_record.all_attributes(), cast=True)
+            return await related_record.create(related_record.all_attributes(), cast=True)
 
-        return related_record.update({self.foreign_key: local_key_value})
+        return await related_record.update({self.foreign_key: local_key_value})
 
     def get_related(self, query, relation, eagers=None, callback=None):
         eagers = eagers or []

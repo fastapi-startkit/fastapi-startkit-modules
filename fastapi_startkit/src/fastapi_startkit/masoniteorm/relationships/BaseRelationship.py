@@ -19,7 +19,7 @@ class BaseRelationship:
         Arguments:
             name {object} -- The model class.
         """
-        pass
+        self._attribute_name = name
 
     def __call__(self, fn=None, *args, **kwargs):
         """This method is called when the decorator contains arguments.
@@ -36,6 +36,11 @@ class BaseRelationship:
         return self
 
     def get_builder(self):
+        if hasattr(self, '_related_builder') and self._related_builder is not None:
+            return self._related_builder
+        # Lazily create a fresh builder for the related model
+        related_model = self.fn(None)()
+        self._related_builder = related_model.get_builder()
         return self._related_builder
 
     def __get__(self, instance, owner):
@@ -51,11 +56,13 @@ class BaseRelationship:
         Returns:
             object -- Either returns a builder or a hydrated model.
         """
+        if instance is None:
+            return self
 
-        attribute = self.fn.__name__
+        attribute = getattr(self, '_attribute_name', None) or self.fn.__name__
         relationship = self.fn(instance)()
         self.set_keys(instance, attribute)
-        self._related_builder = relationship.builder
+        self._related_builder = relationship.get_builder()
 
         if not instance.is_loaded():
             return self
@@ -67,7 +74,7 @@ class BaseRelationship:
 
     def __getattr__(self, attribute):
         relationship = self.fn(self)()
-        return getattr(relationship.builder, attribute)
+        return getattr(relationship.get_builder(), attribute)
 
     def apply_query(self, foreign, owner):
         """Return a dictionary to hydrate the model with
