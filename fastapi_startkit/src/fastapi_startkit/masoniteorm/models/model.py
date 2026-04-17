@@ -1,22 +1,21 @@
+import logging
 from typing import TypeVar, Type
 
 from inflection import tableize
 
-import logging
 from fastapi_startkit.carbon import Carbon
 from fastapi_startkit.masoniteorm.models.registry import Registry
-from observers import ObservesEvents
+from fastapi_startkit.masoniteorm.observers import ObservesEvents
 from .caster import Caster
-from .fields import Field
+from .fields import CreatedAtField, UpdatedAtField
 from ..collection.Collection import Collection
 from ..config import load_config
 from ..query import AsyncQueryBuilder
-from ..scopes.TimeStampsMixin import TimeStampsMixin
 
 T = TypeVar("T", bound="Model")
 
 
-class Model(TimeStampsMixin, ObservesEvents):
+class Model(ObservesEvents):
     __dry__ = False
     __table__ = None
     __connection__ = "default"
@@ -29,6 +28,9 @@ class Model(TimeStampsMixin, ObservesEvents):
 
     _booted = False
     _scopes = {}
+
+    created_at: Carbon = CreatedAtField(fmt="%Y-%m-%d %H:%M:%S", tz="UTC")
+    updated_at: Carbon = UpdatedAtField(fmt="%Y-%m-%d %H:%M:%S", tz="UTC")
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)

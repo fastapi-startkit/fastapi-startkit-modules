@@ -12,6 +12,7 @@ from fastapi_startkit.masoniteorm.schema.platforms import SQLitePlatform
 class Profile(Model):
     __table__ = "profiles"
     __connection__ = "dev"
+    __timestamps__ = False
 
 
 class Articles(Model):
@@ -27,7 +28,6 @@ class Logo(Model):
     __table__ = "logos"
     __connection__ = "dev"
     __timestamps__ = None
-    published_date: Carbon = Field(json_schema_extra={"format": "YYYY-MM-DD HH:mm:ss"})
 
 
 class User(Model):
@@ -93,7 +93,6 @@ class TestRelationships(unittest.IsolatedAsyncioTestCase):
         async with (await self.schema.create_table_if_not_exists("logos")) as table:
             table.integer("id").primary()
             table.integer("article_id")
-            table.datetime("published_date")
 
         async with (await self.schema.create_table_if_not_exists("users")) as table:
             table.integer("id").primary()
@@ -120,8 +119,8 @@ class TestRelationships(unittest.IsolatedAsyncioTestCase):
         # Seed Data
         await User().get_builder().create({"id": 1, "name": "Joe", "is_admin": True})
         await Profile().get_builder().create({"id": 1, "name": "Joe Profile", "user_id": 1})
-        await Articles().get_builder().create({"id": 1, "title": "Masonite ORM", "user_id": 1})
-        await Logo().get_builder().create({"id": 1, "article_id": 1, "published_date": "2020-01-01 00:00:00"})
+        await Articles().get_builder().create({"id": 1, "title": "Masonite ORM", "user_id": 1,  "published_date": "2020-01-01 00:00:00"})
+        await Logo().get_builder().create({"id": 1, "article_id": 1})
 
     async def asyncTearDown(self):
         SQLiteConnection._shared_engines.clear()

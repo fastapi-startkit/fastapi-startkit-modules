@@ -116,6 +116,7 @@ class AsyncQueryBuilder(QueryBuilder):
 
         if model:
             model = model.hydrate(self._creates)
+            model.builder = self
             self.observe_events(model, "creating")
             self._creates.update(model.get_dirty_attributes())
 

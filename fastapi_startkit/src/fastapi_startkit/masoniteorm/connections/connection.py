@@ -114,18 +114,23 @@ class BaseConnection:
 
             result = await self._connection.execute(statement, bindings if not "?" in query else None)
 
+            if results == 1:
+                try:
+                    row = await result.fetchone()
+                    fetched = dict(row._mapping) if row else {}
+                except Exception:
+                    fetched = {}
+            else:
+                try:
+                    row_results = await result.fetchall()
+                    fetched = [dict(row._mapping) for row in row_results]
+                except Exception:
+                    fetched = {}
+
             if self.get_transaction_level() <= 0:
                 await self._connection.commit()
 
-            if results == 1:
-                row = result.fetchone()
-                return dict(row._mapping) if row else {}
-            else:
-                try:
-                    row_results = result.fetchall()
-                    return [dict(row._mapping) for row in row_results]
-                except Exception:
-                    return {}
+            return fetched
 
         except Exception as e:
             raise QueryException(str(e)) from e
