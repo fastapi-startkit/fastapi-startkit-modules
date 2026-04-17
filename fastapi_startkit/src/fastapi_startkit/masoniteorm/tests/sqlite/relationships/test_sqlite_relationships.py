@@ -12,6 +12,7 @@ from fastapi_startkit.masoniteorm.schema.platforms import SQLitePlatform
 class Profile(Model):
     __table__ = "profiles"
     __connection__ = "dev"
+    __timestamps__ = False
 
 
 class Articles(Model):
@@ -27,6 +28,7 @@ class Logo(Model):
     __table__ = "logos"
     __connection__ = "dev"
     __timestamps__ = None
+
     published_date: Carbon = Field(json_schema_extra={"format": "YYYY-MM-DD HH:mm:ss"})
 
 
@@ -117,11 +119,18 @@ class TestRelationships(unittest.IsolatedAsyncioTestCase):
             table.integer("store_id")
             table.integer("product_id")
 
+        async with (await self.schema.create_table_if_not_exists("product_store")) as table:
+            table.integer("id").primary()
+            table.integer("store_id")
+            table.integer("product_id")
+            table.datetime("created_at")
+            table.datetime("updated_at")
+
         # Seed Data
         await User().get_builder().create({"id": 1, "name": "Joe", "is_admin": True})
         await Profile().get_builder().create({"id": 1, "name": "Joe Profile", "user_id": 1})
-        await Articles().get_builder().create({"id": 1, "title": "Masonite ORM", "user_id": 1})
-        await Logo().get_builder().create({"id": 1, "article_id": 1, "published_date": "2020-01-01 00:00:00"})
+        await Articles().get_builder().create({"id": 1, "title": "Masonite ORM", "user_id": 1,  "published_date": "2020-01-01 00:00:00"})
+        await Logo().get_builder().create({"id": 1, "article_id": 1,  "published_date": "2020-01-01 00:00:00"})
 
     async def asyncTearDown(self):
         SQLiteConnection._shared_engines.clear()
@@ -194,13 +203,13 @@ class TestRelationships(unittest.IsolatedAsyncioTestCase):
         )
 
     async def test_associate_records(self):
-        DB.begin_transaction("dev")
+        await DB.begin_transaction("dev")
         user = await User.first()
 
         articles = [Articles.hydrate({"id": 1, "title": "associate records"})]
 
         await user.save_many("articles", articles)
-        DB.rollback("dev")
+        await DB.rollback_transaction("dev")
 
     async def test_belongs_to_many(self):
         store = Store.hydrate({"id": 2, "name": "Walmart"})

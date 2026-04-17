@@ -10,16 +10,10 @@ class BaseRelationship:
 
         self.local_key = local_key
         self.foreign_key = foreign_key
+        self.attribute = None
 
     def __set_name__(self, cls, name):
-        """This method is called right after the decorator is registered.
-
-        At this point we finally have access to the model cls
-
-        Arguments:
-            name {object} -- The model class.
-        """
-        pass
+        self.attribute = name
 
     def __call__(self, fn=None, *args, **kwargs):
         """This method is called when the decorator contains arguments.
@@ -51,23 +45,24 @@ class BaseRelationship:
         Returns:
             object -- Either returns a builder or a hydrated model.
         """
+        if instance is None:
+            return self
 
-        attribute = self.fn.__name__
         relationship = self.fn(instance)()
-        self.set_keys(instance, attribute)
-        self._related_builder = relationship.builder
+        self.set_keys(instance, self.attribute)
+        self._related_builder = relationship.get_builder()
 
         if not instance.is_loaded():
             return self
 
-        if attribute in instance._relationships:
-            return instance._relationships[attribute]
+        if self.attribute in instance._relationships:
+            return instance._relationships[self.attribute]
 
         return self.apply_query(self._related_builder, instance)
 
     def __getattr__(self, attribute):
         relationship = self.fn(self)()
-        return getattr(relationship.builder, attribute)
+        return getattr(relationship.get_builder(), attribute)
 
     def apply_query(self, foreign, owner):
         """Return a dictionary to hydrate the model with

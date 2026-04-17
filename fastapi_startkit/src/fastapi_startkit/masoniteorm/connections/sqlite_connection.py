@@ -6,16 +6,15 @@ from ..query.grammars import SQLiteGrammar
 from ..schema.platforms import SQLitePlatform
 from ..query.processors import SQLitePostProcessor
 
+
 class SQLiteConnection(BaseConnection):
     """SQLite implementation of Async SQLAlchemy connection."""
 
-    # Class-level cache so all instances pointing to the same :memory: URL
-    # share one engine (and thus one StaticPool connection / one database).
+    # Keyed by ":memory:" sentinel; cleared to force a fresh DB on next connect.
     _shared_engines: dict = {}
 
     def get_connection_url(self):
         database = self.connection_details.get("database")
-        # Using aiosqlite driver
         return f"sqlite+aiosqlite:///{database}"
 
     async def make_connection(self):
@@ -41,6 +40,12 @@ class SQLiteConnection(BaseConnection):
             self.open = 1
 
         return self
+
+    async def close_connection(self):
+        """For :memory: databases we still close the AsyncConnection (returns it
+        to the StaticPool), but the StaticPool keeps the underlying DBAPI
+        connection alive so committed data is visible on the next checkout."""
+        await super().close_connection()
 
     @classmethod
     def get_default_query_grammar(cls):

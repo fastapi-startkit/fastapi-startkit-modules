@@ -118,7 +118,6 @@ class AsyncQueryBuilder(QueryBuilder):
             model = model.hydrate(self._creates)
             self.observe_events(model, "creating")
             self._creates.update(model.get_dirty_attributes())
-
         if not self.dry:
             connection = await self.new_connection()
             query_result = await connection.query(
@@ -138,7 +137,6 @@ class AsyncQueryBuilder(QueryBuilder):
             model = model.fill(processed_results)
             self.observe_events(model, "created")
             return model
-
         return processed_results
 
     async def update(
@@ -330,15 +328,12 @@ class AsyncQueryBuilder(QueryBuilder):
                             else:
                                 related = self._model.get_related(relation)
 
-                            result_set = related.get_related(
+                            result_set = await related.get_related(
                                 self,
                                 hydrated_model,
                                 eagers=eagers,
                                 callback=callback,
                             )
-
-                            if inspect.isawaitable(result_set):
-                                result_set = await result_set
 
                             await self._register_relationships_to_model(
                                 related=related,
@@ -352,7 +347,7 @@ class AsyncQueryBuilder(QueryBuilder):
                             if inspect.isclass(self._model):
                                 related = getattr(self._model, eager)
                             else:
-                                related = await self._model.get_related(eager)
+                                related = self._model.get_related(eager)
                             result_set = await related.get_related(
                                 self, hydrated_model
                             )
