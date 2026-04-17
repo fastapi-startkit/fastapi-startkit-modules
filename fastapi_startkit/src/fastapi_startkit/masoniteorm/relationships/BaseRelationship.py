@@ -10,16 +10,10 @@ class BaseRelationship:
 
         self.local_key = local_key
         self.foreign_key = foreign_key
+        self.attribute = None
 
     def __set_name__(self, cls, name):
-        """This method is called right after the decorator is registered.
-
-        At this point we finally have access to the model cls
-
-        Arguments:
-            name {object} -- The model class.
-        """
-        self._attribute_name = name
+        self.attribute = name
 
     def __call__(self, fn=None, *args, **kwargs):
         """This method is called when the decorator contains arguments.
@@ -36,11 +30,6 @@ class BaseRelationship:
         return self
 
     def get_builder(self):
-        if hasattr(self, '_related_builder') and self._related_builder is not None:
-            return self._related_builder
-        # Lazily create a fresh builder for the related model
-        related_model = self.fn(None)()
-        self._related_builder = related_model.get_builder()
         return self._related_builder
 
     def __get__(self, instance, owner):
@@ -59,16 +48,15 @@ class BaseRelationship:
         if instance is None:
             return self
 
-        attribute = getattr(self, '_attribute_name', None) or self.fn.__name__
         relationship = self.fn(instance)()
-        self.set_keys(instance, attribute)
+        self.set_keys(instance, self.attribute)
         self._related_builder = relationship.get_builder()
 
         if not instance.is_loaded():
             return self
 
-        if attribute in instance._relationships:
-            return instance._relationships[attribute]
+        if self.attribute in instance._relationships:
+            return instance._relationships[self.attribute]
 
         return self.apply_query(self._related_builder, instance)
 

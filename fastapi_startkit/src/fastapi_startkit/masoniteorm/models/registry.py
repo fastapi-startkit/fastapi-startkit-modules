@@ -29,12 +29,15 @@ class Registry:
 
     @classmethod
     def resolve(cls, name: str) -> type:
-        # priority: morph_map > default registry
-        if name in cls._morph_map:
-            return cls._morph_map[name]
-
+        # priority: class registry > morph_map
+        # _models is always updated with the latest registration, so it wins over
+        # _morph_map which only keeps the first-registered class per name.
+        # _morph_map is still used for explicit morph aliases (e.g. "user", "article").
         if name in cls._models:
             return cls._models[name]
+
+        if name in cls._morph_map:
+            return cls._morph_map[name]
 
         raise ValueError(f"Model '{name}' not found in registry.")
 

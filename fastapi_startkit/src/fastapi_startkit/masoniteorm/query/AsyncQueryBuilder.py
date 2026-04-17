@@ -323,20 +323,17 @@ class AsyncQueryBuilder(QueryBuilder):
                             if inspect.isclass(self._model):
                                 related = getattr(self._model, relation)
                             elif callable(eagers):
-                                related = self._model.get_related(relation)
+                                related = getattr(self._model, relation)
                                 callback = eagers
                             else:
                                 related = self._model.get_related(relation)
 
-                            result_set = related.get_related(
+                            result_set = await related.get_related(
                                 self,
                                 hydrated_model,
                                 eagers=eagers,
                                 callback=callback,
                             )
-
-                            if inspect.isawaitable(result_set):
-                                result_set = await result_set
 
                             await self._register_relationships_to_model(
                                 related=related,
