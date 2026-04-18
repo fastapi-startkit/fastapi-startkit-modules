@@ -4,8 +4,8 @@ from dumpdie import dd
 from sqlalchemy import StaticPool
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
 
-from fastapi_startkit.masoniteorm.connections.poc.connection import Connection
-from fastapi_startkit.masoniteorm.connections.poc.sqlite_connection import SQliteConnection
+from fastapi_startkit.orm.connections.connection import Connection
+from fastapi_startkit.orm.connections.sqlite_connection import SQliteConnection
 
 
 class ConnectionFactory:
