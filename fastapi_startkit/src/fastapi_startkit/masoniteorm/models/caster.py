@@ -61,7 +61,7 @@ class JsonCast(BaseCast):
 
 
 class IntCast(BaseCast):
-    """Casts a value to a int"""
+    """Casts a value to an int"""
 
     def get(self, value):
         return int(value)
@@ -112,30 +112,33 @@ class DecimalCast(BaseCast):
 class Caster:
     casts = {}
 
+    cast_class_map = {
+        "bool": BoolCast,
+        "json": JsonCast,
+        "int": IntCast,
+        "float": FloatCast,
+        "date": DateCast,
+        "decimal": DecimalCast,
+    }
+
+    IGNORE_CASTS = [
+        'caster',
+        'db_manager'
+    ]
+
     def __init__(self, model: 'Model', casts: dict|None=None):
         self.model = model
         self.casts = Caster.build_casts(model)
         self.casts.update(casts or {})
 
-    @staticmethod
-    def build_casts(model):
-        cls = model if isinstance(model, type) else model.__class__
+    @classmethod
+    def build_casts(cls, model):
+        model = model if isinstance(model, type) else model.__class__
         from .registry import Registry
-        annotations = get_type_hints(cls, globalns=Registry._models)
+        annotations = get_type_hints(model)
 
         # Ignore the builder
-        annotations = {k:v for k, v in annotations.items() if k != "builder"}
-
-        # Internal map of type to Cast Class
-        cast_class_map = {
-            "bool": BoolCast,
-            "json": JsonCast,
-            "int": IntCast,
-            "float": FloatCast,
-            "date": DateCast,
-            "decimal": DecimalCast,
-        }
-
+        annotations = {k:v for k, v in annotations.items() if k not in cls.IGNORE_CASTS}
         from .fields import FieldDescriptor
 
         # 1. Collect all potential fields (annotations + descriptors)
@@ -154,8 +157,8 @@ class Caster:
             field_info = descriptor.field_info if isinstance(descriptor, FieldDescriptor) else None
 
             caster = Caster.normalize_type(typ)
-            if caster in cast_class_map:
-                casts[field_name] = cast_class_map[caster](config=field_info)
+            if caster in Caster.cast_class_map:
+                casts[field_name] = cls.cast_class_map[caster](config=field_info)
             else:
                 casts[field_name] = caster
 

@@ -5,7 +5,7 @@ import os
 
 from dotenv import load_dotenv
 
-from fastapi_startkit.masoniteorm.connections.manager import DBManager
+from fastapi_startkit.masoniteorm.connections.factory import ConnectionFactory
 
 
 load_dotenv(".env")
@@ -105,7 +105,7 @@ DATABASES = {
     },
 }
 
-DB = DBManager(connection_details=DATABASES)
+DB = ConnectionFactory(connection_details=DATABASES)
 
 logger = logging.getLogger("masoniteorm.connection.queries")
 logger.setLevel(logging.DEBUG)

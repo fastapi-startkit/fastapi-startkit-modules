@@ -1,8 +1,8 @@
 import os
 import unittest
 
-from src.masoniteorm.config import db_url
-from src.masoniteorm.connections import ConnectionResolver
+from fastapi_startkit.masoniteorm.config import db_url
+from fastapi_startkit.masoniteorm.connections.factory import ConnectionFactory
 
 
 class TestDbUrlHelper(unittest.TestCase):
@@ -109,7 +109,7 @@ class TestDbUrlHelper(unittest.TestCase):
                 "log_queries": True,
             },
         }
-        resolver = ConnectionResolver().set_connection_details(TEST_DATABASES)
+        resolver = ConnectionFactory().set_connection_details(TEST_DATABASES)
         config = resolver.get_connection_details().get("test")
         assert config.get("database") == "orm"
         assert config.get("user") == "root"
@@ -118,7 +118,7 @@ class TestDbUrlHelper(unittest.TestCase):
         assert config.get("host") == "localhost"
         assert config.get("log_queries")
 
-        inline_resolver = ConnectionResolver(connection_details=TEST_DATABASES)
+        inline_resolver = ConnectionFactory(connection_details=TEST_DATABASES)
         inline_config = inline_resolver.get_connection_details().get("test")
         assert inline_config.get("database") == "orm"
         assert inline_config.get("user") == "root"

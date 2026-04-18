@@ -1,6 +1,9 @@
+from typing import Any
+
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import text
 from sqlalchemy.exc import ResourceClosedError
+from sqlalchemy.pool import NullPool
 
 from ..exceptions import QueryException
 
@@ -30,18 +33,15 @@ class BaseConnection:
         return self
 
     async def make_connection(self):
-        """Initializes the async engine and acquires a connection from the pool."""
+        """Initializes the async engine and acquires a connection."""
         if not self._engine:
-            # Initialize engine with pooling options
-            options = self.connection_details.get("options", {})
-            min_size = options.get("min_size", 1)
-            max_size = options.get("max_size", 10)
-
+            # NullPool: BaseConnection is a long-lived singleton (cached in ConnectionFactory).
+            # A single physical connection is opened once and reused for all queries.
+            # No connection pooling is needed; NullPool avoids GC warnings from idle
+            # pool connections being collected without being returned.
             self._engine = create_async_engine(
                 self.get_connection_url(),
-                pool_size=max_size,
-                max_overflow=0,
-                pool_pre_ping=True,
+                poolclass=NullPool,
             )
 
         if self._connection is None:
@@ -68,6 +68,9 @@ class BaseConnection:
                 self._transaction = None
             await self._connection.close()
             self._connection = None
+        if self._engine:
+            await self._engine.dispose()
+            self._engine = None
         self.open = 0
 
     async def begin(self):
@@ -103,6 +106,32 @@ class BaseConnection:
     def get_last_row_id(self):
         return self._last_row_id
 
+    async def run(self, query: str, bindings = ()):
+        if not self._connection:
+            await self.reconnect()
+
+        assert self._connection is not None
+        statement = self.bind_qmark(query, bindings or ())
+        return await self._connection.execute(statement)
+
+    @classmethod
+    def bind_qmark(cls, query: str, bindings= ()):
+        if "?" in query:
+            new_query = query
+            new_bindings = {}
+            for i, val in enumerate(bindings):
+                placeholder = f"p{i}"
+                new_query = new_query.replace("?", f":{placeholder}", 1)
+                new_bindings[placeholder] = val
+            return text(new_query).bindparams(**new_bindings)
+
+        return text(query)
+
+    async def select_one(self, query: str, bindings= ()) -> dict | None:
+        result = await self.run(query, bindings)
+        row = result.fetchone()
+        return dict(zip(result.keys(), row)) if row else None
+
     async def query(self, query, bindings=(), results="*"):
         """Execute async query using SQLAlchemy text() wrapper."""
         try:
@@ -120,8 +149,9 @@ class BaseConnection:
                 statement = text(new_query).bindparams(**new_bindings)
             else:
                 statement = text(query)
+                new_query = query
 
-            result = await self._connection.execute(statement, bindings if not "?" in query else None)
+            result = await self._connection.execute(statement, bindings if "?" not in query else None)
             self._row_count = result.rowcount
             self._last_row_id = getattr(result, "lastrowid", None)
 
@@ -130,7 +160,17 @@ class BaseConnection:
                     row = result.fetchone()
                     fetched = dict(row._mapping) if row else {}
                 except ResourceClosedError:
-                    fetched = {}
+                    # asyncpg executes text() DML via execute() which discards RETURNING rows.
+                    # Fall back to SELECT lastval() to recover the inserted primary key.
+                    if "RETURNING" in query.upper():
+                        try:
+                            lastval_result = await self._connection.execute(text("SELECT lastval() AS lastval"))
+                            lastval_row = lastval_result.fetchone()
+                            fetched = {"lastval": lastval_row[0]} if lastval_row else {}
+                        except Exception:
+                            fetched = {}
+                    else:
+                        fetched = {}
             else:
                 try:
                     row_results = result.fetchall()
@@ -144,7 +184,10 @@ class BaseConnection:
             return fetched
 
         except Exception as e:
+            # Roll back the failed statement so the connection is reusable.
+            if self._connection and self.get_transaction_level() <= 0:
+                try:
+                    await self._connection.rollback()
+                except Exception:
+                    pass
             raise QueryException(str(e)) from e
-        finally:
-            if self.get_transaction_level() <= 0:
-                await self.close_connection()

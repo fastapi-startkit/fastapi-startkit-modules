@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from ..collection.Collection import Collection
 from ..config import load_config
-from ..connections.manager import DBManager
+from ..connections.factory import ConnectionFactory
 from ..exceptions import (
     HTTP404,
     ConnectionNotRegistered,
@@ -111,11 +111,15 @@ class QueryBuilder(ObservesEvents):
         self._connection_details = connection_details or {}
         self._connection_driver = connection_driver
 
-        if not self._connection_details:
+        # Always use the module-level singleton ConnectionFactory (load_config().DB) so that
+        # BaseConnection instances — and their underlying engine/physical connection — are shared
+        # across all QueryBuilder instances. Falling back to a fresh ConnectionFactory is only
+        # needed when no ORM config file is reachable (e.g. schema introspection tools).
+        try:
             self._db_manager = load_config(config_path=self.config_path).DB
             self._connection_details = self._db_manager.get_connection_details()
-        else:
-            self._db_manager = DBManager(connection_details=self._connection_details)
+        except Exception:
+            self._db_manager = ConnectionFactory(connection_details=self._connection_details)
 
         self.on(connection)
 

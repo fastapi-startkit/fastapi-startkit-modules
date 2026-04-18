@@ -21,6 +21,9 @@ class PostSeeder(Seeder):
             content="This is a post about Laravel framework and its database capabilities."
         )
 
+        from dumpdie import dd
+        dd(post1)
+
         # Attach tags to first post
         await PostTag.first_or_create({"post_id": post1.id, "tag_id": tag_laravel.id})
         await PostTag.first_or_create({"post_id": post1.id, "tag_id": tag_database.id})
@@ -31,6 +34,9 @@ class PostSeeder(Seeder):
             title="FastAPI and Databases",
             content="This is a post about FastAPI performance and database handling."
         )
+
+        from dumpdie import dd
+        dd(post2)
 
         # Attach tags to second post
         await PostTag.first_or_create({"post_id": post2.id, "tag_id": tag_fastapi.id})

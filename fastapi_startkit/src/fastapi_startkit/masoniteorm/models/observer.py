@@ -10,7 +10,7 @@ class CreatedAtObserver:
 
     def creating(self, model):
         if model.__timestamps__:
-            setattr(model, self.field_name, pendulum.now(self.tz).to_datetime_string())
+            setattr(model, self.field_name, pendulum.now(self.tz))
 
 
 class UpdatedAtObserver:
@@ -21,10 +21,10 @@ class UpdatedAtObserver:
 
     def creating(self, model):
         if model.__timestamps__:
-            setattr(model, self.field_name, pendulum.now(self.tz).to_datetime_string())
+            setattr(model, self.field_name, pendulum.now(self.tz))
 
     def updating(self, model):
         if model.__timestamps__:
             model.builder._updates += (
-                UpdateQueryExpression({self.field_name: pendulum.now(self.tz).to_datetime_string()}),
+                UpdateQueryExpression({self.field_name: pendulum.now(self.tz)}),
             )

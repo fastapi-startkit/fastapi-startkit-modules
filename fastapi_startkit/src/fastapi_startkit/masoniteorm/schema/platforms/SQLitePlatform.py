@@ -303,11 +303,11 @@ class SQLitePlatform(Platform):
             for name, constraint in diff.added_constraints.items():
                 if constraint.constraint_type == "unique":
                     sql.append(
-                        f"CREATE UNIQUE INDEX {constraint.name} ON {self.wrap_table(diff.name)}({','.join(constraint.columns if isinstance(constraint.columns, list) else [constraint.columns])})"
+                        f"CREATE UNIQUE INDEX {constraint.name} ON {self.wrap_table(diff.name)}({','.join(constraint._columns if isinstance(constraint._columns, list) else [constraint._columns])})"
                     )
                 elif constraint.constraint_type == "primary_key":
                     sql.append(
-                        f"ALTER TABLE {self.wrap_table(diff.name)} ADD CONSTRAINT {constraint.name} PRIMARY KEY ({','.join(constraint.columns)})"
+                        f"ALTER TABLE {self.wrap_table(diff.name)} ADD CONSTRAINT {constraint.name} PRIMARY KEY ({','.join(constraint._columns)})"
                     )
 
         return sql
@@ -351,7 +351,7 @@ class SQLitePlatform(Platform):
                 getattr(
                     self, f"get_{constraint.constraint_type}_constraint_string"
                 )().format(
-                    columns=", ".join(constraint.columns),
+                    columns=", ".join(constraint._columns),
                     constraint_name=constraint.name,
                 )
             )
