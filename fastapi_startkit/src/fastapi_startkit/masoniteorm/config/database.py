@@ -1,7 +1,5 @@
 import os
 
-from masoniteorm.connections import ConnectionResolver
-
 DATABASES = {
     "default": "mysql",
     "mysql": {
@@ -34,4 +32,6 @@ DATABASES = {
     }
 }
 
-DB = ConnectionResolver().set_connection_details(DATABASES)
+MIGRATION_PATH = 'databases/migrations'
+
+SEEDER_PATH = 'databases/seeders'

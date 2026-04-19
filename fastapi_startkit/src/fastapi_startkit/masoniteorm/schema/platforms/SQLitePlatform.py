@@ -20,7 +20,7 @@ class SQLitePlatform(Platform):
         "integer": "INTEGER",
         "big_integer": "BIGINT",
         "tiny_integer": "TINYINT",
-        "big_increments": "BIGINT",
+        "big_increments": "INTEGER",
         "small_integer": "SMALLINT",
         "medium_integer": "MEDIUMINT",
         "integer_unsigned": "INT UNSIGNED",

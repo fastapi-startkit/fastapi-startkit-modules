@@ -4,7 +4,7 @@ from .postgres_connection import PostgresConnection
 from .sqlite_connection import SQLiteConnection
 
 
-class DBManager:
+class ConnectionFactory:
     """Manages async database connections."""
     _drivers = {
         "postgres": PostgresConnection,
@@ -19,6 +19,10 @@ class DBManager:
 
     def morph_map(self, map):
         self._morph_map = map
+        return self
+
+    def set_connection_details(self, connection_details: dict) -> "ConnectionFactory":
+        self.connection_details = connection_details
         return self
 
     def get_connection_details(self):
@@ -67,8 +71,15 @@ class DBManager:
         return await self.connection(name).commit()
 
     async def rollback_transaction(self, name="default"):
-        """Rollback the current transaction."""
+        """Roll back the current transaction."""
         return await self.connection(name).rollback()
+
+    async def close_all(self):
+        """Close all cached connections and dispose their engines.
+        Call this at application / command shutdown."""
+        for conn in list(self._connections.values()):
+            await conn.close_connection()
+        self._connections.clear()
 
     @asynccontextmanager
     async def transaction(self, name="default"):

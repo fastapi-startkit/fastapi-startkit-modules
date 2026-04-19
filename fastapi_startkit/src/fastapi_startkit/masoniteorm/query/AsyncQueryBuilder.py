@@ -15,10 +15,9 @@ class AsyncQueryBuilder(QueryBuilder):
         if query:
             return self
 
-        result = await (await self.new_connection()).query(
+        result = await (await self.new_connection()).select_one(
             self.to_qmark(),
             self._bindings,
-            results=1
         )
 
         return await self.prepare_result(result)
@@ -123,6 +122,9 @@ class AsyncQueryBuilder(QueryBuilder):
             query_result = await connection.query(
                 self.to_qmark(), self._bindings, results=1
             )
+            
+            from dumpdie import dd
+            dd(self.to_qmark())
 
             if model:
                 id_key = model.get_primary_key()

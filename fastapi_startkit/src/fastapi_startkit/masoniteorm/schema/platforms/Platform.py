@@ -86,7 +86,7 @@ class Platform:
             sql.append(
                 getattr(
                     self, f"get_{constraint.constraint_type}_constraint_string"
-                )().format(columns=", ".join(constraint.columns))
+                )().format(columns=", ".join(constraint._columns))
             )
         return sql
 

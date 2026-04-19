@@ -23,6 +23,10 @@ class PostgresPostProcessor:
         Returns:
             dictionary: Should return the modified dictionary.
         """
+        # When asyncpg discards the RETURNING result (text() DML limitation), connection.query()
+        # falls back to SELECT lastval() and returns {"lastval": <id>}. Map it to the real key.
+        if isinstance(results, dict) and tuple(results.keys()) == ("lastval",):
+            return {id_key: results["lastval"]}
 
         return results
 

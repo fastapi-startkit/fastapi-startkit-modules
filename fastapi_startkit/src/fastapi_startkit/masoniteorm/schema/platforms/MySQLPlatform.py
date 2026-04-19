@@ -339,15 +339,15 @@ class MySQLPlatform(Platform):
             for name, constraint in table.added_constraints.items():
                 if constraint.constraint_type == "unique":
                     sql.append(
-                        f"ALTER TABLE {self.wrap_table(table.name)} ADD CONSTRAINT UNIQUE INDEX {constraint.name}({','.join(constraint.columns)})"
+                        f"ALTER TABLE {self.wrap_table(table.name)} ADD CONSTRAINT UNIQUE INDEX {constraint.name}({','.join(constraint._columns)})"
                     )
                 elif constraint.constraint_type == "fulltext":
                     sql.append(
-                        f"ALTER TABLE {self.wrap_table(table.name)} ADD FULLTEXT {constraint.name}({','.join(constraint.columns)})"
+                        f"ALTER TABLE {self.wrap_table(table.name)} ADD FULLTEXT {constraint.name}({','.join(constraint._columns)})"
                     )
                 elif constraint.constraint_type == "primary_key":
                     sql.append(
-                        f"ALTER TABLE {self.wrap_table(table.name)} ADD CONSTRAINT {constraint.name} PRIMARY KEY ({','.join(constraint.columns)})"
+                        f"ALTER TABLE {self.wrap_table(table.name)} ADD CONSTRAINT {constraint.name} PRIMARY KEY ({','.join(constraint._columns)})"
                     )
 
         if (
@@ -390,8 +390,8 @@ class MySQLPlatform(Platform):
                 getattr(
                     self, f"get_{constraint.constraint_type}_constraint_string"
                 )().format(
-                    columns=", ".join(constraint.columns),
-                    name_columns="_".join(constraint.columns),
+                    columns=", ".join(constraint._columns),
+                    name_columns="_".join(constraint._columns),
                     table=table.name,
                     constraint_name=constraint.name,
                 )

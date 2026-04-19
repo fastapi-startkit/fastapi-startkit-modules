@@ -1,3 +1,5 @@
+import pendulum
+from dumpdie import dd
 from pydantic.fields import FieldInfo
 from pydantic import Field as BaseField
 from typing import Any
@@ -35,6 +37,23 @@ def Field(*args, **kwargs) -> Any:
     """
     return FieldDescriptor(BaseField(*args, **kwargs))
 
+class DateTimeField:
+    def __init__(self, fmt: str = "YYYY-MM-DD HH:mm:ss", tz: str = "UTC"):
+        self.format = fmt
+        self.tz = tz
+
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+
+        return instance.get_attribute(self.name)
+
+    # def __set__(self, instance, value):
+    #     instance.set_attribute(self.name, value)
+
 class CreatedAtField:
     def __init__(self, fmt: str = "YYYY-MM-DD HH:mm:ss", tz: str = "UTC"):
         self.format = fmt
@@ -47,10 +66,10 @@ class CreatedAtField:
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        return instance.get_value(self.name)
+        return instance.get_attribute(self.name)
 
-    def __set__(self, instance, value):
-        instance.set_value(self.name, value)
+    # def __set__(self, instance, value):
+    #     instance.set_value(self.name, value)
 
 
 class UpdatedAtField:
@@ -65,7 +84,7 @@ class UpdatedAtField:
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        return instance.get_value(self.name)
+        return instance.get_attribute(self.name)
 
     def __set__(self, instance, value):
-        instance.set_value(self.name, value)
+        dd(1)
