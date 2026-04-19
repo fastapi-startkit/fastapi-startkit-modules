@@ -1,8 +1,9 @@
-from dumpdie import dd
+from __future__ import annotations
 
 from fastapi_startkit.masoniteorm.collection import Collection
 from fastapi_startkit.carbon import Carbon
 from fastapi_startkit.masoniteorm.models.fields import CreatedAtField, UpdatedAtField
+from fastapi_startkit.masoniteorm.models.registry import Registry
 from fastapi_startkit.masoniteorm.observers import ObservesEvents
 from fastapi_startkit.orm.connections.manager import DatabaseManager
 from fastapi_startkit.orm.models.attribute import Attribute
@@ -11,6 +12,10 @@ from fastapi_startkit.orm.models.relationship import Relationship
 
 class Model(Attribute, Relationship, ObservesEvents):
     db_manager: 'DatabaseManager' = None
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        Registry.register(cls)
 
     __observers__ = {}
     __has_events__ = True
@@ -27,6 +32,32 @@ class Model(Attribute, Relationship, ObservesEvents):
         self.__with__ = {}
         self._exists = False
         self._was_recently_created = False
+        self._relationship = {}
+
+    @property
+    def __attributes__(self):
+        return self.get_attributes()
+
+    def is_loaded(self) -> bool:
+        return self._exists
+
+    def get_builder(self):
+        return self.new_query()
+
+    def add_relation(self, data: dict):
+        self._relationship.update(data)
+
+    @property
+    def _relationships(self):
+        """Alias for _relationship, used by relationship descriptors."""
+        return self._relationship
+
+    def get_related(self, key: str):
+        return getattr(self.__class__, key)
+
+    @classmethod
+    def with_(cls, *eagers) -> 'QueryBuilder':
+        return cls.query().with_(*eagers)
 
     @classmethod
     async def first(cls, columns=None):
