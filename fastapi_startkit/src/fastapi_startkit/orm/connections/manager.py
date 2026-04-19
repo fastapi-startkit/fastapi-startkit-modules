@@ -1,8 +1,11 @@
-from fastapi_startkit.orm.connections.factory import ConnectionFactory
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from fastapi_startkit.orm.connections.factory import ConnectionFactory
 
 
 class DatabaseManager:
-    def __init__(self, factory: ConnectionFactory, config: dict):
+    def __init__(self, factory: "ConnectionFactory", config: dict):
         self.factory = factory
         self.config = config
         self.connections = {}

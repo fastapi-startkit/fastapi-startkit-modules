@@ -1,3 +1,6 @@
+from dumpdie import dd
+
+from fastapi_startkit.masoniteorm.collection import Collection
 from fastapi_startkit.carbon import Carbon
 from fastapi_startkit.masoniteorm.models.fields import CreatedAtField, UpdatedAtField
 from fastapi_startkit.masoniteorm.observers import ObservesEvents
@@ -25,8 +28,57 @@ class Model(Attribute, Relationship, ObservesEvents):
         self._exists = False
         self._was_recently_created = False
 
+    @classmethod
+    async def first(cls, columns=None):
+        return await cls.query().first(columns)
+
+    @classmethod
+    async def get(cls):
+        return await cls.query().get()
+
+    def set_connection(self, connection: str):
+        self.connection = connection
+
+        return self
+
+    def get_connection_name(self):
+        return self.connection
+
+    def new_model_instance(self, attributes=None, exists=False):
+        if attributes is None:
+            attributes = {}
+        model = self.__class__()
+        model._attributes = attributes
+        model._exists = exists
+
+        return model
+
     def new_query(self):
         return self.db_manager.connection(self.connection).query().set_model(self)
+
+    def hydrate(self, items):
+        instance = self.new_model_instance()
+
+        items  = [instance.new_from_builder(item) for item in items]
+
+        return instance.new_collection(items)
+
+
+    def new_collection(self, models: list):
+        collection = Collection(items=models)
+
+        collection.with_relationship_autoloading()
+
+        return collection
+
+    def new_from_builder(self, attributes: dict, connection: str|None = None):
+        model = self.new_model_instance([], exists=True)
+        model.set_raw_attributes(attributes, connection)
+
+        model.set_connection(connection or self.get_connection_name())
+        # Fire model event retrieved
+
+        return model
 
     def __getattr__(self, attribute):
         return self.get_attribute(attribute)
@@ -34,6 +86,13 @@ class Model(Attribute, Relationship, ObservesEvents):
     @classmethod
     def query(cls):
         return cls().new_query()
+
+    @classmethod
+    async def create(cls, attributes: dict):
+        instance = cls().new_model_instance(attributes)
+        await instance.save()
+
+        return instance
 
     async def save(self, options: dict | None = None) -> bool:
         query = self.new_query()
