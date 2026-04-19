@@ -197,7 +197,7 @@ class Model(ObservesEvents):
         return self
 
     @classmethod
-    def hydrate(cls, result, relations=None):
+    def hydrate(cls, items, relations=None):
         """Takes a result and loads it into a model
 
         Args:

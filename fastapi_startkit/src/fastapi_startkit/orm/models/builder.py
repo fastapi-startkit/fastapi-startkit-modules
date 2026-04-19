@@ -1,11 +1,14 @@
 import inflection
 from typing import TYPE_CHECKING
 
+from dumpdie import dd
+
 from fastapi_startkit.masoniteorm.expressions.expressions import (
     QueryExpression,
     SelectExpression,
     UpdateQueryExpression,
 )
+from fastapi_startkit.masoniteorm.collection import Collection
 
 if TYPE_CHECKING:
     from fastapi_startkit.orm.connections.connection import Connection
@@ -69,14 +72,21 @@ class QueryBuilder:
     async def first(self, columns=None):
         if not columns:
             columns = []
-        results = await self.select(columns).limit(1).get()
 
-    async def get(self, columns: list = None):
+        results = await self.select(columns).limit(1).get()
+        return results.first()
+
+    async def get(self, columns= None):
+        # TODO: apply scopes
         if not columns:
             columns = []
+        return await self.get_models(columns)
+
+    async def get_models(self, columns=None):
         self.select(columns)
-        result = await self.connection.select(self.to_qmark(), self.get_bindings())
-        return result
+        models = await self.connection.select(self.to_qmark(), self.get_bindings())
+
+        return self._model.hydrate(models)
 
     def get_bindings(self) -> tuple:
         return self._bindings

@@ -18,6 +18,7 @@ class Attribute:
         model: 'Model' = self.__class__
         self.caster = Caster(model)
 
+        self._original = {}
         self._attributes = attributes or {}
         self._dirty_attributes = {}
 
@@ -37,11 +38,26 @@ class Attribute:
             self.set_attribute(key, value)
 
     def set_attribute(self, key: str, value):
-        if key in self.__casts__:
+        if key in self.caster.casts:
             value = self.caster.set(key, value)
 
         if not key.startswith("_"):
             self.__dict__["_dirty_attributes"].update({key: value})
+
+    def set_raw_attributes(self, attributes: dict, sync=False):
+        self._attributes = attributes
+
+        if sync:
+            self.sync_original()
+
+        return self
+
+    def sync_original(self):
+        self._original = self.get_attributes()
+
+    def get_attributes(self):
+        return {**self._attributes, **self._dirty_attributes}
+
 
     def get_attribute(self, key: str):
         value = None
