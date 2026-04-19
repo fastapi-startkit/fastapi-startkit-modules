@@ -26,3 +26,7 @@ class DatabaseManager:
         if name is None or name == "default":
             return self.config.get("default", "default")
         return name
+
+    def get_schema_builder(self):
+        from fastapi_startkit.orm.schema import Schema
+        return Schema(self)

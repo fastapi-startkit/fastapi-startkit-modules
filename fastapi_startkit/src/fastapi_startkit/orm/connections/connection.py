@@ -3,7 +3,7 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
 
-from fastapi_startkit.masoniteorm.connections.poc.builder import QueryBuilder
+from fastapi_startkit.orm.models.builder import QueryBuilder
 
 
 class Connection:
@@ -46,24 +46,42 @@ class Connection:
     async def reconnect(self) -> None:
         self.conn = await self.engine.connect()
 
-    async def run(self, query: str, bindings: dict[str, Any] | None = None):
-        if not self.conn:
-            await self.reconnect()
-
-        assert self.conn is not None
+    async def run(self, query: str, bindings: list | dict | None = None):
         async with self.conn.connect() as conn:
             return await conn.execute(text(query), bindings or {})
 
-    async def statement(self, query: str, bindings: dict[str, Any] | None = None) -> bool:
+    async def statement(self, query: str, bindings: list | dict | None = None) -> bool:
         await self.run(query, bindings)
         return True
 
-    async def insert(self, query: str, bindings: dict[str, Any] | None = None) -> bool:
-        return await self.statement(query, bindings)
+    async def insert(self, query: str, bindings: list | None = None) -> int | None:
+        # Convert qmark (?) positional bindings to SQLAlchemy named (:pN) params
+        params = {}
+        if bindings:
+            for i, val in enumerate(bindings):
+                name = f'p{i}'
+                params[name] = val
+                query = query.replace('?', f':{name}', 1)
 
-    async def update(self, query: str, bindings: dict[str, Any] | None = None) -> int:
-        result = await self.run(query, bindings)
-        return result.rowcount  # type: ignore[return-value]
+        async with self.conn.connect() as conn:
+            result = await conn.execute(text(query), params)
+            await conn.commit()
+
+        return result.lastrowid
+
+    async def update(self, query: str, bindings: list | None = None) -> int:
+        params = {}
+        if bindings:
+            for i, val in enumerate(bindings):
+                name = f'p{i}'
+                params[name] = val
+                query = query.replace('?', f':{name}', 1)
+
+        async with self.conn.connect() as conn:
+            result = await conn.execute(text(query), params)
+            await conn.commit()
+
+        return result.rowcount
 
     async def delete(self, query: str, bindings: dict[str, Any] | None = None) -> int:
         result = await self.run(query, bindings)

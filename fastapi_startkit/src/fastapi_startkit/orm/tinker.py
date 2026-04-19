@@ -1,7 +1,5 @@
 import asyncio
 
-from dumpdie import dd
-
 from fastapi_startkit.carbon import Carbon
 from fastapi_startkit.orm.connections.factory import ConnectionFactory
 from fastapi_startkit.masoniteorm.models.fields import DateTimeField
@@ -18,6 +16,7 @@ DB = DatabaseManager(ConnectionFactory(), {
 
 # Set the db_manager for model
 Model.db_manager = DB
+schema = DB.get_schema_builder()
 
 
 class User(Model):
@@ -29,11 +28,19 @@ class User(Model):
 
 
 async def main():
+    await schema.drop_table_if_exists('users')
+    async with await schema.on('default').create("users") as table:
+        table.id()
+        table.string("name")
+        table.string("email").unique()
+        table.timestamp('email_verified_at').nullable()
+        table.timestamps()
+
     user = User(name="Alex", email='alex@gmail.com', email_verified_at="2026-10-01 12:12:12")
-    print(user.name)
-    print(user.email)
-    print(user.created_at)
-    dd(user.email_verified_at.format("YYYY-MM-DD HH:mm:ss"))
+    await user.save()
+
+    user.name = "Ram"
+    await user.save()
 
 
 if __name__ == "__main__":

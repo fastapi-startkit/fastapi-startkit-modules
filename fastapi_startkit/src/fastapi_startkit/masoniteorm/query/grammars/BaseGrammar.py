@@ -116,19 +116,30 @@ class BaseGrammar:
 
         return self
 
-    def _compile_update(self, qmark=False):
+    def _compile_update(self, query=None, values=None, qmark=False):
         """Compiles an update query statement.
 
+        Arguments:
+            query  -- The QueryBuilder instance (provides table/wheres context).
+            values {list} -- Runtime UpdateQueryExpression list.
+
         Keyword Arguments:
-            qmark {bool} -- Whether the query should use qmark. (default: {False})
+            qmark {bool} -- Use positional ? bindings. (default: {False})
 
         Returns:
             self
         """
+        self._action = "update"
+
+        if values is not None:
+            self._updates = values
+
+        table = query._table if query is not None else self.table
+
         self._sql = self.update_format().format(
             key_equals=self._compile_key_value_equals(qmark=qmark),
-            table=self.process_table(self.table),
-            wheres=self.process_wheres(qmark=qmark),
+            table=self.process_table(table),
+            wheres=self.process_wheres(query=query, qmark=qmark),
         )
 
         return self
@@ -549,8 +560,11 @@ class BaseGrammar:
 
         return sql
 
-    def process_wheres(self, qmark=False, strip_first_where=False):
+    def process_wheres(self, query=None, qmark=False, strip_first_where=False):
         """Compiles the where expression.
+
+        Arguments:
+            query -- QueryBuilder instance to read wheres from; falls back to self._wheres.
 
         Keyword Arguments:
             qmark {bool} -- Whether or not to use Qmark. (default: {False})
@@ -562,7 +576,8 @@ class BaseGrammar:
         """
         sql = ""
         loop_count = 0
-        for where in self._wheres:
+        wheres = query._wheres if query is not None else self._wheres
+        for where in wheres:
             column = where.column
             equality = where.equality
             value = where.value
