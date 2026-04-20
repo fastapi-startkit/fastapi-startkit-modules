@@ -5,7 +5,7 @@ from .Command import Command
 from cleo.helpers import argument, option
 
 class MakeModelCommand(Command):
-    name = "model"
+    name = "db:make:model"
     description = "Creates a new model file."
 
     arguments = [argument("name", description="The name of the model")]

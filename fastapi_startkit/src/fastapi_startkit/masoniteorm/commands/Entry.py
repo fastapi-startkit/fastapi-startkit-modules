@@ -13,7 +13,7 @@ from . import (
     MakeModelDocstringCommand,
     MakeObserverCommand,
     MakeSeedCommand,
-    MigrateCommand,
+    DBMigrateCommand,
     MigrateFreshCommand,
     MigrateRefreshCommand,
     MigrateResetCommand,
@@ -25,7 +25,7 @@ from . import (
 
 application = Application("ORM Version:", "0.1")
 
-application.add(MigrateCommand())
+application.add(DBMigrateCommand())
 application.add(MigrateRollbackCommand())
 application.add(MigrateRefreshCommand())
 application.add(MigrateFreshCommand())

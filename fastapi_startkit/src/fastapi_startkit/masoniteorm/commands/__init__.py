@@ -8,7 +8,7 @@ from .MakeModelCommand import MakeModelCommand
 from .MakeModelDocstringCommand import MakeModelDocstringCommand
 from .MakeObserverCommand import MakeObserverCommand
 from .MakeSeedCommand import MakeSeedCommand
-from .MigrateCommand import MigrateCommand
+from .DBMigrateCommand import DBMigrateCommand
 from .MigrateFreshCommand import MigrateFreshCommand
 from .MigrateRefreshCommand import MigrateRefreshCommand
 from .MigrateResetCommand import MigrateResetCommand

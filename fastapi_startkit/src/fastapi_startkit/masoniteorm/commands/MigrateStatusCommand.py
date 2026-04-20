@@ -4,7 +4,7 @@ from .Command import Command
 
 
 class MigrateStatusCommand(Command):
-    name = "migrate:status"
+    name = "db:migrate:status"
     description = "Display migrations status."
 
     options = [

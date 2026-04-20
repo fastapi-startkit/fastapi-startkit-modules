@@ -2,9 +2,9 @@ import os
 from .Command import Command
 from cleo.helpers import option
 
-class MigrateCommand(Command):
-    name = "migrate"
-    description = "Run migrations."
+class DBMigrateCommand(Command):
+    name = "db:migrate"
+    description = "Run the pending database migrations."
 
     options = [
         option(
