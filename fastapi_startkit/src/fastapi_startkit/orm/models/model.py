@@ -1,4 +1,5 @@
 from __future__ import annotations
+import inflection
 
 from typing import TYPE_CHECKING
 
@@ -18,7 +19,15 @@ if TYPE_CHECKING:
 
 class Model(Attribute, Relationship, ObservesEvents):
     db_manager: 'DatabaseManager' = None
+    __table__ = None
+    __primary_key__ = "id"
+    __timestamps__ = True
+
+    __has_events__ = True
+    __observers__ = {}
+
     __fillable__: list[str] = []
+
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -33,11 +42,6 @@ class Model(Attribute, Relationship, ObservesEvents):
                 continue
             fillable.append(name)
         cls.__fillable__ = fillable
-
-    __observers__ = {}
-    __has_events__ = True
-    __timestamps__ = True
-    __primary_key__ = "id"
 
     created_at: Carbon = CreatedAtField(fmt="%Y-%m-%d %H:%M:%S", tz="UTC")
     updated_at: Carbon = UpdatedAtField(fmt="%Y-%m-%d %H:%M:%S", tz="UTC")
@@ -86,6 +90,14 @@ class Model(Attribute, Relationship, ObservesEvents):
 
     @classmethod
     async def get(cls):
+        return await cls.query().get()
+
+    @classmethod
+    def on(cls, connection: str):
+        return cls().set_connection(connection)
+
+    @classmethod
+    async def all(cls):
         return await cls.query().get()
 
     def set_connection(self, connection: str):
@@ -209,6 +221,12 @@ class Model(Attribute, Relationship, ObservesEvents):
     def get_attributes(self) -> dict:
         return {**self._attributes, **self._dirty_attributes}
 
+    def serialize(self) -> dict:
+        return self.get_attributes()
+
     @classmethod
     def where(cls, column, *args):
         return cls().query().where(column, *args)
+
+    def get_table_name(self):
+        return self.__table__ or inflection.tableize(self.__class__.__name__)

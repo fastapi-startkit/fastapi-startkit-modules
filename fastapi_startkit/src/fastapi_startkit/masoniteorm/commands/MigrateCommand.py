@@ -31,9 +31,6 @@ class MigrateCommand(Command):
             description="Shows the output of SQL for migrations that would be running",
         ),
         option(
-            "schema", None, flag=False, default=None, description="Sets the schema to be migrated"
-        ),
-        option(
             "directory",
             "d",
             flag=False,
@@ -62,8 +59,6 @@ class MigrateCommand(Command):
             command_class=self,
             connection=self.option("connection"),
             migration_directory=self.option("directory"),
-            config_path=self.option("config"),
-            schema=self.option("schema"),
         )
         await migration.create_table_if_not_exists()
         if not await migration.get_unran_migrations():

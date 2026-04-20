@@ -209,19 +209,19 @@ class Model(ObservesEvents):
         """
         relations = relations or {}
 
-        if result is None:
+        if items is None:
             return None
 
-        if isinstance(result, (list, tuple)):
+        if isinstance(items, (list, tuple)):
             response = []
-            for element in result:
+            for element in items:
                 response.append(cls.hydrate(element))
             return cls.new_collection(response)
 
-        elif isinstance(result, dict):
+        elif isinstance(items, dict):
             model = cls()
             dic = {}
-            for key, value in result.items():
+            for key, value in items.items():
                 # if key in model.get_dates() and value:
                 #     value = model.get_new_date(value)
                 dic.update({key: value})
@@ -241,16 +241,16 @@ class Model(ObservesEvents):
             model.observe_events(model, "hydrated")
             return model
 
-        elif hasattr(result, "serialize"):
+        elif hasattr(items, "serialize"):
             model = cls()
-            model.__attributes__.update(result.serialize())
-            model.__original_attributes__.update(result.serialize())
+            model.__attributes__.update(items.serialize())
+            model.__original_attributes__.update(items.serialize())
             return model
         else:
             model = cls()
             model.observe_events(model, "hydrating")
-            model.__attributes__.update(dict(result))
-            model.__original_attributes__.update(dict(result))
+            model.__attributes__.update(dict(items))
+            model.__original_attributes__.update(dict(items))
             model.observe_events(model, "hydrated")
             return model
 

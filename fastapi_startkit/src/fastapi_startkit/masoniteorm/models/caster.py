@@ -135,7 +135,20 @@ class Caster:
     def build_casts(cls, model):
         model = model if isinstance(model, type) else model.__class__
         from .registry import Registry
-        annotations = get_type_hints(model)
+        from fastapi_startkit.masoniteorm.relationships.BaseRelationship import BaseRelationship
+        try:
+            annotations = get_type_hints(model)
+        except NameError:
+            annotations = {}
+            for klass in reversed(model.__mro__):
+                for name, hint in vars(klass).get('__annotations__', {}).items():
+                    if not isinstance(getattr(model, name, None), BaseRelationship):
+                        annotations[name] = hint
+
+        annotations = {
+            k: v for k, v in annotations.items()
+            if not isinstance(getattr(model, k, None), BaseRelationship)
+        }
 
         # Ignore the builder
         annotations = {k:v for k, v in annotations.items() if k not in cls.IGNORE_CASTS}
