@@ -1,3 +1,4 @@
+from fastapi_startkit.masoniteorm.commands import DBSeedCommand
 from fastapi_startkit.masoniteorm.commands import MigrateCommand
 from fastapi_startkit.orm.connections.factory import ConnectionFactory
 from fastapi_startkit.orm.connections.manager import DatabaseManager
@@ -18,5 +19,6 @@ class DatabaseProvider(Provider):
 
     def boot(self) -> None:
         self.commands([
-            MigrateCommand
+            MigrateCommand,
+            DBSeedCommand
         ])

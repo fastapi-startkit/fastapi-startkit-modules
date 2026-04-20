@@ -140,6 +140,13 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
 
         return model
 
+    async def first_or_create(self, search: dict, attributes: dict | None = None):
+        instance = await self.where(search).first()
+        if instance is not None:
+            return instance
+
+        return await self.create({**(attributes or {}), **search})
+
     async def insert(self, values: dict | list) -> int | None:
         self.set_action("bulk_create")
 

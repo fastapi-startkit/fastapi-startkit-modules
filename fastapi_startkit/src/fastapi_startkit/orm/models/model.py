@@ -151,6 +151,10 @@ class Model(Attribute, Relationship, ObservesEvents):
         return cls().new_query()
 
     @classmethod
+    async def first_or_create(cls, search: dict, attributes: dict | None = None) -> 'Model':
+        return await cls.query().first_or_create(search, attributes)
+
+    @classmethod
     async def create(cls, attributes: dict):
         instance = cls().new_model_instance(attributes)
         await instance.save()
