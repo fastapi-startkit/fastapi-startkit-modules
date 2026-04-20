@@ -4,19 +4,6 @@ from fastapi_startkit.masoniteorm.schema.TableDiff import TableDiff
 
 
 class Schema:
-    """Schema builder that uses DatabaseManager for connection resolution.
-
-    Usage::
-
-        schema = DB.get_schema_builder()
-
-        async with await schema.on("default").create("users") as table:
-            table.id()
-            table.string("name")
-            table.timestamp("email_verified_at").nullable()
-            table.timestamps()
-    """
-
     def __init__(self, manager) -> None:
         self._manager = manager
         self._connection = None
@@ -26,17 +13,22 @@ class Schema:
         self._connection = self._manager.connection(connection_name)
         return self
 
-    async def create(self, table: str) -> Blueprint:
-        """Return a Blueprint for a new table (async context manager)."""
+    def get_connection(self):
         if self._connection is None:
             self._connection = self._manager.connection(None)
 
+        return self._connection
+
+    async def create(self, table: str) -> Blueprint:
+        """Return a Blueprint for a new table (async context manager)."""
+        connection = self.get_connection()
+
         return Blueprint(
-            grammar=self._connection.get_query_grammar(),
-            connection=self._connection,
+            grammar=connection.get_query_grammar(),
+            connection=connection,
             table=Table(table),
             action="create",
-            platform=self._connection.get_default_platform(),
+            platform=connection.get_default_platform(),
         )
 
     async def create_table_if_not_exists(self, table: str) -> Blueprint:
@@ -92,3 +84,14 @@ class Schema:
 
         sql = self._connection.get_default_platform()().compile_rename_table(table, new_name)
         await self._connection.run(sql, ())
+
+    async def get_all_tables(self):
+        """Gets all tables in the database."""
+        connection = self.get_connection()
+        platform = connection.get_default_platform()()
+        sql = platform.compile_get_all_tables(
+            database=connection.config.get("database"),
+            schema=connection.config.get("schema"),
+        )
+        result = await connection.select(sql, ())
+        return [list(row.values())[0] for row in result] if result else []

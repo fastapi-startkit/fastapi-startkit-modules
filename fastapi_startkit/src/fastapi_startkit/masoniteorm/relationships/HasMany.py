@@ -44,6 +44,7 @@ class HasMany(BaseRelationship):
         return await related_record.update({self.foreign_key: local_key_value})
 
     async def get_related(self, query, relation, eagers=None, callback=None):
+        self.set_keys(None, self.attribute)
         eagers = eagers or []
         builder = self.get_builder().with_(eagers)
 

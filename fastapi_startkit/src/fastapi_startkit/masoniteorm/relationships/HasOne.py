@@ -9,7 +9,7 @@ class HasOne(BaseRelationship):
     """Has One Relationship Class."""
 
     def __init__(self, fn: str, foreign_key=None, local_key=None):
-        self.fn = lambda x: registry.Registry.resolve(fn)
+        self.fn = lambda: registry.Registry.resolve(fn)
 
         self.local_key = local_key or "id"
         self.foreign_key = foreign_key

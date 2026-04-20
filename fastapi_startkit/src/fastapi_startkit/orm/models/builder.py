@@ -1,18 +1,25 @@
+import inspect
+
 import inflection
 from typing import TYPE_CHECKING
+
+from dumpdie import dd
 
 from fastapi_startkit.masoniteorm.expressions.expressions import (
     QueryExpression,
     SelectExpression,
     UpdateQueryExpression,
+    SubSelectExpression,
+    SubGroupExpression,
 )
 from fastapi_startkit.orm.query.EagerLoadMixin import EagerLoadMixin
+from fastapi_startkit.orm.query.support import SupportMixin
 
 if TYPE_CHECKING:
     from fastapi_startkit.orm.connections.connection import Connection
 
 
-class QueryBuilder(EagerLoadMixin):
+class QueryBuilder(EagerLoadMixin, SupportMixin):
     def __init__(self, connection: 'Connection', grammar, processor):
         super().__init__()
         self.connection = connection
@@ -64,12 +71,6 @@ class QueryBuilder(EagerLoadMixin):
             else:
                 for column in arg.split(","):
                     self._columns += (SelectExpression(column),)
-        return self
-
-    def where(self, column: str, value, equality: str = "=") -> 'QueryBuilder':
-        self._wheres.append(
-            QueryExpression(column, equality, value, "value", "WHERE")
-        )
         return self
 
     def limit(self, limit: int) -> 'QueryBuilder':
@@ -126,7 +127,11 @@ class QueryBuilder(EagerLoadMixin):
         self._bindings = grammar._bindings
         return sql
 
-    # --- Write operations ---
+    async def create(self, attributes: dict):
+        model = self._model.new_model_instance(attributes)
+        await model.save()
+
+        return model
 
     async def insert(self, values: dict | list) -> int | None:
         self.set_action("bulk_create")
@@ -152,3 +157,42 @@ class QueryBuilder(EagerLoadMixin):
         sql = grammar._compile_update(query=self, values=updates, qmark=True).to_sql()
         bindings = list(grammar._bindings)
         return await self.connection.update(sql, bindings)
+
+    def new(self):
+        return self.connection.query()
+
+    def where(self, column, *args):
+        """Specifies a where expression.
+
+        Arguments:
+            column {string} -- The name of the column to search
+
+        Keyword Arguments:
+            args {List} -- The operator and the value of the column to search. (default: {None})
+
+        Returns:
+            self
+        """
+        operator, value = self._extract_operator_value(*args)
+
+        if inspect.isfunction(column):
+            builder = column(self.new())
+            self._wheres += (
+                (QueryExpression(None, operator, SubGroupExpression(builder))),
+            )
+        elif isinstance(column, dict):
+            for key, value in column.items():
+                self._wheres += ((QueryExpression(key, "=", value, "value")),)
+        elif isinstance(value, QueryBuilder):
+            self._wheres += (
+                (
+                    QueryExpression(
+                        column, operator, SubSelectExpression(value)
+                    )
+                ),
+            )
+        else:
+            self._wheres += (
+                (QueryExpression(column, operator, value, "value")),
+            )
+        return self

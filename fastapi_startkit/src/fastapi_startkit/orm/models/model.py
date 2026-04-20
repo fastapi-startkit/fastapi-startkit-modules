@@ -1,13 +1,18 @@
 from __future__ import annotations
 
-from fastapi_startkit.masoniteorm.collection import Collection
+from typing import TYPE_CHECKING
+
 from fastapi_startkit.carbon import Carbon
+from fastapi_startkit.masoniteorm.collection import Collection
 from fastapi_startkit.masoniteorm.models.fields import CreatedAtField, UpdatedAtField
 from fastapi_startkit.masoniteorm.models.registry import Registry
 from fastapi_startkit.masoniteorm.observers import ObservesEvents
 from fastapi_startkit.orm.connections.manager import DatabaseManager
 from fastapi_startkit.orm.models.attribute import Attribute
 from fastapi_startkit.orm.models.relationship import Relationship
+
+if TYPE_CHECKING:
+    from fastapi_startkit.orm.models.builder import QueryBuilder
 
 
 class Model(Attribute, Relationship, ObservesEvents):
@@ -90,10 +95,9 @@ class Model(Attribute, Relationship, ObservesEvents):
     def hydrate(self, items):
         instance = self.new_model_instance()
 
-        items  = [instance.new_from_builder(item) for item in items]
+        items = [instance.new_from_builder(item) for item in items]
 
         return instance.new_collection(items)
-
 
     def new_collection(self, models: list):
         collection = Collection(items=models)
@@ -102,7 +106,7 @@ class Model(Attribute, Relationship, ObservesEvents):
 
         return collection
 
-    def new_from_builder(self, attributes: dict, connection: str|None = None):
+    def new_from_builder(self, attributes: dict, connection: str | None = None):
         model = self.new_model_instance([], exists=True)
         model.set_raw_attributes(attributes, connection)
 
@@ -175,3 +179,7 @@ class Model(Attribute, Relationship, ObservesEvents):
 
     def get_attributes(self) -> dict:
         return {**self._attributes, **self._dirty_attributes}
+
+    @classmethod
+    def where(cls, column, *args):
+        return cls().query().where(column, *args)

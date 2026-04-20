@@ -1,7 +1,8 @@
 from unittest import IsolatedAsyncioTestCase
 
 from ..fixtures.db import DB
-from ..fixtures.migration import migrate
+from ..fixtures.migration import migrate, wipe
+from ..fixtures.seeder import seeder
 
 
 class TestCase(IsolatedAsyncioTestCase):
@@ -10,9 +11,10 @@ class TestCase(IsolatedAsyncioTestCase):
         self.schema = self.db.get_schema_builder()
         await self.rollback()
         await migrate()
+        await seeder()
 
     async def asyncTearDown(self):
         await self.rollback()
 
-    async def rollback(self):
-        await self.schema.drop_table_if_exists("users")
+    async def rollback(self)-> None:
+        await wipe()

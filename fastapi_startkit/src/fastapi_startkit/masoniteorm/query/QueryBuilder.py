@@ -626,42 +626,6 @@ class QueryBuilder(ObservesEvents):
 
         return connection.get_row_count()
 
-    def where(self, column, *args):
-        """Specifies a where expression.
-
-        Arguments:
-            column {string} -- The name of the column to search
-
-        Keyword Arguments:
-            args {List} -- The operator and the value of the column to search. (default: {None})
-
-        Returns:
-            self
-        """
-        operator, value = self._extract_operator_value(*args)
-
-        if inspect.isfunction(column):
-            builder = column(self.new())
-            self._wheres += (
-                (QueryExpression(None, operator, SubGroupExpression(builder))),
-            )
-        elif isinstance(column, dict):
-            for key, value in column.items():
-                self._wheres += ((QueryExpression(key, "=", value, "value")),)
-        elif isinstance(value, QueryBuilder):
-            self._wheres += (
-                (
-                    QueryExpression(
-                        column, operator, SubSelectExpression(value)
-                    )
-                ),
-            )
-        else:
-            self._wheres += (
-                (QueryExpression(column, operator, value, "value")),
-            )
-        return self
-
     def where_from_builder(self, builder):
         """Specifies a where expression.
 

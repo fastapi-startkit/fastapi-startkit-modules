@@ -1,12 +1,12 @@
+from dumpdie import dd
+
 from fastapi_startkit.masoniteorm.models import registry
-from typing import Callable
 
 
 class BaseRelationship:
-    def __init__(self, fn: Callable | str, local_key=None, foreign_key=None):
-        # If user provides string instead of Model, we will resolve it here
-        if isinstance(fn, str):
-            self.fn = lambda x: registry.Registry.resolve(fn)
+    def __init__(self, fn: str, local_key=None, foreign_key=None):
+        # Keeping it as lamda function just in case for the backward compatibility
+        self.fn = lambda: registry.Registry.resolve(fn)
 
         self.local_key = local_key
         self.foreign_key = foreign_key
@@ -14,23 +14,10 @@ class BaseRelationship:
 
     def __set_name__(self, cls, name):
         self.attribute = name
-
-    def __call__(self, fn=None, *args, **kwargs):
-        """This method is called when the decorator contains arguments.
-
-        When you do something like this:
-
-        @belongs_to('id', 'user_id').
-
-        In this case, the {fn} argument will be the callable.
-        """
-        if callable(fn):
-            self.fn = fn
-
-        return self
+        self.owner_class = cls
 
     def get_builder(self):
-        return self._related_builder
+        return self.fn()().get_builder()
 
     def __get__(self, instance, owner):
         """
@@ -48,9 +35,7 @@ class BaseRelationship:
         if instance is None:
             return self
 
-        relationship = self.fn(instance)()
         self.set_keys(instance, self.attribute)
-        self._related_builder = relationship.get_builder()
 
         if not instance.is_loaded():
             return self
@@ -58,11 +43,10 @@ class BaseRelationship:
         if self.attribute in instance._relationships:
             return instance._relationships[self.attribute]
 
-        return self.apply_query(self._related_builder, instance)
+        return self.apply_query(self.get_builder(), instance)
 
     def __getattr__(self, attribute):
-        relationship = self.fn(self)()
-        return getattr(relationship.get_builder(), attribute)
+        return getattr(self.get_builder(), attribute)
 
     def apply_query(self, foreign, owner):
         """Return a dictionary to hydrate the model with
@@ -146,7 +130,7 @@ class BaseRelationship:
         )
 
     def query_has(self, current_query_builder, method="where_exists"):
-        """Adds a clause to the query to chek if a rwlarion exists"""
+        """Adds a clause to the query to check if a relation exists"""
         klass = self.__class__.__name__
         raise NotImplementedError(
             f"{klass} relationship does not implement the 'query_has' method"

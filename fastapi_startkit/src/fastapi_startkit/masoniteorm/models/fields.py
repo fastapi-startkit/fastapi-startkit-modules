@@ -25,7 +25,7 @@ class FieldDescriptor:
             return self.field_info
 
         # When accessed on the instance (e.g., user.name), retrieve from ORM storage
-        return instance.get_value(self.name)
+        return instance.get_attribute(self.name)
 
     def __set__(self, instance, value):
         # When setting (e.g., user.name = 'Joe'), update ORM storage
