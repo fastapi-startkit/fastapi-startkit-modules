@@ -77,6 +77,13 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         self._limit = limit
         return self
 
+    async def find(self, primary_key: str|int, columns=None):
+        return (
+            await self
+            .where(self._model.primary_key, primary_key)
+            .first(columns)
+        )
+
     async def first(self, columns=None):
         if not columns:
             columns = []
