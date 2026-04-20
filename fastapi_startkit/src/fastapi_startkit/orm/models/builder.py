@@ -1,3 +1,5 @@
+import inspect
+
 import inflection
 from typing import TYPE_CHECKING
 
@@ -7,15 +9,19 @@ from fastapi_startkit.masoniteorm.expressions.expressions import (
     QueryExpression,
     SelectExpression,
     UpdateQueryExpression,
+    SubSelectExpression,
+    SubGroupExpression,
 )
-from fastapi_startkit.masoniteorm.collection import Collection
+from fastapi_startkit.orm.query.EagerLoadMixin import EagerLoadMixin
+from fastapi_startkit.orm.query.support import SupportMixin
 
 if TYPE_CHECKING:
     from fastapi_startkit.orm.connections.connection import Connection
 
 
-class QueryBuilder:
+class QueryBuilder(EagerLoadMixin, SupportMixin):
     def __init__(self, connection: 'Connection', grammar, processor):
+        super().__init__()
         self.connection = connection
         self.grammar = grammar
         self.processor = processor
@@ -28,9 +34,7 @@ class QueryBuilder:
         self._sql = ""
         self._bindings = ()
 
-        self._model = None
         self._global_scopes = {}
-
         self._action = "select"
 
     def set_action(self, action: str) -> 'QueryBuilder':
@@ -41,12 +45,22 @@ class QueryBuilder:
         self._model = model
         self._table = inflection.tableize(model.__class__.__name__)
         self._global_scopes = model._global_scopes
-        if model.__with__:
-            self.with_(model.__with__)
         return self
 
     def with_(self, *eagers) -> 'QueryBuilder':
-        # self._eager_relation.register(eagers)
+        self._eager_relation.register(eagers)
+        return self
+
+    def get_table_name(self) -> str:
+        return self._table
+
+    def where_in(self, column: str, values) -> 'QueryBuilder':
+        if hasattr(values, '_items'):
+            values = values._items
+        values = list(values) if not isinstance(values, list) else values
+        self._wheres.append(
+            QueryExpression(column, "IN", values)
+        )
         return self
 
     def select(self, *args) -> 'QueryBuilder':
@@ -57,12 +71,6 @@ class QueryBuilder:
             else:
                 for column in arg.split(","):
                     self._columns += (SelectExpression(column),)
-        return self
-
-    def where(self, column: str, value, equality: str = "=") -> 'QueryBuilder':
-        self._wheres.append(
-            QueryExpression(column, equality, value, "value", "WHERE")
-        )
         return self
 
     def limit(self, limit: int) -> 'QueryBuilder':
@@ -76,7 +84,7 @@ class QueryBuilder:
         results = await self.select(columns).limit(1).get()
         return results.first()
 
-    async def get(self, columns= None):
+    async def get(self, columns=None):
         # TODO: apply scopes
         if not columns:
             columns = []
@@ -85,8 +93,16 @@ class QueryBuilder:
     async def get_models(self, columns=None):
         self.select(columns)
         models = await self.connection.select(self.to_qmark(), self.get_bindings())
+        collection = self._model.hydrate(models)
 
-        return self._model.hydrate(models)
+        if (
+            self._eager_relation.eagers
+            or self._eager_relation.nested_eagers
+            or self._eager_relation.callback_eagers
+        ):
+            await self._load_eagers(collection, self._model)
+
+        return collection
 
     def get_bindings(self) -> tuple:
         return self._bindings
@@ -111,7 +127,11 @@ class QueryBuilder:
         self._bindings = grammar._bindings
         return sql
 
-    # --- Write operations ---
+    async def create(self, attributes: dict):
+        model = self._model.new_model_instance(attributes)
+        await model.save()
+
+        return model
 
     async def insert(self, values: dict | list) -> int | None:
         self.set_action("bulk_create")
@@ -132,16 +152,47 @@ class QueryBuilder:
         return await self.connection.insert(sql, bindings)
 
     async def update(self, values: dict) -> int:
-        """Compile and execute an UPDATE via the grammar.
-
-        Mirrors the Laravel pattern:
-            grammar._compile_update → UPDATE {table} SET {key_equals} {wheres}
-
-        The caller is responsible for setting a WHERE clause via .where() first
-        so that the update is scoped correctly.
-        """
         updates = [UpdateQueryExpression(col, val) for col, val in values.items()]
         grammar = self.grammar()
         sql = grammar._compile_update(query=self, values=updates, qmark=True).to_sql()
         bindings = list(grammar._bindings)
         return await self.connection.update(sql, bindings)
+
+    def new(self):
+        return self.connection.query()
+
+    def where(self, column, *args):
+        """Specifies a where expression.
+
+        Arguments:
+            column {string} -- The name of the column to search
+
+        Keyword Arguments:
+            args {List} -- The operator and the value of the column to search. (default: {None})
+
+        Returns:
+            self
+        """
+        operator, value = self._extract_operator_value(*args)
+
+        if inspect.isfunction(column):
+            builder = column(self.new())
+            self._wheres += (
+                (QueryExpression(None, operator, SubGroupExpression(builder))),
+            )
+        elif isinstance(column, dict):
+            for key, value in column.items():
+                self._wheres += ((QueryExpression(key, "=", value, "value")),)
+        elif isinstance(value, QueryBuilder):
+            self._wheres += (
+                (
+                    QueryExpression(
+                        column, operator, SubSelectExpression(value)
+                    )
+                ),
+            )
+        else:
+            self._wheres += (
+                (QueryExpression(column, operator, value, "value")),
+            )
+        return self

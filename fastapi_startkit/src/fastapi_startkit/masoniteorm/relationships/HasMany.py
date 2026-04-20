@@ -1,5 +1,5 @@
-from ..collection import Collection
 from .BaseRelationship import BaseRelationship
+from ..collection import Collection
 
 
 class HasMany(BaseRelationship):
@@ -9,8 +9,8 @@ class HasMany(BaseRelationship):
         """Apply the query and return a dictionary to be hydrated
 
         Arguments:
-            foreign {oject} -- The relationship object
-            owner {object} -- The current model oject.
+            foreign {object} -- The relationship object
+            owner {object} -- The current model object.
 
         Returns:
             dict -- A dictionary of data which will be hydrated.
@@ -24,6 +24,7 @@ class HasMany(BaseRelationship):
     def set_keys(self, owner, attribute):
         self.local_key = self.local_key or "id"
         self.foreign_key = self.foreign_key or f"{attribute}_id"
+
         return self
 
     def register_related(self, key, model, collection):
@@ -43,6 +44,7 @@ class HasMany(BaseRelationship):
         return await related_record.update({self.foreign_key: local_key_value})
 
     async def get_related(self, query, relation, eagers=None, callback=None):
+        self.set_keys(None, self.attribute)
         eagers = eagers or []
         builder = self.get_builder().with_(eagers)
 

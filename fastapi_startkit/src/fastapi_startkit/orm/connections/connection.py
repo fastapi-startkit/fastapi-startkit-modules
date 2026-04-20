@@ -46,22 +46,27 @@ class Connection:
     async def reconnect(self) -> None:
         self.conn = await self.engine.connect()
 
-    async def run(self, query: str, bindings: list | dict | None = None):
-        async with self.conn.connect() as conn:
-            return await conn.execute(text(query), bindings or {})
-
-    async def statement(self, query: str, bindings: list | dict | None = None) -> bool:
-        await self.run(query, bindings)
-        return True
-
-    async def insert(self, query: str, bindings: list | None = None) -> int | None:
-        # Convert qmark (?) positional bindings to SQLAlchemy named (:pN) params
+    def sql_alchemy_bindings(self, query: str, bindings: list | None = None):
         params = {}
         if bindings:
             for i, val in enumerate(bindings):
                 name = f'p{i}'
                 params[name] = val
                 query = query.replace('?', f':{name}', 1)
+        return (query, params)
+
+    async def run(self, query: str, bindings: list | None = None):
+        query, bindings = self.sql_alchemy_bindings(query, bindings)
+
+        async with self.conn.connect() as conn:
+            return await conn.execute(text(query), bindings or {})
+
+    async def statement(self, query: str, bindings: list | None = None) -> bool:
+        await self.run(query, bindings)
+        return True
+
+    async def insert(self, query: str, bindings: list | None = None) -> int | None:
+        query, params = self.sql_alchemy_bindings(query, bindings)
 
         async with self.conn.connect() as conn:
             result = await conn.execute(text(query), params)
@@ -70,29 +75,24 @@ class Connection:
         return result.lastrowid
 
     async def update(self, query: str, bindings: list | None = None) -> int:
-        params = {}
-        if bindings:
-            for i, val in enumerate(bindings):
-                name = f'p{i}'
-                params[name] = val
-                query = query.replace('?', f':{name}', 1)
+        query, params = self.sql_alchemy_bindings(query, bindings)
 
         async with self.conn.connect() as conn:
             result = await conn.execute(text(query), params)
             await conn.commit()
 
-        return result.rowcount
+        return result.rowcount # type: ignore[return-value]
 
-    async def delete(self, query: str, bindings: dict[str, Any] | None = None) -> int:
+    async def delete(self, query: str, bindings:  list | None = None) -> int:
         result = await self.run(query, bindings)
         return result.rowcount  # type: ignore[return-value]
 
-    async def select(self, query: str, bindings: dict[str, Any] | None = None) -> list[dict]:
+    async def select(self, query: str, bindings: list | None = None) -> list[dict]:
         result = await self.run(query, bindings)
         keys = result.keys()
         return [dict(zip(keys, row)) for row in result.fetchall()]
 
-    async def select_one(self, query: str, bindings: dict[str, Any] | None = None) -> dict | None:
+    async def select_one(self, query: str, bindings: list | None = None) -> dict | None:
         result = await self.run(query, bindings)
         row = result.fetchone()
         return dict(zip(result.keys(), row)) if row else None

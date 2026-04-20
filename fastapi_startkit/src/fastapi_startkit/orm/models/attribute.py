@@ -58,7 +58,6 @@ class Attribute:
     def get_attributes(self):
         return {**self._attributes, **self._dirty_attributes}
 
-
     def get_attribute(self, key: str):
         value = None
 

@@ -8,10 +8,9 @@ from fastapi_startkit.masoniteorm.models import registry
 class BelongsTo(BaseRelationship):
     """Belongs To Relationship Class."""
 
-    def __init__(self, fn: Callable | str, local_key=None, foreign_key=None):
+    def __init__(self, fn: str, local_key=None, foreign_key=None):
         # If user provides string instead of Model, we will resolve it here
-        if isinstance(fn, str):
-            self.fn = lambda x: registry.Registry.resolve(fn)
+        self.fn = lambda: registry.Registry.resolve(fn)
 
         self.local_key = local_key or "id"
         self.foreign_key = foreign_key
@@ -25,8 +24,8 @@ class BelongsTo(BaseRelationship):
         """Apply the query and return a dictionary to be hydrated
 
         Arguments:
-            foreign {oject} -- The relationship object
-            owner {object} -- The current model oject.
+            foreign {object} -- The relationship object
+            owner {object} -- The current model object.
 
         Returns:
             dict -- A dictionary of data which will be hydrated.
