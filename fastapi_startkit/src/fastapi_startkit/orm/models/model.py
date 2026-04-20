@@ -221,6 +221,9 @@ class Model(Attribute, Relationship, ObservesEvents):
     def get_attributes(self) -> dict:
         return {**self._attributes, **self._dirty_attributes}
 
+    def serialize(self) -> dict:
+        return self.get_attributes()
+
     @classmethod
     def where(cls, column, *args):
         return cls().query().where(column, *args)
