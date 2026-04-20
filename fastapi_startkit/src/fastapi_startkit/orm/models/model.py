@@ -7,6 +7,7 @@ from fastapi_startkit.masoniteorm.collection import Collection
 from fastapi_startkit.masoniteorm.models.fields import CreatedAtField, UpdatedAtField
 from fastapi_startkit.masoniteorm.models.registry import Registry
 from fastapi_startkit.masoniteorm.observers import ObservesEvents
+from fastapi_startkit.masoniteorm.relationships.BaseRelationship import BaseRelationship
 from fastapi_startkit.orm.connections.manager import DatabaseManager
 from fastapi_startkit.orm.models.attribute import Attribute
 from fastapi_startkit.orm.models.relationship import Relationship
@@ -17,10 +18,21 @@ if TYPE_CHECKING:
 
 class Model(Attribute, Relationship, ObservesEvents):
     db_manager: 'DatabaseManager' = None
+    __fillable__: list[str] = []
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         Registry.register(cls)
+
+        fillable = []
+        for name, _typ in cls.__annotations__.items():
+            attr = getattr(cls, name, None)
+            if isinstance(attr, BaseRelationship):
+                continue
+            if callable(attr):
+                continue
+            fillable.append(name)
+        cls.__fillable__ = fillable
 
     __observers__ = {}
     __has_events__ = True
@@ -63,6 +75,10 @@ class Model(Attribute, Relationship, ObservesEvents):
     @classmethod
     def with_(cls, *eagers) -> 'QueryBuilder':
         return cls.query().with_(*eagers)
+
+    @classmethod
+    async def find(cls, primary_key: str|int, columns=None):
+        return await cls.query().find(primary_key, columns)
 
     @classmethod
     async def first(cls, columns=None):
@@ -108,7 +124,7 @@ class Model(Attribute, Relationship, ObservesEvents):
 
     def new_from_builder(self, attributes: dict, connection: str | None = None):
         model = self.new_model_instance([], exists=True)
-        model.set_raw_attributes(attributes, connection)
+        model.set_raw_attributes(attributes, True)
 
         model.set_connection(connection or self.get_connection_name())
         # Fire model event retrieved
@@ -128,6 +144,18 @@ class Model(Attribute, Relationship, ObservesEvents):
         await instance.save()
 
         return instance
+
+    async def update(self, attributes: dict) -> bool:
+        if not self._exists:
+            return False
+
+        return await self.fill(attributes).save()
+
+    def fill(self, attributes: dict) -> 'Model':
+        for key, value in attributes.items():
+            if key in self.__fillable__:
+                self.set_attribute(key, value)
+        return self
 
     async def save(self, options: dict | None = None) -> bool:
         query = self.new_query()
@@ -176,6 +204,7 @@ class Model(Attribute, Relationship, ObservesEvents):
     def sync_original(self):
         self._attributes = self.get_attributes()
         self._dirty_attributes = {}
+        self._original = dict(self._attributes)
 
     def get_attributes(self) -> dict:
         return {**self._attributes, **self._dirty_attributes}

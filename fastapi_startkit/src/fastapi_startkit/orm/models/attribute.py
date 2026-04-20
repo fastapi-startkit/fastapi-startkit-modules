@@ -61,19 +61,44 @@ class Attribute:
     def get_attribute(self, key: str):
         value = None
 
-        if "_dirty_attributes" in self.__dict__ and key in self.__dict__["_dirty_attributes"]:
-            value = self.__dict__["_dirty_attributes"][key]
-
         if "_attributes" in self.__dict__ and key in self.__dict__["_attributes"]:
             value = self.__dict__["_attributes"][key]
 
+        if "_dirty_attributes" in self.__dict__ and key in self.__dict__["_dirty_attributes"]:
+            value = self.__dict__["_dirty_attributes"][key]
+
         return self.caster.get(key, value)
 
+    def original_is_equivalent(self, key: str) -> bool:
+        if key not in self._original:
+            return False
+
+        current = self.get_attributes().get(key)
+        original = self._original.get(key)
+
+        if current == original:
+            return True
+
+        if current is None:
+            return False
+
+        # Numeric equivalence (e.g. 1 == "1")
+        try:
+            return float(current) == float(original)
+        except (ValueError, TypeError):
+            pass
+
+        return False
+
     def is_dirty(self) -> bool:
-        return bool(self._dirty_attributes)
+        return bool(self.get_dirty())
 
     def get_dirty(self) -> dict:
-        return dict(self._dirty_attributes)
+        return {
+            key: value
+            for key, value in self.get_attributes().items()
+            if not self.original_is_equivalent(key)
+        }
 
     def get_attributes_for_insert(self) -> dict:
         return {**self._attributes, **self._dirty_attributes}
