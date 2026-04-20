@@ -12,36 +12,22 @@ from ..schema import Schema
 
 
 class Migration:
+    db_manager: "DatabaseManager"
+
     def __init__(
         self,
         connection="default",
-        dry=False,
         command_class=None,
         migration_directory="databases/migrations",
-        config_path=None,
-        schema=None,
     ):
         self.connection = connection
         self.migration_directory = migration_directory
         self.last_migrations_ran = []
         self.command_class = command_class
 
-        self.schema_name = schema
-
-        DB = load_config(config_path).DB
-
-        DATABASES = DB.get_connection_details()
-
-        self.schema = Schema(
-            connection=connection,
-            connection_details=DATABASES,
-            dry=dry,
-            schema=self.schema_name,
-        )
+        self.schema = self.db_manager.get_schema_builder()
 
         self.migration_model = MigrationModel.on(self.connection)
-        if self.schema_name:
-            self.migration_model.set_schema(self.schema_name)
 
     async def create_table_if_not_exists(self):
         if not await self.schema.has_table("migrations"):
@@ -65,7 +51,7 @@ class Migration:
         ]
         all_migrations.sort()
         unran_migrations = []
-        database_migrations = await self.migration_model.all()
+        database_migrations = await self.migration_model.get()
         for migration in all_migrations:
             if migration not in database_migrations.pluck("migration"):
                 unran_migrations.append(migration)
@@ -90,7 +76,7 @@ class Migration:
         return (await self.migration_model.all()).pluck("migration")
 
     async def get_last_batch_number(self):
-        return (await self.migration_model.select("batch").get()).max("batch") or 0
+        return (await self.migration_model.all()).max("batch") or 0
 
     async def delete_migration(self, file_path):
         return await self.migration_model.where("migration", file_path).delete()
@@ -140,11 +126,14 @@ class Migration:
         for migration in migrations:
             try:
                 migration_class = self.locate(migration)
-
             except TypeError:
-                self.command_class.line(
-                    f"<error>Not Found: {migration}</error>"
-                )
+                migration_class = None
+
+            if migration_class is None:
+                if self.command_class:
+                    self.command_class.line(
+                        f"<error>Not Found: {migration}</error>"
+                    )
                 continue
 
             self.last_migrations_ran.append(migration)
@@ -154,7 +143,7 @@ class Migration:
                 )
 
             migration_class = migration_class(
-                connection=self.connection, schema=self.schema_name
+                connection=self.connection
             )
 
             if output:

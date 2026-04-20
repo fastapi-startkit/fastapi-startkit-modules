@@ -43,7 +43,7 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
 
     def set_model(self, model) -> 'QueryBuilder':
         self._model = model
-        self._table = inflection.tableize(model.__class__.__name__)
+        self._table = model.get_table_name()
         self._global_scopes = model._global_scopes
         return self
 

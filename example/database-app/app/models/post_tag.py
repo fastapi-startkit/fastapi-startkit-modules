@@ -1,4 +1,4 @@
-from fastapi_startkit.masoniteorm import Model
+from fastapi_startkit.orm.models import Model
 
 class PostTag(Model):
     __table__ = "post_tag"

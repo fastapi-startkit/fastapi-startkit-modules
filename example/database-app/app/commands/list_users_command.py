@@ -12,7 +12,7 @@ class ListUsersCommand(Command):
     async def handle_async(self):
         from app.models.user import User
 
-        users = await User.all()
+        users = await User.get()
 
         if not users:
             self.line("<comment>No users found.</comment>")
