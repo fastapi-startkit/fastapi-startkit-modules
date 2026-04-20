@@ -135,7 +135,7 @@ class Application(Container):
         return self.fastapi
 
     def load_environment(self):
-        LoadEnvironment(base_path=self.base_path)
+        LoadEnvironment(environment=self.env, base_path=self.base_path)
 
     def configure_paths(self):
         self.bind('config.location', os.path.join(self.base_path, "config"))

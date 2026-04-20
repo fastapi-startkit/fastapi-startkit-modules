@@ -1,9 +1,4 @@
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-from fastapi_startkit.masoniteorm.connections.factory import ConnectionFactory
 
 DATABASES = {
     "default": "postgres",
@@ -21,5 +16,3 @@ DATABASES = {
         },
     },
 }
-
-DB = ConnectionFactory(connection_details=DATABASES)

@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from fastapi_startkit.orm.models import Model
+from fastapi_startkit.masoniteorm.models import Model
 from fastapi_startkit.masoniteorm.relationships import HasMany
 
 if TYPE_CHECKING:

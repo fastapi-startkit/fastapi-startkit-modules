@@ -4,7 +4,6 @@ import re
 import shlex
 import subprocess
 from collections import OrderedDict
-from ..config import load_config
 from .Command import Command
 
 

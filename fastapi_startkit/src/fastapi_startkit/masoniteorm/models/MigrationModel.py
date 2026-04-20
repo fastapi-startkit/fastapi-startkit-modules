@@ -1,4 +1,4 @@
-from fastapi_startkit.orm.models import Model
+from fastapi_startkit.masoniteorm.models import Model
 
 class MigrationModel(Model):
     __table__ = "migrations"
