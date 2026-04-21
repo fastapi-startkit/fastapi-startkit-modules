@@ -10,9 +10,9 @@ from ..managers import LoggingManager
 
 class LogProvider(Provider):
     def register(self):
-        self.merge_config_from(self.config, 'logging')
-        source = os.path.abspath(os.path.join(os.path.dirname(__file__), "../config/logging.py"))
-        self.merge_config_from(source, 'logging')
+        # self.merge_config_from(self.config, 'logging')
+        # source = os.path.abspath(os.path.join(os.path.dirname(__file__), "../config/logging.py"))
+        # self.merge_config_from(source, 'logging')
 
         self.app.bind('LogChannelFactory', ChannelFactory)
         self.app.bind('LogDriverFactory', DriverFactory)
