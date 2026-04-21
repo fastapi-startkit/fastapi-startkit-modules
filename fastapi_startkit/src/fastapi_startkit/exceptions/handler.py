@@ -1,16 +1,15 @@
 import sys
 import atexit
-import logging
 from typing import Any, Callable, Dict, List, Optional, Type
 
 
 class ExceptionHandler:
-    def __init__(self):
+    def __init__(self, application=None):
+        self.app = application
         self._handlers: Dict[Type[Exception], Any] = {}
         self._renders: Dict[Type[Exception], Callable] = {}
         self._reports: Dict[Type[Exception], Callable] = {}
         self._dont_report: List[Type[Exception]] = []
-        self._logger = logging.getLogger(__name__)
 
     def register(self):
         """Override in subclasses to register handlers, renders, and report rules."""
@@ -61,8 +60,15 @@ class ExceptionHandler:
         self.report_exception(exception)
 
     def report_exception(self, exception: Exception):
-        """Default reporter — logs to the framework logger."""
-        self._logger.exception("%s: %s", type(exception).__name__, exception)
+        from fastapi_startkit.logging.logger import Logger
+        Logger.error(self._build_context(exception))
+
+    def _build_context(self, exception: Exception) -> str:
+        import traceback
+        context = f"{type(exception).__name__}: {exception}"
+        if self.app and self.app.is_debug():
+            context += "\n" + "".join(traceback.format_exception(type(exception), exception, exception.__traceback__))
+        return context
 
     async def handle(self, exception: Exception, context: Optional[Dict] = None) -> Any:
         """Main entry point called from the FastAPI exception_handler hook."""
@@ -91,10 +97,7 @@ class ExceptionHandler:
                 return self._handlers[exc_class]
         return None
 
-    # ── sys.excepthook / atexit ───────────────────────────────────────────
-
-    def handle_exception(self, exc_type, exc_value, exc_tb):
-        """Catches unhandled exceptions at the process level."""
+    def _excepthook(self, exc_type, exc_value, exc_tb):
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_tb)
             return
@@ -106,6 +109,6 @@ class ExceptionHandler:
 
     def install(self):
         """Wire up sys.excepthook and atexit."""
-        sys.excepthook = self.handle_exception
+        sys.excepthook = self._excepthook
         atexit.register(self.handle_shutdown)
         return self

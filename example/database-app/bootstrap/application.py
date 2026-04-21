@@ -1,15 +1,21 @@
 from pathlib import Path
 
 from config.database import DatabaseConfig
-from dumpdie import dd
+from config.logging import LoggingConfig
 from providers.console_provider import ConsoleProvider
 from providers.fastapi_provider import FastAPIServiceProvider
 
 from config.app import AppConfig
 from fastapi_startkit.application import Application
+from fastapi_startkit.exceptions import ExceptionHandler
 from fastapi_startkit.logging.providers import LogProvider
 from fastapi_startkit.masoniteorm.providers import DatabaseProvider
-from config.logging import LoggingConfig
+
+
+class AppExceptionHandler(ExceptionHandler):
+    def register(self):
+        pass
+
 
 app: Application[AppConfig] = Application(
     base_path=str(Path().cwd()),
@@ -20,4 +26,5 @@ app: Application[AppConfig] = Application(
         (DatabaseProvider, DatabaseConfig),
         FastAPIServiceProvider,
     ],
+    exception_handler=AppExceptionHandler,
 )
