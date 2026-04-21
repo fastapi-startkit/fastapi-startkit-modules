@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from fastapi_startkit.orm.connections.factory import ConnectionFactory
+    from fastapi_startkit.masoniteorm.connections.factory import ConnectionFactory
 
 
 class DatabaseManager:
@@ -31,5 +31,5 @@ class DatabaseManager:
         return name
 
     def get_schema_builder(self):
-        from fastapi_startkit.orm.schema import Schema
+        from fastapi_startkit.masoniteorm.schema import Schema
         return Schema(self)

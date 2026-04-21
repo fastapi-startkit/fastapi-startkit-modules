@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from fastapi_startkit.orm.models import Model
+    from fastapi_startkit.masoniteorm.models import Model
 
 
 class Factory(ABC):

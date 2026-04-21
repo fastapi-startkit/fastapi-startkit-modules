@@ -7,7 +7,7 @@ from .Command import Command
 
 
 class MakeMigrationCommand(Command):
-    name = "migration"
+    name = "db:make:migration"
     description = "Creates a new migration file."
 
     arguments = [argument("name", description="The name of the migration")]

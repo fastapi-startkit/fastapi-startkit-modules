@@ -1,94 +1,48 @@
-from contextlib import asynccontextmanager
+from typing import Any
 
-from .postgres_connection import PostgresConnection
-from .sqlite_connection import SQLiteConnection
+from dumpdie import dd
+from sqlalchemy import StaticPool
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
+
+from fastapi_startkit.masoniteorm.connections.connection import Connection
+from fastapi_startkit.masoniteorm.connections.sqlite_connection import SQliteConnection
 
 
 class ConnectionFactory:
-    """Manages async database connections."""
-    _drivers = {
-        "postgres": PostgresConnection,
-        "sqlite": SQLiteConnection,
+    DRIVER_URLS = {
+        "sqlite":   "sqlite+aiosqlite",
+        "mysql":    "mysql+aiomysql",
+        "postgres": "postgresql+asyncpg",
     }
 
-    _morph_map = {}
+    @classmethod
+    def build_url(cls, config: dict) -> str:
+        if url := config.get("url"):
+            return str(url)
 
-    def __init__(self, connection_details=None):
-        self.connection_details = connection_details or {}
-        self._connections = {}
+        driver = config["driver"]
+        scheme = cls.DRIVER_URLS[driver]
+        user   = config.get("username", "")
+        pwd    = config.get("password", "")
+        host   = config.get("host", "localhost")
+        port   = config.get("port", "")
+        db     = config.get("database", "")
+        return f"{scheme}://{user}:{pwd}@{host}:{port}/{db}"
 
-    def morph_map(self, map):
-        self._morph_map = map
-        return self
+    @classmethod
+    def create_engine(cls, cfg: dict)->AsyncEngine:
+        url = cls.build_url(cfg)
+        kwargs: dict[str, Any] = {"echo": True}
+        if cfg["driver"] == "sqlite":
+            kwargs["connect_args"] = {"check_same_thread": False}
+            kwargs["poolclass"]    = StaticPool
+        return create_async_engine(url, **kwargs)
 
-    def set_connection_details(self, connection_details: dict) -> "ConnectionFactory":
-        self.connection_details = connection_details
-        return self
+    def make(self, config: dict, name: str)->type[Connection]:
+        engine = self.create_engine(config)
+        driver = config['driver']
+        match driver:
+            case 'sqlite': return SQliteConnection(engine, config)
 
-    def get_connection_details(self):
-        """Returns the full connection configuration dictionary."""
-        return self.connection_details
+        raise ValueError(f"Unsupported driver: {driver}")
 
-    def connection(self, name="default", reconnect=False):
-        if name == "default":
-            name = self.connection_details.get("default", "postgres")
-
-        if name in self._connections and not reconnect:
-            return self._connections[name]
-
-        # If reconnect is True, we remove the existing connection from cache
-        if reconnect and name in self._connections:
-            del self._connections[name]
-
-        config = self.connection_details.get(name)
-        if not config:
-            raise ValueError(f"Connection {name} not found in configuration.")
-
-        driver = config.get("driver")
-        conn_class = self._drivers.get(driver)
-
-        if not conn_class:
-            raise ValueError(f"Driver {driver} is not supported.")
-
-        conn = conn_class(
-            connection_details=config,
-            name=name
-        )
-        self._connections[name] = conn
-        return conn
-
-    async def new_connection(self, name="default"):
-        """Acquire a new connection asynchronously."""
-        conn = self.connection(name)
-        return await conn.make_connection()
-
-    async def begin_transaction(self, name="default"):
-        """Start a new transaction."""
-        return await self.connection(name).begin()
-
-    async def commit_transaction(self, name="default"):
-        """Commit the current transaction."""
-        return await self.connection(name).commit()
-
-    async def rollback_transaction(self, name="default"):
-        """Roll back the current transaction."""
-        return await self.connection(name).rollback()
-
-    async def close_all(self):
-        """Close all cached connections and dispose their engines.
-        Call this at application / command shutdown."""
-        for conn in list(self._connections.values()):
-            await conn.close_connection()
-        self._connections.clear()
-
-    @asynccontextmanager
-    async def transaction(self, name="default"):
-        """Async context manager for transactions."""
-        conn = self.connection(name)
-        await conn.begin()
-        try:
-            yield conn
-            await conn.commit()
-        except Exception:
-            await conn.rollback()
-            raise

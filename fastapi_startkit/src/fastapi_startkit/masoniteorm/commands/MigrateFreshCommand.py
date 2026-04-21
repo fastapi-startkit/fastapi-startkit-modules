@@ -3,7 +3,7 @@ from .Command import Command
 
 
 class MigrateFreshCommand(Command):
-    name = "migrate:fresh"
+    name = "db:migrate:fresh"
     description = "Fresh migrations."
 
     options = [
@@ -13,9 +13,6 @@ class MigrateFreshCommand(Command):
             flag=False,
             default="default",
             description="The connection you want to run migrations on",
-        ),
-        option(
-            "schema", None, flag=False, default=None, description="Sets the schema to be migrated"
         ),
         option(
             "directory",
@@ -51,8 +48,6 @@ class MigrateFreshCommand(Command):
             command_class=self,
             connection=self.option("connection"),
             migration_directory=self.option("directory"),
-            config_path=self.option("config"),
-            schema=self.option("schema"),
         )
 
         await migration.fresh(ignore_fk=self.option("ignore-fk"))

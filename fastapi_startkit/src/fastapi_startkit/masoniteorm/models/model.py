@@ -1,549 +1,236 @@
-import logging
-from typing import TypeVar, Type
+from __future__ import annotations
+import inflection
 
-from inflection import tableize
+from typing import TYPE_CHECKING
 
 from fastapi_startkit.carbon import Carbon
+from fastapi_startkit.masoniteorm.collection import Collection
+from fastapi_startkit.masoniteorm.models.fields import CreatedAtField, UpdatedAtField
 from fastapi_startkit.masoniteorm.models.registry import Registry
 from fastapi_startkit.masoniteorm.observers import ObservesEvents
-from .caster import Caster
-from .fields import CreatedAtField, UpdatedAtField
-from ..collection.Collection import Collection
-from ..config import load_config
-from ..query import AsyncQueryBuilder
+from fastapi_startkit.masoniteorm.connections.manager import DatabaseManager
+from fastapi_startkit.masoniteorm.models.attribute import Attribute
+from fastapi_startkit.masoniteorm.models.relationship import Relationship
 
-T = TypeVar("T", bound="Model")
+if TYPE_CHECKING:
+    from fastapi_startkit.orm.models.builder import QueryBuilder
 
 
-class Model(ObservesEvents):
-    __dry__ = False
+class Model(Attribute, Relationship, ObservesEvents):
+    db_manager: 'DatabaseManager' = None
     __table__ = None
-    __connection__ = "default"
-    __resolved_connection__ = None
-    __selects__ = []
-    __casts__ = {}
+    __primary_key__ = "id"
+    __timestamps__ = True
 
-    __observers__ = {}
     __has_events__ = True
+    __observers__ = {}
 
-    _booted = False
-    _scopes = {}
+    __fillable__: list[str] = []
 
-    created_at: Carbon = CreatedAtField(fmt="%Y-%m-%d %H:%M:%S", tz="UTC")
-    updated_at: Carbon = UpdatedAtField(fmt="%Y-%m-%d %H:%M:%S", tz="UTC")
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         Registry.register(cls)
 
-    @classmethod
-    def get_morph_class(cls):
-        return cls.__name__
+        fillable = []
+        for name, _typ in cls.__annotations__.items():
+            attr = getattr(cls, name, None)
+            from fastapi_startkit.masoniteorm.relationships.BaseRelationship import BaseRelationship
+            if isinstance(attr, BaseRelationship):
+                continue
+            if callable(attr):
+                continue
+            fillable.append(name)
+        cls.__fillable__ = fillable
 
-    __primary_key__ = "id"
-    __primary_key_type__ = "int"
-    __hidden__ = []
-    __relationship_hidden__ = {}
-    __visible__ = []
-    __timestamps__ = True
-    __timezone__ = "UTC"
-    __with__ = ()
-    __force_update__ = False
+    created_at: Carbon = CreatedAtField(fmt="%Y-%m-%d %H:%M:%S", tz="UTC")
+    updated_at: Carbon = UpdatedAtField(fmt="%Y-%m-%d %H:%M:%S", tz="UTC")
 
-    builder: AsyncQueryBuilder
-
-    """
-    Pass through will pass any method calls to the model directly through to the query builder.
-    Anytime one of these methods are called on the model it will actually be called on the query builder class.
-    """
-    __passthrough__ = {
-        "add_select",
-        "aggregate", "between", "bulk_create", "chunk", "decrement", "delete", "distinct", "doesnt_have", "find_or",
-        "find_or_404", "first_or_fail", "first_where", "force_update", "from_", "from_raw", "get", "get_table_schema", "group_by_raw", "group_by", "has",
-        "having", "having_raw", "increment", "in_random_order", "join_on", "join", "joins", "last", "left_join", "lock_for_update", "make_lock",
-        "new_from_builder", "new", "not_between", "offset", "or_where", "or_where_null", "order_by_raw", "right_join", "select_raw",
-        "set_global_scope", "set_schema", "shared_lock", "skip", "statement", "table_raw", "take", "to_qmark", "to_sql", "truncate", "update", "when",
-        "where_between", "where_column", "where_date", "or_where_doesnt_have", "or_has", "or_where_has", "or_doesnt_have", "or_where_not_exists", "or_where_date", "where_exists",
-        "where_from_builder", "where_in", "where_like", "where_not_between", "where_not_in", "where_not_like", "where_not_null", "where_null", "where_raw",
-        "without_global_scopes", "value"
-    }
-
-    def boot(self):
-        if not self._booted:
-            # TODO implement observers
-            self._booted = True
-
-    def __init__(self):
-        self.__attributes__ = {}
-        self.__original_attributes__ = {}
-        self.__dirty_attributes__ = {}
-        if not hasattr(self, "__appends__"):
-            self.__appends__ = []
-        self._relationships = {}
+    def __init__(self, attributes: dict = None, **kwargs):
+        super().__init__(attributes, **kwargs)
+        self.connection = 'default'
         self._global_scopes = {}
+        self.__with__ = {}
+        self._exists = False
+        self._was_recently_created = False
+        self._relationship = {}
 
-        self.caster = Caster(self)
+    @property
+    def __attributes__(self):
+        return self.get_attributes()
 
-        self.boot()
-
-    def __getattr__(self, attribute):
-        new_name_accessor = "get_" + attribute + "_attribute"
-
-        if new_name_accessor in self.__class__.__dict__:
-            return self.__class__.__dict__.get(new_name_accessor)(self)
-
-        if "__dirty_attributes__" in self.__dict__ and attribute in self.__dict__["__dirty_attributes__"]:
-            return self.get_dirty_value(attribute)
-
-        if "__attributes__" in self.__dict__ and attribute in self.__dict__["__attributes__"]:
-            return self.get_value(attribute)
-
-        if attribute in self.__passthrough__:
-            def method(*args, **kwargs):
-                return getattr(self.get_builder(), attribute)(*args, **kwargs)
-
-            return method
-
-        if attribute in self.__dict__.get("_relationships", {}):
-            return self.__dict__["_relationships"][attribute]
-
-        if attribute not in self.__dict__:
-            name = self.__class__.__name__
-            raise AttributeError(f"class model '{name}' has no attribute {attribute}")
-        return None
-
-    def __setattr__(self, attribute, value):
-        if hasattr(self, "set_" + attribute + "_attribute"):
-            method = getattr(self, "set_" + attribute + "_attribute")
-            value = method(value)
-
-        if attribute in self.__casts__:
-            value = self._set_cast_attribute(attribute, value)
-
-        # if attribute in self.get_dates():
-        #     value = self.get_new_datetime_string(value)
-
-        try:
-            if attribute in ("builder", "caster"):
-                self.__dict__[attribute] = value
-            elif not attribute.startswith("_"):
-                self.__dict__["__dirty_attributes__"].update({attribute: value})
-            else:
-                self.__dict__[attribute] = value
-        except KeyError:
-            pass
-
-    def get_value(self, attribute: str):
-        value = self.__attributes__[attribute]
-        return self.caster.get(attribute, value)
-
-    def get_dirty_value(self, attribute: str):
-        value = self.__dirty_attributes__[attribute]
-        return self.caster.get(attribute, value)
-
-    def delete_attribute(self, attribute):
-        """Remove an attribute from the model's storage."""
-        if attribute in self.__attributes__:
-            del self.__attributes__[attribute]
-        if attribute in self.__original_attributes__:
-            del self.__original_attributes__[attribute]
-        if attribute in self.__dirty_attributes__:
-            del self.__dirty_attributes__[attribute]
-        return self
+    def is_loaded(self) -> bool:
+        return self._exists
 
     def get_builder(self):
-        if hasattr(self, "builder"):
-            return self.builder
+        return self.new_query()
 
-        self.builder = AsyncQueryBuilder(
-            connection=self.__connection__,
-            table=self.get_table_name(),
-            connection_details=self.get_connection_details(),
-            model=self,
-            scopes=self._scopes.get(self.__class__),
-            dry=self.__dry__,
-        )
+    def add_relation(self, data: dict):
+        self._relationship.update(data)
 
-        return self.builder
+    @property
+    def _relationships(self):
+        """Alias for _relationship, used by relationship descriptors."""
+        return self._relationship
 
-    @classmethod
-    def get_table_name(cls):
-        """Gets the table name.
-
-        Returns:
-            str
-        """
-        return cls.__table__ or tableize(cls.__name__)
-
-    def get_connection_details(self):
-        resolver = load_config().DB
-        return resolver.get_connection_details()
+    def get_related(self, key: str):
+        return getattr(self.__class__, key)
 
     @classmethod
-    def get_primary_key(cls):
-        return cls.__primary_key__
-
-    def get_primary_key_value(self):
-        return self.__attributes__.get(self.get_primary_key())
-
-    def is_loaded(self):
-        return bool(self.__attributes__)
-
-    def is_created(self):
-        return self.get_primary_key() in self.__attributes__
-
-    def add_relation(self, relations):
-        self._relationships.update(relations)
-        return self
+    def with_(cls, *eagers) -> 'QueryBuilder':
+        return cls.query().with_(*eagers)
 
     @classmethod
-    def hydrate(cls, items, relations=None):
-        """Takes a result and loads it into a model
+    async def find(cls, primary_key: str|int, columns=None):
+        return await cls.query().find(primary_key, columns)
 
-        Args:
-            result ([type]): [description]
-            relations (dict, optional): [description]. Defaults to {}.
-
-        Returns:
-            [type]: [description]
-        """
-        relations = relations or {}
-
-        if items is None:
-            return None
-
-        if isinstance(items, (list, tuple)):
-            response = []
-            for element in items:
-                response.append(cls.hydrate(element))
-            return cls.new_collection(response)
-
-        elif isinstance(items, dict):
-            model = cls()
-            dic = {}
-            for key, value in items.items():
-                # if key in model.get_dates() and value:
-                #     value = model.get_new_date(value)
-                dic.update({key: value})
-
-            logger = logging.getLogger("masoniteorm.models.hydrate")
-            logger.setLevel(logging.INFO)
-            logger.propagate = False
-            logger.info(
-                f"Hydrating Model {cls.__name__}",
-                extra={"class_name": cls.__name__, "class_module": cls.__module__},
-            )
-
-            model.observe_events(model, "hydrating")
-            model.__attributes__.update(dic or {})
-            model.__original_attributes__.update(dic or {})
-            model.add_relation(relations)
-            model.observe_events(model, "hydrated")
-            return model
-
-        elif hasattr(items, "serialize"):
-            model = cls()
-            model.__attributes__.update(items.serialize())
-            model.__original_attributes__.update(items.serialize())
-            return model
-        else:
-            model = cls()
-            model.observe_events(model, "hydrating")
-            model.__attributes__.update(dict(items))
-            model.__original_attributes__.update(dict(items))
-            model.observe_events(model, "hydrated")
-            return model
-
-    def fill(self, attributes):
-        self.__attributes__.update(attributes)
-        return self
-
-    def fill_original(self, attributes):
-        self.__original_attributes__.update(attributes)
-        return self
-
-    def filter_mass_assignment(self, attributes):
-        return attributes
-
-    def cast_values(self, attributes):
-        for key, value in attributes.items():
-            attributes[key] = self.caster.set(key, value)
-        return attributes
-
-    def get_dirty_attributes(self):
-        return self.__dirty_attributes__
-
-    def get_selects(self):
-        return self.__selects__
+    @classmethod
+    async def first(cls, columns=None):
+        return await cls.query().first(columns)
 
     @classmethod
     async def get(cls):
-        return await cls().get_builder().get()
+        return await cls.query().get()
+
+    @classmethod
+    def on(cls, connection: str):
+        return cls().set_connection(connection)
 
     @classmethod
     async def all(cls):
-        return await cls().get_builder().all()
+        return await cls.query().get()
 
-    @classmethod
-    def with_(cls, *eagers):
-        return cls().get_builder().with_(*eagers)
+    def set_connection(self, connection: str):
+        self.connection = connection
 
-    @classmethod
-    def with_count(cls, relationship, callback=None):
-        return cls().get_builder().with_count(relationship, callback)
-
-    @classmethod
-    def latest(cls, column="created_at"):
-        return cls().get_builder().latest(column)
-
-    @classmethod
-    def oldest(cls, column="created_at"):
-        return cls().get_builder().oldest(column)
-
-    @classmethod
-    def where_in(cls, column: str, wheres):
-        return cls().get_builder().where_in(column=column, wheres=wheres)
-
-    @classmethod
-    def where_has(cls, relationship, callback):
-        return cls().get_builder().where_has(relationship, callback)
-
-    @classmethod
-    def where_doesnt_have(cls, relationship, callback):
-        return cls().get_builder().where_doesnt_have(relationship, callback)
-
-    @classmethod
-    async def count(cls, column=None):
-        return await cls().get_builder().count(column)
-
-    @classmethod
-    async def sum(cls, column):
-        return await cls().get_builder().sum(column)
-
-    @classmethod
-    async def avg(cls, column):
-        return await cls().get_builder().avg(column)
-
-    @classmethod
-    async def min(cls, column):
-        return await cls().get_builder().min(column)
-
-    @classmethod
-    async def max(cls, column):
-        return await cls().get_builder().max(column)
-
-    @classmethod
-    async def exists(cls):
-        return await cls().get_builder().exists()
-
-    @classmethod
-    async def doesnt_exist(cls):
-        return await cls().get_builder().doesnt_exist()
-
-    @classmethod
-    async def paginate(cls, per_page, page=1):
-        return await cls().get_builder().paginate(per_page, page)
-
-    @classmethod
-    async def simple_paginate(cls, per_page, page=1):
-        return await cls().get_builder().simple_paginate(per_page, page)
-
-    @classmethod
-    async def find(cls: Type[T], record_id: int | str, query=False) -> T:
-        return await cls().get_builder().find(record_id, query=query)
-
-    @classmethod
-    async def first(cls: Type[T]) -> T:
-        return await cls().get_builder().first()
-
-    @classmethod
-    def where(cls, *args, **kwargs):
-        return cls().get_builder().where(*args, **kwargs)
-
-    @classmethod
-    def limit(cls, amount):
-        return cls().get_builder().limit(amount)
-
-    @classmethod
-    def order_by(cls, column, direction="ASC"):
-        return cls().get_builder().order_by(column, direction)
-
-    @classmethod
-    def select(cls, *columns):
-        return cls().get_builder().select(*columns)
-
-    @classmethod
-    def on(cls, connection):
-        return cls().get_builder().on(connection)
-
-    @classmethod
-    async def create(cls, dictionary=None, **kwargs):
-        return await cls().get_builder().create(dictionary, **kwargs)
-
-    @classmethod
-    async def first_or_create(cls, wheres, creates: dict = None):
-        if creates is None:
-            creates = {}
-        self = cls()
-        record = await self.where(wheres).first()
-        total = {}
-        total.update(creates)
-        total.update(wheres)
-        if not record:
-            return await self.create(total, id_key=cls().get_primary_key())
-        return record
-
-    async def save(self):
-        """Persist the model: update if loaded, create if new."""
-        dirty = self.__dirty_attributes__
-        if self.is_loaded():
-            return await self.get_builder().update(dirty)
-        return await self.get_builder().create(dirty)
-
-    async def attach(self, relation: str, related_record):
-        """Attach a single related model via the named relationship."""
-        relationship = getattr(self.__class__, relation)
-        return await relationship.attach(self, related_record)
-
-    async def save_many(self, relation: str, relating_records):
-        """Persist multiple related models via the named relationship."""
-        if isinstance(relating_records, Model):
-            raise ValueError(
-                "Saving many records requires an iterable like a collection or a list of models "
-                "and not a Model object. To attach a model, use the 'attach' method."
-            )
-        for related_record in relating_records:
-            await self.attach(relation, related_record)
-
-    def get_related(self, relation):
-        return getattr(self.__class__, relation)
-
-    def _set_cast_attribute(self, attribute, value):
-        return self.caster.set(attribute, value)
-
-    def _cast_attribute(self, attribute, value):
-        return self.caster.get(attribute, value)
-
-    def related(self, relation):
-        """Return a query builder for a named relationship pre-filtered by this model's key."""
-        relationship = getattr(self.__class__, relation)
-        related_model = relationship.fn(self)()
-        builder = related_model.get_builder()
-        relationship.set_keys(self, relation)
-        builder = builder.where(
-            f"{builder.get_table_name()}.{relationship.foreign_key}",
-            self.__attributes__[relationship.local_key],
-        )
-        return builder
-
-    @classmethod
-    def new_collection(cls, items):
-        return Collection(items)
-
-    def set_appends(self, appends):
-        """Set the attributes that should be appended to the model's serialization.
-
-        :rtype: self
-        """
-        self.__appends__ += appends
         return self
 
-    def serialize(self, exclude=None, include=None):
-        """Takes the data as a model and converts it into a dictionary.
+    def get_connection_name(self):
+        return self.connection
 
-        Returns:
-            dict
-        """
-        serialized_dictionary = self.__attributes__.copy()
+    def new_model_instance(self, attributes=None, exists=False):
+        if attributes is None:
+            attributes = {}
+        model = self.__class__()
+        model._attributes = attributes
+        model._exists = exists
 
-        # prevent using both exclude and include at the same time
-        if exclude is not None and include is not None:
-            raise AttributeError("Can not define both includes and exclude values.")
+        return model
 
-        if exclude is not None:
-            self.__hidden__ = exclude
+    def new_query(self):
+        return self.db_manager.connection(self.connection).query().set_model(self)
 
-        if include is not None:
-            self.__visible__ = include
+    def hydrate(self, items):
+        instance = self.new_model_instance()
 
-        # prevent using both hidden and visible at the same time
-        if self.__visible__ and self.__hidden__:
-            raise AttributeError(
-                f"class model '{self.__class__.__name__}' defines both __visible__ and __hidden__."
-            )
+        items = [instance.new_from_builder(item) for item in items]
 
-        if self.__visible__:
-            new_serialized_dictionary = {
-                k: serialized_dictionary[k]
-                for k in self.__visible__
-                if k in serialized_dictionary
-            }
-            serialized_dictionary = new_serialized_dictionary
+        return instance.new_collection(items)
+
+    def new_collection(self, models: list):
+        collection = Collection(items=models)
+
+        collection.with_relationship_autoloading()
+
+        return collection
+
+    def new_from_builder(self, attributes: dict, connection: str | None = None):
+        model = self.new_model_instance([], exists=True)
+        model.set_raw_attributes(attributes, True)
+
+        model.set_connection(connection or self.get_connection_name())
+        # Fire model event retrieved
+
+        return model
+
+    def __getattr__(self, attribute):
+        return self.get_attribute(attribute)
+
+    @classmethod
+    def query(cls):
+        return cls().new_query()
+
+    @classmethod
+    async def first_or_create(cls, search: dict, attributes: dict | None = None) -> 'Model':
+        return await cls.query().first_or_create(search, attributes)
+
+    @classmethod
+    async def create(cls, attributes: dict):
+        instance = cls().new_model_instance(attributes)
+        await instance.save()
+
+        return instance
+
+    async def update(self, attributes: dict) -> bool:
+        if not self._exists:
+            return False
+
+        return await self.fill(attributes).save()
+
+    def fill(self, attributes: dict) -> 'Model':
+        for key, value in attributes.items():
+            if key in self.__fillable__:
+                self.set_attribute(key, value)
+        return self
+
+    async def save(self, options: dict | None = None) -> bool:
+        query = self.new_query()
+
+        self.observe_events(self, "saving")
+
+        if self._exists:
+            saved = await self.perform_update(query) if self.is_dirty() else True
         else:
-            for key in self.__hidden__:
-                if key in serialized_dictionary:
-                    serialized_dictionary.pop(key)
+            saved = await self.perform_insert(query)
 
-        # for date_column in self.get_dates():
-        #     if (
-        #             date_column in serialized_dictionary
-        #             and serialized_dictionary[date_column]
-        #     ):
-        #         serialized_dictionary[date_column] = self.get_new_serialized_date(
-        #             serialized_dictionary[date_column]
-        #         )
+        if saved:
+            self.finish_saving(options)
 
-        serialized_dictionary.update(self.__dirty_attributes__)
+        return saved
 
-        # The builder is inside the attributes but should not be serialized
-        if "builder" in serialized_dictionary:
-            serialized_dictionary.pop("builder")
+    def finish_saving(self, options: dict | None = None):
+        self.observe_events(self, "saved")
+        self.sync_original()
 
-        # Serialize relationships as well
-        serialized_dictionary.update(self.relations_to_dict())
+    async def perform_insert(self, query) -> bool:
+        attributes = self.get_attributes_for_insert()
 
-        for append in self.__appends__:
-            serialized_dictionary.update({append: getattr(self, append)})
+        inserted_id = await query.insert(attributes)
 
-        remove_keys = []
-        for key, value in serialized_dictionary.items():
-            if key in self.__hidden__:
-                remove_keys.append(key)
-            if hasattr(value, "serialize"):
-                value = value.serialize(self.__relationship_hidden__.get(key, []))
-            # if isinstance(value, datetime):
-            #     value = self.get_new_serialized_date(value)
-            if key in self.__casts__:
-                value = self._cast_attribute(key, value)
+        # Store the auto-generated primary key so subsequent saves do an UPDATE
+        if inserted_id is not None:
+            self._dirty_attributes[self.__primary_key__] = inserted_id
 
-            serialized_dictionary.update({key: value})
+        self._exists = True
+        self._was_recently_created = True
+        self.observe_events(self, "created")
+        return True
 
-        for key in remove_keys:
-            serialized_dictionary.pop(key)
+    async def perform_update(self, query) -> bool:
+        dirty = self.get_dirty()
+        if not dirty:
+            return True
 
-        return serialized_dictionary
+        pk_value = self.get_attribute(self.__primary_key__)
+        await query.where(self.__primary_key__, pk_value).update(dirty)
 
-    def relations_to_dict(self):
-        """Converts a models relationships to a dictionary
+        self.observe_events(self, "updated")
+        return True
 
-        Returns:
-            [type]: [description]
-        """
-        new_dic = {}
-        for key, value in self._relationships.items():
-            if value == {}:
-                new_dic.update({key: {}})
-            else:
-                if value is None:
-                    new_dic.update({key: {}})
-                    continue
-                elif isinstance(value, list):
-                    value = Collection(value).serialize()
-                elif isinstance(value, dict):
-                    pass
-                else:
-                    value = value.serialize()
+    def sync_original(self):
+        self._attributes = self.get_attributes()
+        self._dirty_attributes = {}
+        self._original = dict(self._attributes)
 
-                new_dic.update({key: value})
+    def get_attributes(self) -> dict:
+        return {**self._attributes, **self._dirty_attributes}
 
-        return new_dic
+    def serialize(self) -> dict:
+        return self.get_attributes()
+
+    @classmethod
+    def where(cls, column, *args):
+        return cls().query().where(column, *args)
+
+    def get_table_name(self):
+        return self.__table__ or inflection.tableize(self.__class__.__name__)

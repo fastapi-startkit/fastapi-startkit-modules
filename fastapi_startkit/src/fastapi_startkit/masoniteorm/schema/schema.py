@@ -19,6 +19,10 @@ class Schema:
 
         return self._connection
 
+    def platform(self):
+        return self.get_connection().get_default_platform()()
+
+
     async def create(self, table: str) -> Blueprint:
         """Return a Blueprint for a new table (async context manager)."""
         connection = self.get_connection()
@@ -57,11 +61,11 @@ class Schema:
         )
 
     async def drop_table(self, table: str) -> None:
-        if self._connection is None:
-            self._connection = self._manager.connection(None)
+        sql = self.platform().compile_drop_table(table)
+        await self.get_connection().run(sql, ())
 
-        sql = self._connection.get_default_platform()().compile_drop_table(table)
-        await self._connection.run(sql, ())
+    def drop(self, *args, **kwargs):
+        return self.drop_table(*args, **kwargs)
 
     async def drop_table_if_exists(self, table: str) -> None:
         if self._connection is None:

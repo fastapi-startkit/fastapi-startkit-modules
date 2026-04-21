@@ -1,5 +1,4 @@
 from ..collection import Collection
-from ..config import load_config
 from .BaseRelationship import BaseRelationship
 
 

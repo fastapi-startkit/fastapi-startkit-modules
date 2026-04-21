@@ -1,26 +1,31 @@
 import os
+from dumpdie import dd
 from pathlib import Path
-from typing import Type, Callable, Any, List
+from typing import TYPE_CHECKING, Optional
+from typing import Type, Callable, Any, List, TypeVar, Generic
 
+from .config import AppConfig
+from .configuration.providers import ConfigurationProvider
 from .container import Container
 from .environment.environment import LoadEnvironment
-from .configuration.providers import ConfigurationProvider
-
-from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from fastapi import FastAPI, APIRouter
     from starlette.middleware.base import BaseHTTPMiddleware
 
+
 def app() -> 'Container':
     return Container.instance()
 
-class Application(Container):
+
+TConfig = TypeVar('TConfig', bound=AppConfig)
+
+class Application(Container, Generic[TConfig]):
     DEFAULT_PROVIDERS = [
         ConfigurationProvider,
     ]
 
-    def __init__(self, base_path: str = None,env=None, providers=None):
+    def __init__(self, base_path: str = None, env=None, providers=None, config: Type[TConfig] | None = None):
         super().__init__()
 
         self.base_path: str = base_path or os.getcwd()
@@ -28,12 +33,15 @@ class Application(Container):
         self.providers = self.DEFAULT_PROVIDERS + (providers or [])
         self.published_resources = {}
         self.commands = []
+        self._config = config
+        self._config_instance: Optional[TConfig] = None
 
         # Set global singleton
         Container.set_instance(self)
 
         # Boot application
         self.load_environment()
+        self.configure_config()
         self.configure_paths()
         self.register_providers()
 
@@ -135,7 +143,17 @@ class Application(Container):
         return self.fastapi
 
     def load_environment(self):
-        LoadEnvironment(base_path=self.base_path)
+        LoadEnvironment(environment=self.env, base_path=self.base_path)
+
+    def configure_config(self):
+        if self._config is not None:
+            self._config_instance = self._config()
+
+    @property
+    def config(self) -> TConfig:
+        if self._config_instance is None:
+            raise RuntimeError("Config is not set")
+        return self._config_instance
 
     def configure_paths(self):
         self.bind('config.location', os.path.join(self.base_path, "config"))

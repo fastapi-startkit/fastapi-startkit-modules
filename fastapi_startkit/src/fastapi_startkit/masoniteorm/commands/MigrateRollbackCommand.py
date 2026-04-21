@@ -3,7 +3,7 @@ from .Command import Command
 
 
 class MigrateRollbackCommand(Command):
-    name = "migrate:rollback"
+    name = "db:migrate:rollback"
     description = "Rolls back the last batch of migrations."
 
     options = [

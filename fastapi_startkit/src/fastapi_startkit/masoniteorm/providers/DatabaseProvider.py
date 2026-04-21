@@ -1,38 +1,38 @@
-from ...providers.Provider import Provider
-from ..commands import (
+from fastapi_startkit.masoniteorm.commands import (
+    DBSeedCommand,
     MakeMigrationCommand,
     MakeModelCommand,
-    MakeObserverCommand,
     MakeSeedCommand,
-    MigrateCommand,
-    MigrateFreshCommand,
-    MigrateRefreshCommand,
-    MigrateResetCommand,
-    MigrateRollbackCommand,
+    DBMigrateCommand,
     MigrateStatusCommand,
-    MakeModelDocstringCommand,
-    DBSeedCommand,
+    MigrateRollbackCommand,
+    MigrateFreshCommand
 )
+from fastapi_startkit.masoniteorm.connections.factory import ConnectionFactory
+from fastapi_startkit.masoniteorm.connections.manager import DatabaseManager
+from fastapi_startkit.masoniteorm.migrations import Migration
+from fastapi_startkit.masoniteorm.models import Model
+from fastapi_startkit.providers.Provider import Provider
 
 
 class DatabaseProvider(Provider):
-    """Database provider for Masonite ORM."""
-
     def register(self):
-        self.commands([
-            MakeMigrationCommand(),
-            MakeSeedCommand(),
-            MakeObserverCommand(),
-            MigrateCommand(),
-            MigrateResetCommand(),
-            MakeModelCommand(),
-            MigrateStatusCommand(),
-            MigrateRefreshCommand(),
-            MigrateFreshCommand(),
-            MigrateRollbackCommand(),
-            DBSeedCommand(),
-            MakeModelDocstringCommand(),
-        ])
+        db = DatabaseManager(ConnectionFactory(), self.config)
 
-    def boot(self):
-        pass
+        self.app.bind('db', db)
+        self.app.bind('schema', db.get_schema_builder())
+
+        Model.db_manager = db
+        Migration.db_manager = db
+
+    def boot(self) -> None:
+        self.commands([
+            DBMigrateCommand,
+            DBSeedCommand,
+            MakeMigrationCommand,
+            MigrateStatusCommand,
+            MigrateRollbackCommand,
+            MakeModelCommand,
+            MakeSeedCommand,
+            MigrateFreshCommand
+        ])

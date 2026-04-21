@@ -6,17 +6,17 @@ from ..exceptions import InvalidConfigurationLocation, InvalidConfigurationSetup
 class Configuration:
     # Foundation configuration keys
     reserved_keys = [
-        "application",
-        "auth",
-        "broadcast",
-        "cache",
-        "database",
-        "filesystem",
-        "mail",
-        "notification",
-        "providers",
-        "queue",
-        "session",
+        # "application",
+        # "auth",
+        # "broadcast",
+        # "cache",
+        # "database",
+        # "filesystem",
+        # "mail",
+        # "notification",
+        # "providers",
+        # "queue",
+        # "session",
     ]
 
     def __init__(self, application):

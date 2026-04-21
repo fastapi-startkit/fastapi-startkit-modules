@@ -3,10 +3,9 @@ import pydoc
 
 class Seeder:
     def __init__(
-        self, dry=False, seed_path="databases/seeds", connection=None
+        self, seed_path="databases/seeds", connection=None
     ):
         self.ran_seeds = []
-        self.dry = dry
         self.seed_path = seed_path
         self.connection = connection
         self.seed_module = seed_path.replace("/", ".").replace("\\", ".")
@@ -14,8 +13,7 @@ class Seeder:
     async def call(self, *seeder_classes):
         for seeder_class in seeder_classes:
             self.ran_seeds.append(seeder_class)
-            if not self.dry:
-                await seeder_class(connection=self.connection).run()
+            await seeder_class(connection=self.connection).run()
 
     async def run_database_seed(self):
         database_seeder = pydoc.locate(
@@ -27,8 +25,7 @@ class Seeder:
 
         self.ran_seeds.append(database_seeder)
 
-        if not self.dry:
-            await database_seeder(connection=self.connection).run()
+        await database_seeder(connection=self.connection).run()
 
     async def run_specific_seed(self, seed):
         file_name = f"{self.seed_module}.{seed}"
@@ -39,7 +36,4 @@ class Seeder:
 
         self.ran_seeds.append(database_seeder)
 
-        if not self.dry:
-            await database_seeder(connection=self.connection).run()
-        else:
-            print(f"Running {database_seeder}")
+        await database_seeder(connection=self.connection).run()

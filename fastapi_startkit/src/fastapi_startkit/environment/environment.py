@@ -2,52 +2,60 @@
 
 import os
 import sys
+from dotenv import load_dotenv
 from pathlib import Path
 
 
 class LoadEnvironment:
-    """This class is used for loading the environment from .env and .env.* files."""
-
     def __init__(self, environment=None, override=True, only=None, base_path=None):
-        """LoadEnvironment constructor.
-
-        Keyword Arguments:
-            env {string} -- An additional environment file that you want to load. (default: {None})
-            override {bool} -- Whether or not the environment variables found should overwrite existing ones. (default: {False})
-            only {string} -- If this is set then it will only load that environment. (default: {None})
-            base_path {string} -- The base path to look for the environment file. (default: {None})
-        """
-        from dotenv import load_dotenv
-
-        self.env = load_dotenv
         self.base_path = Path(base_path) if base_path else Path(".")
+        self._detect_env_from_argv()
 
         if only:
-            self._load_environment(only, override=override)
+            self._load(f".env.{only}", override=override)
             return
 
-        env_path = str(self.base_path / ".env")
-        self.env(env_path, override=override)
+        resolved = self._resolve_environment(environment)
+
+        # 2. Try .env.<resolved> first; fall back to .env when it doesn't exist.
+        if resolved:
+            specific = self.base_path / f".env.{resolved}"
+            if specific.exists():
+                load_dotenv(specific, override=override)
+                return
+
+        load_dotenv(self.base_path / ".env", override=override)
+
+    def _detect_env_from_argv(self):
+        """Parse --env=<value> or --env <value> from sys.argv, set APP_ENV,
+        and remove the tokens so downstream CLI parsers (e.g. cleo) never see them."""
+        args = sys.argv[1:]
+        for i, arg in enumerate(args):
+            if arg.startswith("--env="):
+                os.environ["APP_ENV"] = arg.split("=", 1)[1]
+                sys.argv.pop(i + 1)
+                break
+            if arg == "--env" and i + 1 < len(args):
+                os.environ["APP_ENV"] = args[i + 1]
+                sys.argv.pop(i + 2)  # value first (higher index)
+                sys.argv.pop(i + 1)  # then the flag
+                break
+
+    def _resolve_environment(self, fallback):
+        if "PYTEST_CURRENT_TEST" in os.environ:
+            return "testing"
 
         if os.environ.get("APP_ENV"):
-            self._load_environment(os.environ.get("APP_ENV"), override=override)
-        if environment:
-            self._load_environment(environment, override=override)
+            return os.environ["APP_ENV"]
 
-        if "PYTEST_CURRENT_TEST" in os.environ:
-            self._load_environment("testing", override=override)
+        if fallback:
+            return fallback
 
-    def _load_environment(self, environment, override=False):
-        """Load the environment depending on the env file.
+        return None
 
-        Arguments:
-            environment {string} -- Name of the environment file to load from
-
-        Keyword Arguments:
-            override {bool} -- Whether the environment file should overwrite existing environment keys. (default: {False})
-        """
-        env_path = str(self.base_path / f".env.{environment}")
-        self.env(dotenv_path=env_path, override=override)
+    def _load(self, filename, override=False):
+        path = self.base_path / filename
+        load_dotenv(path, override=override)
 
 
 def env(value, default="", cast=True):

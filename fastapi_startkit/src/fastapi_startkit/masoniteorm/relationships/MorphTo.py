@@ -1,6 +1,5 @@
 from fastapi_startkit.masoniteorm.models import registry
 from ..collection import Collection
-from ..config import load_config
 from .BaseRelationship import BaseRelationship
 
 

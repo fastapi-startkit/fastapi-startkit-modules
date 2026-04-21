@@ -5,8 +5,6 @@ from pydoc import locate
 from timeit import default_timer as timer
 
 from inflection import camelize
-
-from ..config import load_config
 from ..models.MigrationModel import MigrationModel
 from ..schema import Schema
 

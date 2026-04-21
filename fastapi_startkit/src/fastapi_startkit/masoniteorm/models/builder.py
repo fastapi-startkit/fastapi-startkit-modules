@@ -3,8 +3,6 @@ import inspect
 import inflection
 from typing import TYPE_CHECKING
 
-from dumpdie import dd
-
 from fastapi_startkit.masoniteorm.expressions.expressions import (
     QueryExpression,
     SelectExpression,
@@ -12,11 +10,11 @@ from fastapi_startkit.masoniteorm.expressions.expressions import (
     SubSelectExpression,
     SubGroupExpression,
 )
-from fastapi_startkit.orm.query.EagerLoadMixin import EagerLoadMixin
-from fastapi_startkit.orm.query.support import SupportMixin
+from fastapi_startkit.masoniteorm.query.EagerLoadMixin import EagerLoadMixin
+from fastapi_startkit.masoniteorm.query.support import SupportMixin
 
 if TYPE_CHECKING:
-    from fastapi_startkit.orm.connections.connection import Connection
+    from fastapi_startkit.masoniteorm.connections.connection import Connection
 
 
 class QueryBuilder(EagerLoadMixin, SupportMixin):
@@ -139,6 +137,13 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         await model.save()
 
         return model
+
+    async def first_or_create(self, search: dict, attributes: dict | None = None):
+        instance = await self.where(search).first()
+        if instance is not None:
+            return instance
+
+        return await self.create({**(attributes or {}), **search})
 
     async def insert(self, values: dict | list) -> int | None:
         self.set_action("bulk_create")
