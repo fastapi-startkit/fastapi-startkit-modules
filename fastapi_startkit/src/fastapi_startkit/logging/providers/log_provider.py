@@ -1,6 +1,11 @@
+import importlib.resources
 import os
+
+from dumpdie import dd
+
 from fastapi_startkit.providers import Provider
 
+from ..config.logging import LoggingConfig
 from ..ChannelFactory import ChannelFactory
 from ..logger import Logger
 from ..factory import DriverFactory
@@ -10,9 +15,8 @@ from ..managers import LoggingManager
 
 class LogProvider(Provider):
     def register(self):
-        # self.merge_config_from(self.config, 'logging')
-        # source = os.path.abspath(os.path.join(os.path.dirname(__file__), "../config/logging.py"))
-        # self.merge_config_from(source, 'logging')
+        config = self.resolve_config(LoggingConfig)
+        self.merge_config_from(config, "logging")
 
         self.app.bind('LogChannelFactory', ChannelFactory)
         self.app.bind('LogDriverFactory', DriverFactory)
@@ -20,7 +24,7 @@ class LogProvider(Provider):
         self.app.simple(LoggerExceptionListener)
 
     def boot(self):
-        source = os.path.abspath(os.path.join(os.path.dirname(__file__), "../config/logging.py"))
+        source = os.path.abspath(str(os.path.join(str(os.path.dirname(__file__)), "../config/logging.py")))
         self.publishes({
             source: 'config/logging.py'
         })

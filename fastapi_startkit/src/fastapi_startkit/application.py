@@ -1,9 +1,9 @@
 import os
-from dumpdie import dd
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 from typing import Type, Callable, Any, List, TypeVar, Generic
 
+from fastapi_startkit.providers.app_provider import AppProvider
 from .config import AppConfig
 from .configuration.providers import ConfigurationProvider
 from .container import Container
@@ -23,6 +23,7 @@ TConfig = TypeVar('TConfig', bound=AppConfig)
 class Application(Container, Generic[TConfig]):
     DEFAULT_PROVIDERS = [
         ConfigurationProvider,
+        AppProvider,
     ]
 
     def __init__(self, base_path: str = None, env=None, providers=None, config: Type[TConfig] | None = None):
