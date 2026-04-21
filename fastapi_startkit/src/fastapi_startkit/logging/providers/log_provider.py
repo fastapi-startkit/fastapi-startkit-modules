@@ -1,15 +1,11 @@
-import importlib.resources
 import os
 
-from dumpdie import dd
-
 from fastapi_startkit.providers import Provider
-
-from ..config.logging import LoggingConfig
 from ..ChannelFactory import ChannelFactory
-from ..logger import Logger
+from ..config.logging import LoggingConfig
 from ..factory import DriverFactory
 from ..listeners import LoggerExceptionListener
+from ..logger import Logger
 from ..managers import LoggingManager
 
 

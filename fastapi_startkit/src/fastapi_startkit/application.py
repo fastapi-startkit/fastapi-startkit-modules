@@ -13,6 +13,8 @@ if TYPE_CHECKING:
     from fastapi import FastAPI, APIRouter
     from starlette.middleware.base import BaseHTTPMiddleware
 
+from fastapi_startkit.exceptions import ExceptionHandler
+
 
 def app() -> 'Container':
     return Container.instance()
@@ -26,7 +28,7 @@ class Application(Container, Generic[TConfig]):
         AppProvider,
     ]
 
-    def __init__(self, base_path: str = None, env=None, providers=None, config: Type[TConfig] | None = None):
+    def __init__(self, base_path: str = None, env=None, providers=None, config: Type[TConfig] | None = None, exception_handler: Type[ExceptionHandler] | None = None):
         super().__init__()
 
         self.base_path: str = base_path or os.getcwd()
@@ -36,9 +38,13 @@ class Application(Container, Generic[TConfig]):
         self.commands = []
         self._config = config
         self._config_instance: Optional[TConfig] = None
+        self._exception_handler_class = exception_handler or ExceptionHandler
+        self.exception_manager: ExceptionHandler
 
         # Set global singleton
         Container.set_instance(self)
+
+        self.configure_exception_handler()
 
         # Boot application
         self.load_environment()
@@ -48,6 +54,12 @@ class Application(Container, Generic[TConfig]):
 
         self._fastapi: Optional["FastAPI"] = None
         self.load_providers()
+
+    def configure_exception_handler(self):
+        self.exception_manager: ExceptionHandler = self._exception_handler_class(application=self)
+        self.exception_manager.register()
+        self.exception_manager.install()
+        self.bind("exception_manager", self.exception_manager)
 
     def register_providers(self):
         providers = []
@@ -145,6 +157,9 @@ class Application(Container, Generic[TConfig]):
 
     def load_environment(self):
         LoadEnvironment(environment=self.env, base_path=self.base_path)
+
+    def is_debug(self) -> bool:
+        return hasattr(self, '_config_instance') and self._config_instance is not None and getattr(self._config_instance, 'debug', False)
 
     def configure_config(self):
         if self._config is not None:

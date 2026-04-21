@@ -61,3 +61,8 @@ class Logger:
     @classmethod
     def debug(cls, message: str, *args, **kwargs):
         Logger.init().debug(cls.logger_info() + message, *args, **kwargs)
+
+    @classmethod
+    def log(cls, level: str, message: str, *args, **kwargs):
+        log = getattr(Logger, level.lower(), Logger.error)
+        log(message, *args, **kwargs)

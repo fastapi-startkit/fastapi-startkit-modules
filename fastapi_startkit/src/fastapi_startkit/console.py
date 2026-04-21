@@ -1,4 +1,5 @@
 from cleo.application import Application as BaseApplication
+from cleo.io.io import IO
 from fastapi_startkit.application import Application
 
 class ConsoleApplication(BaseApplication):
@@ -12,6 +13,10 @@ class ConsoleApplication(BaseApplication):
                 self.add(command())
             else:
                 self.add(command)
+
+    def render_error(self, error: Exception, io: IO) -> None:
+        self.app.exception_manager.report(error)
+        super().render_error(error, io)
 
     def handle(self):
         self.run()

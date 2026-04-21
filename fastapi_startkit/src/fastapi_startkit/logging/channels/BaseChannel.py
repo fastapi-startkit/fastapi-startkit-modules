@@ -5,6 +5,9 @@ class BaseChannel:
     def get_time(self):
         return pendulum.now().in_tz(Config.get('logging.channels.timezone', 'UTC'))
 
+    def log(self, level, message, *args, **kwargs):
+        return self.driver.should_run(level, self.max_level)
+
     def emergency(self, message, *args, **kwargs):
         if not self.driver.should_run('emergency', self.max_level):
             return
