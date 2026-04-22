@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI + Vite</title>
+    {{ vite('resources/js/app.js') }}
+</head>
+<body>
+    <div class="card">
+        <span class="badge">⚡ Vite + FastAPI</span>
+        <h1>Hello from FastAPI StartKit</h1>
+        <p>
+            Assets are served via the Vite helper.
+            In development, HMR is active. In production, hashed files
+            are loaded from <code>public/build/</code>.
+        </p>
+        <div id="counter">
+            <button>Click me</button>
+            <span>0</span>
+        </div>
+        <div class="links">
+            <a href="/docs">API Docs</a>
+            <a href="/api/health">Health</a>
+            <a href="https://vitejs.dev" target="_blank">Vite Docs</a>
+        </div>
+    </div>
+</body>
+</html>

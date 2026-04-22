@@ -13,7 +13,7 @@ class SingleChannel:
 @dataclasses.dataclass
 class StackChannel:
     driver: str = 'stack'
-    channels: list = dataclasses.field(default_factory=lambda: ['single', 'daily', 'slack', 'terminal'])
+    channels: list = dataclasses.field(default_factory=lambda: ['daily', 'terminal'])
 
 
 @dataclasses.dataclass

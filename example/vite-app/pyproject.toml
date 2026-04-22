@@ -1,0 +1,12 @@
+[project]
+name = "vite-example"
+version = "0.1.0"
+description = "Vite + FastAPI example using fastapi-startkit"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi-startkit[fastapi]",
+    "jinja2>=3.1",
+]
+
+[tool.uv.sources]
+fastapi-startkit = { path = "../../fastapi_startkit", editable = true }
