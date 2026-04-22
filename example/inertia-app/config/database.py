@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Dict, Any
 
-from fastapi_startkit.environment.environment import env
-from fastapi_startkit.masoniteorm.config import SQLiteConfig
+from fastapi_startkit.environment import env
+from fastapi_startkit.masoniteorm import SQLiteConfig
 
 
 @dataclass
