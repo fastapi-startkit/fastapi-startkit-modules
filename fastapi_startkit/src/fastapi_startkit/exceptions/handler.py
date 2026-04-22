@@ -67,6 +67,7 @@ class ExceptionHandler:
         import traceback
         context = f"{type(exception).__name__}: {exception}"
         if self.app and self.app.is_debug():
+            ""
             context += "\n" + "".join(traceback.format_exception(type(exception), exception, exception.__traceback__))
         return context
 
