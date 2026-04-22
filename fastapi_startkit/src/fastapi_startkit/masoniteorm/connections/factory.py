@@ -1,11 +1,11 @@
 from typing import Any
 
-from dumpdie import dd
 from sqlalchemy import StaticPool
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
 
 from fastapi_startkit.masoniteorm.connections.connection import Connection
 from fastapi_startkit.masoniteorm.connections.sqlite_connection import SQliteConnection
+from fastapi_startkit.masoniteorm.connections.postgres_connection import PostgresConnection
 
 
 class ConnectionFactory:
@@ -30,7 +30,7 @@ class ConnectionFactory:
         return f"{scheme}://{user}:{pwd}@{host}:{port}/{db}"
 
     @classmethod
-    def create_engine(cls, cfg: dict)->AsyncEngine:
+    def create_engine(cls, cfg: dict) -> AsyncEngine:
         url = cls.build_url(cfg)
         kwargs: dict[str, Any] = {"echo": True}
         if cfg["driver"] == "sqlite":
@@ -38,11 +38,12 @@ class ConnectionFactory:
             kwargs["poolclass"]    = StaticPool
         return create_async_engine(url, **kwargs)
 
-    def make(self, config: dict, name: str)->type[Connection]:
+    def make(self, config: dict, name: str) -> type[Connection]:
         engine = self.create_engine(config)
         driver = config['driver']
         match driver:
-            case 'sqlite': return SQliteConnection(engine, config)
+            case 'sqlite':   return SQliteConnection(engine, config)
+            case 'postgres': return PostgresConnection(engine, config)
 
         raise ValueError(f"Unsupported driver: {driver}")
 

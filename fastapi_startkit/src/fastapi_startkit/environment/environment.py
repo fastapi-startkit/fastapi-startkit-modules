@@ -74,7 +74,7 @@ def env(value, default="", cast=True):
         return env_var
     elif env_var is None:
         return None
-    elif env_var.isnumeric():
+    elif isinstance(env_var, int) or env_var.isnumeric():
         return int(env_var)
     elif env_var in ("false", "False"):
         return False

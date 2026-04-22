@@ -5,6 +5,8 @@ import re
 import secrets
 from typing import Callable, Optional
 
+from dumpdie import dd
+
 from .exceptions import ViteException, ViteManifestNotFoundException
 
 
@@ -37,7 +39,7 @@ class Vite:
     ) -> None:
         self._public_path = public_path
         self._build_directory = build_directory
-        self._hot_file = hot_file or os.path.join(public_path, "hot")
+        self._hot_file = os.path.join(public_path, hot_file or "hot")
         self._manifest_filename = manifest_filename
         # Optional base URL prefix for all generated asset URLs.
         self._asset_url = asset_url.rstrip("/")

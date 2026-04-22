@@ -1,5 +1,5 @@
 from .vite import Vite
-from .provider import ViteProvider
+from .providers.provider import ViteProvider
 from .exceptions import ViteException, ViteManifestNotFoundException
 
 __all__ = [

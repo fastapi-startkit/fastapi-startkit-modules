@@ -62,7 +62,7 @@ class Schema:
 
     async def drop_table(self, table: str) -> None:
         sql = self.platform().compile_drop_table(table)
-        await self.get_connection().run(sql, ())
+        await self.get_connection().statement(sql, ())
 
     def drop(self, *args, **kwargs):
         return self.drop_table(*args, **kwargs)
@@ -72,7 +72,7 @@ class Schema:
             self._connection = self._manager.connection(None)
 
         sql = self._connection.get_default_platform()().compile_drop_table_if_exists(table)
-        await self._connection.run(sql, ())
+        await self._connection.statement(sql, ())
 
     async def has_table(self, table: str) -> bool:
         if self._connection is None:

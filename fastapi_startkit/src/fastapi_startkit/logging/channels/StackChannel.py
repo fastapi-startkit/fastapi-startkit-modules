@@ -1,18 +1,15 @@
-from ..factory import DriverFactory
-from fastapi_startkit.facades import Config
-import os
-import pendulum
 from .MultiBaseChannel import MultiBaseChannel
 
 class StackChannel(MultiBaseChannel):
-
-    def __init__(self, channels=[]):
-        channels = channels or Config.get('logging.channels.stack.channels')
+    def __init__(self, channels=None):
+        from fastapi_startkit.facades import Config
+        channels = channels or Config.get('logging.channels.stack.channels', [])
         from ..ChannelFactory import ChannelFactory
         self.channels = []
         for channel in channels:
-            channel = ChannelFactory.make(channel)()
-            self.channels.append(channel)
+            channel_class = ChannelFactory.make(channel)
+            if channel_class:
+                self.channels.append(channel_class())
 
     def debug(self, message, *args, **kwargs):
         for channel in self.channels:

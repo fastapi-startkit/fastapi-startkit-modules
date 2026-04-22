@@ -10,3 +10,8 @@ dependencies = [
 
 [tool.uv.sources]
 fastapi-startkit = { path = "../../fastapi_startkit", editable = true }
+
+[dependency-groups]
+dev = [
+    "dumpdie>=1.5.0",
+]

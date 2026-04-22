@@ -62,7 +62,12 @@ class Connection:
             return await conn.execute(text(query), bindings or {})
 
     async def statement(self, query: str, bindings: list | None = None) -> bool:
-        await self.run(query, bindings)
+        query, bindings = self.sql_alchemy_bindings(query, bindings)
+
+        async with self.conn.connect() as conn:
+            await conn.execute(text(query), bindings or {})
+            await conn.commit()
+
         return True
 
     async def insert(self, query: str, bindings: list | None = None) -> int | None:

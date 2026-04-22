@@ -6,4 +6,4 @@ class MigrationModel(Model):
     __primary_key__ = "migration_id"
 
     migration: str
-    batch: str
+    batch: int

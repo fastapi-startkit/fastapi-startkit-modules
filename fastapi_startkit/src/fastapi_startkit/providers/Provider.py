@@ -1,7 +1,9 @@
 import dataclasses
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from fastapi_startkit.helper.string import Str
+from fastapi_startkit.helpers.string import Str
+
+from fastapi_startkit.helpers.dataclass import Dataclass
 
 if TYPE_CHECKING:
     from ..application import Application
@@ -28,17 +30,11 @@ class Provider:
     def boot(self) -> None:
         pass
 
-    def resolve_config(self, default)->dict:
-        if isinstance(self.config, dict):
-            user_config = self.config
-        elif dataclasses.is_dataclass(self.config):
-            instance = self.config() if isinstance(self.config, type) else self.config
-            # pydantic dataclasses expose model_dump(); stdlib dataclasses use asdict()
-            user_config = instance.model_dump() if hasattr(instance, 'model_dump') else dataclasses.asdict(instance)
-        else:
-            raise TypeError(f"LogProvider config must be a dict or a dataclass, got {type(self.config).__name__}")
+    def resolve_config(self, default) -> dict:
+        user_config = Dataclass.to_dict(self.config)
+        default_config = Dataclass.to_dict(default())
 
-        return {**dataclasses.asdict(default()), **user_config}
+        return {**default_config, **user_config}
 
     def merge_config_from(self, source: str | dict, provider_key: str) -> None:
         self.app.make('config').merge_with(provider_key, source)
