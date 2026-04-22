@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi_startkit.masoniteorm.commands import (
     DBSeedCommand,
     MakeMigrationCommand,
@@ -18,14 +20,9 @@ from fastapi_startkit.providers.Provider import Provider
 class DatabaseProvider(Provider):
     def register(self):
         from ..config.database import DatabaseConfig
-        
-        user_config = self.config
-        if not user_config:
-            user_config = self.app.make('config').get('database', {})
-            
-        config = self.resolve_config(DatabaseConfig)
-        config.update(user_config)
-        
+        config =self.resolve_config(DatabaseConfig)
+        self.merge_config_from(config, self.provider_key)
+
         db = DatabaseManager(ConnectionFactory(), config)
 
         self.app.bind('db', db)
@@ -35,6 +32,10 @@ class DatabaseProvider(Provider):
         Migration.db_manager = db
 
     def boot(self) -> None:
+        self.publishes({
+            Path(__file__).resolve().parent.parent.joinpath('config/database.py'): 'config/database.py'
+        })
+
         self.commands([
             DBMigrateCommand,
             DBSeedCommand,

@@ -4,20 +4,20 @@ from fastapi_startkit.providers import Provider
 from ..ChannelFactory import ChannelFactory
 from ..config.logging import LoggingConfig
 from ..factory import DriverFactory
-from ..listeners import LoggerExceptionListener
 from ..logger import Logger
 from ..managers import LoggingManager
 
 
 class LogProvider(Provider):
+    provider_key = 'logging'
+
     def register(self):
         config = self.resolve_config(LoggingConfig)
-        self.merge_config_from(config, "logging")
+        self.merge_config_from(config, self.provider_key)
 
         self.app.bind('LogChannelFactory', ChannelFactory)
         self.app.bind('LogDriverFactory', DriverFactory)
         self.app.bind('LoggingManager', LoggingManager(ChannelFactory, DriverFactory))
-        self.app.simple(LoggerExceptionListener)
 
     def boot(self):
         source = os.path.abspath(str(os.path.join(str(os.path.dirname(__file__)), "../config/logging.py")))

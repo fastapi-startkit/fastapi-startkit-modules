@@ -4,8 +4,7 @@ from typing import TYPE_CHECKING
 
 from cleo.commands.command import Command
 from cleo.helpers import option
-
-from fastapi_startkit.helper.string import Str
+from fastapi_startkit.helpers.string import Str
 
 if TYPE_CHECKING:
     from fastapi_startkit.application import Application

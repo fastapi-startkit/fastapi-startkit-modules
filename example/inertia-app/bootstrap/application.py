@@ -14,10 +14,7 @@ app: Application = Application(
         LogProvider,
         DatabaseProvider,
         FastAPIProvider,
-        (ViteProvider, {
-            "build_directory": "build",
-            # "asset_url": "https://cdn.example.com",  # optional CDN prefix
-        }),
+        ViteProvider,
         InertiaProvider,
     ],
 )

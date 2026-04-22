@@ -1,35 +1,32 @@
-import dataclasses
+from pydantic.dataclasses import dataclass
+from pydantic.fields import Field
 
-from fastapi_startkit.environment.environment import env
-
-
-@dataclasses.dataclass
+@dataclass
 class SingleChannel:
     driver: str = 'single'
     level: str = 'debug'
     path: str = 'storage/logs/single.log'
 
 
-@dataclasses.dataclass
+@dataclass
 class StackChannel:
     driver: str = 'stack'
-    channels: list = dataclasses.field(default_factory=lambda: ['daily', 'terminal'])
+    channels: list = Field(default_factory=lambda: ['daily', 'terminal'])
 
-
-@dataclasses.dataclass
+@dataclass
 class DailyChannel:
     driver: str = 'daily'
     level: str = 'debug'
     path: str = 'storage/logs'
 
 
-@dataclasses.dataclass
+@dataclass
 class TerminalChannel:
     driver: str = 'terminal'
     level: str = 'info'
 
 
-@dataclasses.dataclass
+@dataclass
 class SlackChannel:
     driver: str = 'slack'
     channel: str = '#bot'
@@ -39,7 +36,7 @@ class SlackChannel:
     level: str = 'debug'
 
 
-@dataclasses.dataclass
+@dataclass
 class SyslogChannel:
     driver: str = 'syslog'
     path: str = '/var/run/syslog'

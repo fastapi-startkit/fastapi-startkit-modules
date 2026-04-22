@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from fastapi_startkit.application import Application
-from fastapi_startkit.logging.providers import LogProvider
+from fastapi_startkit import Application
+from fastapi_startkit.logging import LogProvider
 
 from providers import ConsoleServiceProvider
 

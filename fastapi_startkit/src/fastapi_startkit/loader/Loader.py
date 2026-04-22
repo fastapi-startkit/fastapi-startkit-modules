@@ -10,8 +10,7 @@ from ..utils.structures import load
 
 def parameters_filter(obj_name, obj):
     return (
-        obj_name.isupper()
-        and not obj_name.startswith("__")
+        not obj_name.startswith("__")
         and not obj_name.endswith("__")
     )
 
