@@ -1,12 +1,11 @@
 [project]
-name = "example"
+name = "Console Application Example"
 version = "0.1.0"
-description = "Add your description here"
+description = "A simple application to demonstrate the console application."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi-startkit",
-    "pydantic>=2.13.3",
 ]
 
 [tool.uv.sources]
