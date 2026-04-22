@@ -1,6 +1,6 @@
 {
     "name": "fastapi-vite-plugin",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "FastAPI plugin for Vite.",
     "keywords": [
         "fastapi",

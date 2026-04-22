@@ -36,7 +36,7 @@ class Provider:
             # pydantic dataclasses expose model_dump(); stdlib dataclasses use asdict()
             user_config = instance.model_dump() if hasattr(instance, 'model_dump') else dataclasses.asdict(instance)
         else:
-            raise TypeError(f"LogProvider config must be a dict or a dataclass, got {type(self.config).__name__}")
+            raise TypeError(f"{self.__class__.__name__} config must be a dict or a dataclass, got {type(self.config).__name__}")
 
         return {**dataclasses.asdict(default()), **user_config}
 
