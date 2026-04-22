@@ -5,18 +5,18 @@ from pydoc import locate
 from timeit import default_timer as timer
 
 from inflection import camelize
+
 from ..models.MigrationModel import MigrationModel
-from ..schema import Schema
 
 
 class Migration:
     db_manager: "DatabaseManager"
 
     def __init__(
-        self,
-        connection="default",
-        command_class=None,
-        migration_directory="databases/migrations",
+            self,
+            connection="default",
+            command_class=None,
+            migration_directory="databases/migrations",
     ):
         self.connection = connection
         self.migration_directory = migration_directory
@@ -28,15 +28,10 @@ class Migration:
         self.migration_model = MigrationModel.on(self.connection)
 
     async def create_table_if_not_exists(self):
-        if not await self.schema.has_table("migrations"):
-            async with await self.schema.create("migrations") as table:
-                table.increments("migration_id")
-                table.string("migration")
-                table.integer("batch")
-
-            return True
-
-        return False
+        async with await self.schema.create_table_if_not_exists("migrations") as table:
+            table.increments("migration_id")
+            table.string("migration")
+            table.integer("batch")
 
     async def get_unran_migrations(self):
         directory_path = os.path.join(os.getcwd(), self.migration_directory)
@@ -44,8 +39,8 @@ class Migration:
             f.replace(".py", "")
             for f in listdir(directory_path)
             if isfile(join(directory_path, f))
-            and f != "__init__.py"
-            and not f.startswith(".")
+               and f != "__init__.py"
+               and not f.startswith(".")
         ]
         all_migrations.sort()
         unran_migrations = []
@@ -95,8 +90,8 @@ class Migration:
             f.replace(".py", "")
             for f in listdir(directory_path)
             if isfile(join(directory_path, f))
-            and f != "__init__.py"
-            and not f.startswith(".")
+               and f != "__init__.py"
+               and not f.startswith(".")
         ]
         all_migrations.sort()
         ran = []
@@ -119,7 +114,7 @@ class Migration:
         default_migrations = await self.get_unran_migrations()
         migrations = default_migrations if migration == "all" else [migration]
 
-        batch = await self.get_last_batch_number() + 1
+        batch = int(await self.get_last_batch_number() or 0) + 1
 
         for migration in migrations:
             try:
@@ -209,8 +204,8 @@ class Migration:
                     table = self.command_class.table()
                     table.set_header_row(["SQL"])
                     if (
-                        hasattr(migration_class.schema, "_blueprint")
-                        and migration_class.schema._blueprint
+                            hasattr(migration_class.schema, "_blueprint")
+                            and migration_class.schema._blueprint
                     ):
                         sql = migration_class.schema._blueprint.to_sql()
                         if isinstance(sql, list):

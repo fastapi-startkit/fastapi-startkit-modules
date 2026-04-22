@@ -1,5 +1,3 @@
-from dumpdie import dd
-
 from fastapi_startkit.masoniteorm.models import registry
 
 

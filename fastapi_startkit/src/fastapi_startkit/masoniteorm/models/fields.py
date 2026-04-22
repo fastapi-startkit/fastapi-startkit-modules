@@ -1,5 +1,4 @@
 import pendulum
-from dumpdie import dd
 from pydantic.fields import FieldInfo
 from pydantic import Field as BaseField
 from typing import Any
@@ -87,4 +86,4 @@ class UpdatedAtField:
         return instance.get_attribute(self.name)
 
     def __set__(self, instance, value):
-        dd(1)
+        instance.set_value(self.name, value)

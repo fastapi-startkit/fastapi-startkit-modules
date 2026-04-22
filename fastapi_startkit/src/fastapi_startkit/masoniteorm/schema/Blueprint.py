@@ -823,9 +823,9 @@ class Blueprint:
         sql = self.to_sql()
         if isinstance(sql, list):
             for q in sql:
-                await self.connection.run(q, ())
+                await self.connection.statement(q, ())
             return
-        return await self.connection.run(sql, ())
+        return await self.connection.statement(sql, ())
 
     def nullable(self):
         """Sets the last columns created as nullable

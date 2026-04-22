@@ -226,11 +226,7 @@ class PostgresPlatform(Platform):
                         column_constraint=column_constraint,
                         nullable="NULL" if column.is_null else "NOT NULL",
                         default=default,
-                        after=(
-                            (" AFTER " + self.wrap_column(column._after))
-                            if column._after
-                            else ""
-                        ),
+                        after="",
                     )
                     .strip()
                 )

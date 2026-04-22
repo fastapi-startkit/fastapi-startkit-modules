@@ -17,7 +17,16 @@ from fastapi_startkit.providers.Provider import Provider
 
 class DatabaseProvider(Provider):
     def register(self):
-        db = DatabaseManager(ConnectionFactory(), self.config)
+        from ..config.database import DatabaseConfig
+        
+        user_config = self.config
+        if not user_config:
+            user_config = self.app.make('config').get('database', {})
+            
+        config = self.resolve_config(DatabaseConfig)
+        config.update(user_config)
+        
+        db = DatabaseManager(ConnectionFactory(), config)
 
         self.app.bind('db', db)
         self.app.bind('schema', db.get_schema_builder())
