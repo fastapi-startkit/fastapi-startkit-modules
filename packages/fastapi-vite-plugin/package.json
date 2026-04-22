@@ -1,0 +1,70 @@
+{
+    "name": "fastapi-vite-plugin",
+    "version": "0.0.1",
+    "description": "FastAPI plugin for Vite.",
+    "keywords": [
+        "fastapi",
+        "startkit",
+        "vite",
+        "vite-plugin"
+    ],
+    "license": "MIT",
+    "author": "Bedram Tamang",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/fastapi-startkit/fastapi-startkit-modules.git",
+        "directory": "packages/fastapi-vite-plugin"
+    },
+    "bugs": {
+        "url": "https://github.com/fastapi-startkit/fastapi-startkit-modules/issues"
+    },
+    "homepage": "https://fastapi-startkit.github.io/",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        }
+    },
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "build": "npm run build-plugin",
+        "build-plugin": "rm -rf dist && npm run build-plugin-types && npm run build-plugin-esm && cp src/dev-server-index.html dist/",
+        "build-plugin-types": "tsc --emitDeclarationOnly",
+        "build-plugin-esm": "esbuild src/index.ts --platform=node --format=esm --outfile=dist/index.js",
+        "lint": "eslint --ext .ts ./src",
+        "prepublishOnly": "npm run build",
+        "release": "bash bin/release.sh"
+    },
+    "devDependencies": {
+        "@eslint/eslintrc": "^3.3.1",
+        "@eslint/js": "^9.30.1",
+        "@types/node": "^20.19.0 || >=22.12.0",
+        "@types/picomatch": "^4.0.2",
+        "@typescript-eslint/eslint-plugin": "^8.0.0",
+        "@typescript-eslint/parser": "^8.0.0",
+        "esbuild": "0.27.4",
+        "eslint": "^9.0.0",
+        "globals": "^16.3.0",
+        "typescript": "^5.0.0",
+        "vite": "^8.0.0",
+        "vitest": "^3.0.0"
+    },
+    "peerDependencies": {
+        "vite": "^8.0.0"
+    },
+    "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+    },
+    "dependencies": {
+        "picocolors": "^1.0.0",
+        "tinyglobby": "^0.2.12",
+        "vite-plugin-full-reload": "^1.1.0"
+    }
+}
