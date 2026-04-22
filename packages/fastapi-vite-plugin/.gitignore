@@ -1,8 +1,5 @@
-.venv
-storage
-node_modules
-public/build
-public/hot
+# Dependencies
+node_modules/
 
 # Build outputs
 dist/

@@ -22,7 +22,6 @@ fastapi = [
 ]
 database = [
     "faker>=40.13.0",
-    "pydantic",
     "sqlalchemy[asyncio]>=2.0.38",
 ]
 
@@ -36,6 +35,10 @@ postgres = [
 
 mysql = [
     "aiomysql>=0.2.0",
+]
+
+vite=[
+    "jinja2>=3.1",
 ]
 
 [dependency-groups]

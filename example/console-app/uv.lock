@@ -95,6 +95,17 @@ wheels = [
 ]
 
 [[package]]
+name = "console-app"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "fastapi-startkit" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "fastapi-startkit", editable = "../../fastapi_startkit" }]
+
+[[package]]
 name = "crashtest"
 version = "0.4.1"
 source = { registry = "https://pypi.org/simple" }
@@ -124,21 +135,6 @@ wheels = [
 ]
 
 [[package]]
-name = "example"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "fastapi-startkit" },
-    { name = "pydantic" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastapi-startkit", editable = "../../fastapi_startkit" },
-    { name = "pydantic", specifier = ">=2.13.3" },
-]
-
-[[package]]
 name = "fastapi-startkit"
 version = "0.1.3"
 source = { editable = "../../fastapi_startkit" }
@@ -148,6 +144,7 @@ dependencies = [
     { name = "dotty-dict" },
     { name = "inflection" },
     { name = "pendulum" },
+    { name = "pydantic" },
     { name = "requests" },
 ]
 
@@ -162,12 +159,13 @@ requires-dist = [
     { name = "faker", marker = "extra == 'database'", specifier = ">=40.13.0" },
     { name = "fastapi", extras = ["standard"], marker = "extra == 'fastapi'", specifier = ">=0.124.4,<0.125.0" },
     { name = "inflection", specifier = ">=0.5.1" },
+    { name = "jinja2", marker = "extra == 'vite'", specifier = ">=3.1" },
     { name = "pendulum", specifier = ">=3.1.0,<4.0.0" },
-    { name = "pydantic", marker = "extra == 'database'" },
+    { name = "pydantic", specifier = ">=2.12.5" },
     { name = "requests", specifier = ">=2.32.5,<3.0.0" },
     { name = "sqlalchemy", extras = ["asyncio"], marker = "extra == 'database'", specifier = ">=2.0.38" },
 ]
-provides-extras = ["fastapi", "database", "sqlite", "postgres", "mysql"]
+provides-extras = ["fastapi", "database", "sqlite", "postgres", "mysql", "vite"]
 
 [package.metadata.requires-dev]
 dev = [

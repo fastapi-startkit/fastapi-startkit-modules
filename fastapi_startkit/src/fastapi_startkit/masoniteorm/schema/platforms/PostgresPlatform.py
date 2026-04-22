@@ -227,6 +227,12 @@ class PostgresPlatform(Platform):
                         nullable="NULL" if column.is_null else "NOT NULL",
                         default=default,
                         after="",
+                        # TODO: review it
+                        # after=(
+                        #     (" AFTER " + self.wrap_column(column._after))
+                        #     if column._after
+                        #     else ""
+                        # ),
                     )
                     .strip()
                 )

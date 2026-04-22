@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from fastapi_startkit.providers import Provider
 from ..ChannelFactory import ChannelFactory
@@ -20,9 +21,8 @@ class LogProvider(Provider):
         self.app.bind('LoggingManager', LoggingManager(ChannelFactory, DriverFactory))
 
     def boot(self):
-        source = os.path.abspath(str(os.path.join(str(os.path.dirname(__file__)), "../config/logging.py")))
         self.publishes({
-            source: 'config/logging.py'
+            Path(__file__).resolve().parent.parent.joinpath('config/logging.py'): 'config/logging.py'
         })
         config = self.app.make('config')
         if not config.get('logging.default'):

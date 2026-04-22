@@ -1,5 +1,5 @@
 [project]
-name = "Console Application Example"
+name = "console-app"
 version = "0.1.0"
 description = "A simple application to demonstrate the console application."
 readme = "README.md"
