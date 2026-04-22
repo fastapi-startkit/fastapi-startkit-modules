@@ -7,7 +7,7 @@ class InertiaProvider(Provider):
     provider_key = "inertia"
 
     def register(self) -> None:
-        """Bind Inertia class to the container."""
+        """Bind the Inertia class to the container."""
         self.app.bind("inertia", Inertia(self.app))
 
     def boot(self) -> None:
@@ -19,7 +19,7 @@ class InertiaProvider(Provider):
         # 2. Register Template Globals
         if self.app.has("templates"):
             templates = self.app.make("templates")
-            
+
             try:
                 from markupsafe import Markup
             except ImportError:
@@ -29,9 +29,9 @@ class InertiaProvider(Provider):
                 """Jinja2 helper to render the root div for Inertia."""
                 encoded_page = json.dumps(page)
                 # Ensure single quotes are used for the attribute to avoid conflict with JSON double quotes
-                return Markup(f'<div id="app" data-page=\'{encoded_page}\'></div>')
+                return Markup(f'<script data-page="app" type="application/json">{encoded_page}</script><div id="app"></div>')
 
             templates.env.globals["inertia"] = inertia_helper
-            
+
             # Also share the inertia instance itself if needed
             templates.env.globals["Inertia"] = self.app.make("inertia")

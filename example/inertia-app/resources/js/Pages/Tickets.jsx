@@ -5,7 +5,7 @@ import { useState } from 'react'
 const TEAMS = [
     { id: 1, name: 'Flare', color: '#f97316', count: 54 },
     { id: 2, name: 'Mailcoach', color: '#8b5cf6', count: 49 },
-    { id: 3, name: 'Ray', color: '#06b6d4', count: 0 },
+    { id: 3, name: 'Ray', color: '#06b6d4', count: 10 },
 ]
 
 const NAV_MINE = [
