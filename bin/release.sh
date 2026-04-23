@@ -3,7 +3,9 @@
 # Exit on error
 set -e
 
-echo "🚀 Starting release process..."
+BUMP_TYPE=${1:-patch}
+
+echo "🚀 Starting release process with $BUMP_TYPE bump..."
 
 PACKAGE_DIR="fastapi_startkit"
 
@@ -13,10 +15,17 @@ if [ -d "$PACKAGE_DIR" ]; then
     # Navigate to package directory
     cd "$PACKAGE_DIR"
 
-    # Build and Publish
-    echo "   Building and publishing..."
+    # Bump version
+    echo "   Bumping version..."
+    uv version --bump "$BUMP_TYPE"
+
+    # Build
+    echo "   Building..."
     uv build
-    uv publish
+
+    # Publish via twine
+    echo "   Publishing..."
+    uv run twine upload dist/* --verbose
 
     # Return to root
     cd - > /dev/null
