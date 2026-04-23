@@ -1,7 +1,7 @@
-from fastapi_startkit.fastapi.providers import FastAPIProvider
+from fastapi_startkit.fastapi import FastAPIProvider as BaseFastapiProvider
 from routes.api import public
 
-class FastAPIServiceProvider(FastAPIProvider):
+class FastAPIProvider(BaseFastapiProvider):
     def boot(self) -> None:
         super().boot()
 
