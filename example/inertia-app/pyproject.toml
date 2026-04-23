@@ -1,5 +1,5 @@
 [project]
-name = "vite-example"
+name = "inertia-example"
 version = "0.1.0"
 description = "Vite + FastAPI example using fastapi-startkit"
 requires-python = ">=3.12"
