@@ -34,10 +34,20 @@ class Inertia:
         """Render an Inertia response."""
         props = props or {}
         
-        # Merge shared data
-        # Note: In a real implementation, we might want to resolve callables here
-        all_props = {**self._shared_data, **props}
-        
+        # Merge shared data, resolving callables
+        resolved_shared = {}
+        for k, v in self._shared_data.items():
+            if callable(v):
+                import inspect
+                sig = inspect.signature(v)
+                if len(sig.parameters) > 0:
+                    resolved_shared[k] = v(request)
+                else:
+                    resolved_shared[k] = v()
+            else:
+                resolved_shared[k] = v
+                
+        all_props = {**resolved_shared, **props}
         # Handle Partial Reloads
         partial_component = request.headers.get("X-Inertia-Partial-Component")
         if partial_component == component:

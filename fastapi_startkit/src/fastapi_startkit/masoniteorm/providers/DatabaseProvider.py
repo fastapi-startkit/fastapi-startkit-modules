@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from dumpdie import dd
 from fastapi_startkit.masoniteorm.commands import (
     DBSeedCommand,
     MakeMigrationCommand,

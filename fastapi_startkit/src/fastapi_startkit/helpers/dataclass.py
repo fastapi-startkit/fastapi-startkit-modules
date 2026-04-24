@@ -2,6 +2,8 @@ from typing import Any
 
 import dataclasses
 
+from dumpdie import dd
+
 
 class Dataclass:
     @staticmethod

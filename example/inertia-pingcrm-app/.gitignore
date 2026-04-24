@@ -1,0 +1,15 @@
+.venv
+storage
+node_modules
+public/build
+public/hot
+
+# Build outputs
+dist/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+.env
+.vite

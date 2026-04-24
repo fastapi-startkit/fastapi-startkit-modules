@@ -199,6 +199,8 @@ class Model(Attribute, Relationship, ObservesEvents):
 
         # Store the auto-generated primary key so subsequent saves do an UPDATE
         if inserted_id is not None:
+            if isinstance(inserted_id, dict):
+                inserted_id = inserted_id.get(self.__primary_key__)
             self._dirty_attributes[self.__primary_key__] = inserted_id
 
         self._exists = True
