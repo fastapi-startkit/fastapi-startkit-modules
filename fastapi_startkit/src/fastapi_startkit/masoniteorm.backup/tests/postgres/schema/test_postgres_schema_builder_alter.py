@@ -1,10 +1,10 @@
 import unittest
 
-from tests.integrations.config.database import DATABASES
 from src.masoniteorm.connections import PostgresConnection
 from src.masoniteorm.schema import Schema
 from src.masoniteorm.schema.platforms import PostgresPlatform
 from src.masoniteorm.schema.Table import Table
+from tests.integrations.config.database import DATABASES
 
 
 class TestPostgresSchemaBuilderAlter(unittest.TestCase):

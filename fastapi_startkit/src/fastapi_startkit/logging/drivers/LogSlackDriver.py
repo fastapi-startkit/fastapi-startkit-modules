@@ -1,6 +1,6 @@
-import os
-from .BaseDriver import BaseDriver
 import requests
+
+from .BaseDriver import BaseDriver
 
 
 class LogSlackDriver(BaseDriver):

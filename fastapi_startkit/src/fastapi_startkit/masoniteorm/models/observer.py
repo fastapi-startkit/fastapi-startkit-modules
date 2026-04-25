@@ -1,4 +1,5 @@
 import pendulum
+
 from fastapi_startkit.masoniteorm.expressions.expressions import UpdateQueryExpression
 
 

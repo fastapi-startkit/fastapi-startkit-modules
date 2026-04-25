@@ -1,4 +1,4 @@
-from typing import Any, Callable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
 
 if TYPE_CHECKING:
     from ..rates.limiters import Limiter

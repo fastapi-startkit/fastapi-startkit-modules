@@ -1,8 +1,9 @@
 import unittest
 
+from fastapi_startkit.masoniteorm.tests.integrations.config.database import DATABASES
+
 from fastapi_startkit.masoniteorm.schema import Schema
 from fastapi_startkit.masoniteorm.schema.platforms import SQLitePlatform
-from fastapi_startkit.masoniteorm.tests.integrations.config.database import DATABASES
 
 
 class TestSQLiteSchemaBuilder(unittest.TestCase):

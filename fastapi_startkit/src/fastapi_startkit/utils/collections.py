@@ -1,7 +1,8 @@
 import json
-import random
 import operator
+import random
 from functools import reduce
+
 from dotty_dict import Dotty
 
 from .structures import data_get

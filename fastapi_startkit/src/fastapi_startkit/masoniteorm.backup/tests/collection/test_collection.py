@@ -1,13 +1,14 @@
-import unittest
 import os
+import unittest
+
+from fastapi_startkit.masoniteorm.factories import Factory as factory
+from fastapi_startkit.masoniteorm.tests.integrations.config.database import DATABASES
+from fastapi_startkit.masoniteorm.tests.User import User
 
 from fastapi_startkit.masoniteorm.collection import Collection
-from fastapi_startkit.masoniteorm.factories import Factory as factory
 from fastapi_startkit.masoniteorm.models import Model
 from fastapi_startkit.masoniteorm.schema import Schema
 from fastapi_startkit.masoniteorm.schema.platforms import SQLitePlatform
-from fastapi_startkit.masoniteorm.tests.User import User
-from fastapi_startkit.masoniteorm.tests.integrations.config.database import DATABASES
 
 
 class TestCollection(unittest.IsolatedAsyncioTestCase):
@@ -322,7 +323,9 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(collection.all(), [[1, 1], [2, 4], [2, 1]])
 
     def test_reduce(self):
-        callback = lambda x, y: x + y
+        def callback(x, y):
+            return x + y
+
         collection = Collection([1, 1, 2, 4])
         sum = collection.sum()
 

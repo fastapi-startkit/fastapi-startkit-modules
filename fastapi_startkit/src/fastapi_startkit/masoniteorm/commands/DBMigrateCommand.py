@@ -1,6 +1,8 @@
 import os
-from .Command import Command
+
 from cleo.helpers import option
+
+from .Command import Command
 
 
 class DBMigrateCommand(Command):

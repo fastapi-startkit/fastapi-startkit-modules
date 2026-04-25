@@ -15,6 +15,7 @@ class ServeCommand(Command):
 
     def handle(self):
         import uvicorn
+
         from fastapi_startkit.container import Container
 
         port = int(self.option("port"))

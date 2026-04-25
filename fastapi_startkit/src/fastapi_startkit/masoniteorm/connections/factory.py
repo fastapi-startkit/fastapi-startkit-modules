@@ -1,11 +1,11 @@
 from typing import Any
 
 from sqlalchemy import StaticPool
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from fastapi_startkit.masoniteorm.connections.connection import Connection
-from fastapi_startkit.masoniteorm.connections.sqlite_connection import SQliteConnection
 from fastapi_startkit.masoniteorm.connections.postgres_connection import PostgresConnection
+from fastapi_startkit.masoniteorm.connections.sqlite_connection import SQliteConnection
 
 
 class ConnectionFactory:

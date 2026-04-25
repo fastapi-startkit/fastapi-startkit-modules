@@ -8,18 +8,18 @@ successfully import commands for you.
 from cleo.application import Application
 
 from . import (
+    DBMigrateCommand,
+    DBSeedCommand,
     MakeMigrationCommand,
     MakeModelCommand,
     MakeModelDocstringCommand,
     MakeObserverCommand,
     MakeSeedCommand,
-    DBMigrateCommand,
     MigrateFreshCommand,
     MigrateRefreshCommand,
     MigrateResetCommand,
     MigrateRollbackCommand,
     MigrateStatusCommand,
-    DBSeedCommand,
     ShellCommand,
 )
 

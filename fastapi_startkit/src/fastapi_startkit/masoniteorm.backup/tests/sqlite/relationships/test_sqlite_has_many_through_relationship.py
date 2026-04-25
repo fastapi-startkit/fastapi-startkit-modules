@@ -1,4 +1,5 @@
 import pytest_asyncio
+from fastapi_startkit.masoniteorm.tests.integrations.config.database import DATABASES
 
 from fastapi_startkit.masoniteorm.collection import Collection
 from fastapi_startkit.masoniteorm.connections.sqlite_connection import SQLiteConnection
@@ -6,7 +7,6 @@ from fastapi_startkit.masoniteorm.models import Model
 from fastapi_startkit.masoniteorm.relationships import HasManyThrough
 from fastapi_startkit.masoniteorm.schema import Schema
 from fastapi_startkit.masoniteorm.schema.platforms import SQLitePlatform
-from fastapi_startkit.masoniteorm.tests.integrations.config.database import DATABASES
 
 
 class Enrolment(Model):

@@ -1,2 +1,2 @@
-from .channels import SingleChannel, StackChannel, DailyChannel, TerminalChannel, SlackChannel, SyslogChannel
+from .channels import DailyChannel, SingleChannel, SlackChannel, StackChannel, SyslogChannel, TerminalChannel
 from .logging import LoggingConfig

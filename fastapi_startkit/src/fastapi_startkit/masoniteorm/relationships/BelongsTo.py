@@ -1,8 +1,7 @@
-from typing import Callable
+from fastapi_startkit.masoniteorm.models import registry
 
 from ..collection import Collection
 from . import BaseRelationship
-from fastapi_startkit.masoniteorm.models import registry
 
 
 class BelongsTo(BaseRelationship):

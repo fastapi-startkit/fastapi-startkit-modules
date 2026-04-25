@@ -2,7 +2,6 @@ class Platform:
     foreign_key_actions = {
         "cascade": "CASCADE",
         "set null": "SET NULL",
-        "cascade": "CASCADE",
         "restrict": "RESTRICT",
         "no action": "NO ACTION",
         "default": "SET DEFAULT",

@@ -1,13 +1,13 @@
-import pendulum
-import pytest
 from unittest.mock import MagicMock, patch
 
-from fastapi_startkit.carbon import Carbon
-from fastapi_startkit.masoniteorm.models.fields import DateTimeField
+import pendulum
+import pytest
 from fastapi_startkit.orm.connections.factory import ConnectionFactory
 from fastapi_startkit.orm.connections.manager import DatabaseManager
 from fastapi_startkit.orm.models.model import Model
 
+from fastapi_startkit.carbon import Carbon
+from fastapi_startkit.masoniteorm.models.fields import DateTimeField
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
@@ -189,8 +189,6 @@ class TestModelQuery:
         assert isinstance(builder, QueryBuilder)
 
     def test_query_builder_has_model_set(self, UserModel):
-        from fastapi_startkit.orm.models.builder import QueryBuilder
-
         builder = UserModel.query()
         assert builder._model is not None
         assert isinstance(builder._model, UserModel)

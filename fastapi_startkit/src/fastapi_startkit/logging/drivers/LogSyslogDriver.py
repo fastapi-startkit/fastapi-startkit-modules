@@ -1,6 +1,7 @@
-from .BaseDriver import BaseDriver
 import logging
 import logging.handlers
+
+from .BaseDriver import BaseDriver
 
 
 class LogSyslogDriver(BaseDriver):

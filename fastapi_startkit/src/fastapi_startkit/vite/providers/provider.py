@@ -1,10 +1,11 @@
 import os
+from pathlib import Path
 
-from dumpdie import dd
+from starlette.templating import Jinja2Templates
 
 from fastapi_startkit.providers import Provider
-from ..config.vite import ViteConfig
 
+from ..config.vite import ViteConfig
 from ..vite import Vite
 
 
@@ -16,6 +17,11 @@ class ViteProvider(Provider):
 
         config = self.resolve_config(ViteConfig)
         self.merge_config_from(config, self.provider_key)
+
+        # Bind Jinja2Templates so ViteProvider can inject vite() globals into it.
+        templates_dir = Path(self.app.base_path) / "templates"
+        templates = Jinja2Templates(directory=str(templates_dir))
+        self.app.bind("templates", templates)
 
         config = ViteConfig(**config)
 

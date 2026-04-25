@@ -1,7 +1,7 @@
-import os
 from pathlib import Path
 
 from fastapi_startkit.providers import Provider
+
 from ..ChannelFactory import ChannelFactory
 from ..config.logging import LoggingConfig
 from ..factory import DriverFactory

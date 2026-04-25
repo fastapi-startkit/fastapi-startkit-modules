@@ -1,6 +1,5 @@
-import faker
-
 from fastapi_startkit.orm.factory.factory import Factory
+
 from .model import User
 
 

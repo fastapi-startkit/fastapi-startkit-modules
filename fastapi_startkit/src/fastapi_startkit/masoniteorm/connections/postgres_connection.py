@@ -1,7 +1,9 @@
 from typing import Any
+
 from fastapi_startkit.masoniteorm.query.grammars import PostgresGrammar
 from fastapi_startkit.masoniteorm.query.processors import PostgresPostProcessor
 from fastapi_startkit.masoniteorm.schema.platforms import PostgresPlatform
+
 from .connection import Connection
 
 

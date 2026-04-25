@@ -1,10 +1,11 @@
 import pendulum
 from inflection import singularize
 
+from fastapi_startkit.masoniteorm.models import registry
+
 from ..collection import Collection
 from ..models.pivot import Pivot
 from .BaseRelationship import BaseRelationship
-from fastapi_startkit.masoniteorm.models import registry
 
 
 class BelongsToMany(BaseRelationship):

@@ -1,5 +1,6 @@
 import os
-from dataclasses import field, dataclass
+from dataclasses import dataclass, field
+
 from fastapi_startkit.environment.environment import env
 
 

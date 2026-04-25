@@ -1,2 +1,2 @@
-from .TestCase import TestCase
 from .Database import Database
+from .TestCase import TestCase

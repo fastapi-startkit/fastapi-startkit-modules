@@ -1,2 +1,2 @@
+from .config.config import MySQLConfig, PostgresConfig, SQLiteConfig
 from .providers import DatabaseProvider
-from .config.config import PostgresConfig, MySQLConfig, SQLiteConfig

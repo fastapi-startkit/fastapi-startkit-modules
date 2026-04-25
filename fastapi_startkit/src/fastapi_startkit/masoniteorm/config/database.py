@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Any
+from typing import Any, Dict
 
 from fastapi_startkit.environment import env
 from fastapi_startkit.masoniteorm import SQLiteConfig

@@ -1,4 +1,5 @@
 from cleo.helpers import argument, option
+
 from ..config import load_config
 from .Command import Command
 

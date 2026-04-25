@@ -1,5 +1,6 @@
-from typing import Optional, Dict, Any
-from pydantic.dataclasses import dataclass
+from dataclasses import dataclass
+from typing import Any, Dict, Optional
+
 from fastapi_startkit.environment.environment import env
 
 

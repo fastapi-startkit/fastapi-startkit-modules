@@ -1,10 +1,7 @@
-import os
-
-import pendulum
 from fastapi_startkit.facades import Config
 
-from ..factory import DriverFactory
 from ..channels.BaseChannel import BaseChannel
+from ..factory import DriverFactory
 
 
 class TerminalChannel(BaseChannel):

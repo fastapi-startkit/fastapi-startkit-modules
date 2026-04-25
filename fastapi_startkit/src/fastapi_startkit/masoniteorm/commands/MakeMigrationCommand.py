@@ -1,8 +1,10 @@
 import datetime
 import os
 import pathlib
-from inflection import camelize, tableize
+
 from cleo.helpers import argument, option
+from inflection import camelize, tableize
+
 from .Command import Command
 
 

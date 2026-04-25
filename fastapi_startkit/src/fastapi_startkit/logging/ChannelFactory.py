@@ -1,4 +1,4 @@
-from .channels import SingleChannel, DailyChannel, SlackChannel, StackChannel, SyslogChannel, TerminalChannel
+from .channels import DailyChannel, SingleChannel, SlackChannel, StackChannel, SyslogChannel, TerminalChannel
 
 
 class ChannelFactory:

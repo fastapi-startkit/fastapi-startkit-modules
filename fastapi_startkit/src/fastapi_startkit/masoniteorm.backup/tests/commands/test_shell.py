@@ -1,4 +1,5 @@
 import unittest
+
 from cleo.testers.command_tester import CommandTester
 
 from fastapi_startkit.masoniteorm.commands import ShellCommand

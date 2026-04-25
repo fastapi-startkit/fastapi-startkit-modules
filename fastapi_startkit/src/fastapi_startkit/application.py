@@ -1,16 +1,16 @@
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
-from typing import Type, Callable, Any, List, TypeVar, Generic
+from typing import TYPE_CHECKING, Any, Callable, Generic, List, Optional, Type, TypeVar
 
 from fastapi_startkit.providers.app_provider import AppProvider
+
 from .config import AppConfig
 from .configuration.providers import ConfigurationProvider
 from .container import Container
 from .environment.environment import LoadEnvironment
 
 if TYPE_CHECKING:
-    from fastapi import FastAPI, APIRouter
+    from fastapi import APIRouter, FastAPI
     from starlette.middleware.base import BaseHTTPMiddleware
 
 from fastapi_startkit.exceptions import ExceptionHandler
@@ -75,6 +75,8 @@ class Application(Container, Generic[TConfig]):
             config = {}
             if isinstance(provider_data, tuple):
                 provider_class, config = provider_data
+                if callable(config):
+                    config = config()
             else:
                 provider_class = provider_data
 
@@ -127,9 +129,8 @@ class Application(Container, Generic[TConfig]):
         return self
 
     # Add middleware
-    def add_middleware(self, middleware_class: Type["BaseHTTPMiddleware"], **options):
-        self._fastapi.add_middleware(middleware_class, **options)
-        return self
+    def add_middleware(self, middleware_class: type[Any], *args: Any, **kwargs: Any) -> None:
+        self._fastapi.add_middleware(middleware_class, *args, **kwargs)
 
     # Add event handlers (startup/shutdown)
     def add_event_handler(self, event_type: str, func: Callable[..., Any]):

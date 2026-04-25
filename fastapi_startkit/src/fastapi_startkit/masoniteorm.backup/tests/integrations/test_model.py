@@ -1,5 +1,5 @@
 from fastapi_startkit.masoniteorm.testing import TestCase
-from fastapi_startkit.masoniteorm.tests.integrations.model import User, Gender, Address
+from fastapi_startkit.masoniteorm.tests.integrations.model import Address, Gender, User
 
 
 class TestModelCast(TestCase):

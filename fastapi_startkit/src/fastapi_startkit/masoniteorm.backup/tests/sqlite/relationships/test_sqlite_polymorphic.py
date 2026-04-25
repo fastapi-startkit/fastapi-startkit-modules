@@ -1,11 +1,11 @@
 import pytest_asyncio
+from fastapi_startkit.masoniteorm.tests.integrations.config.database import DB
 
 from fastapi_startkit.masoniteorm.connections.sqlite_connection import SQLiteConnection
 from fastapi_startkit.masoniteorm.models import Model
 from fastapi_startkit.masoniteorm.relationships import BelongsTo, MorphTo
 from fastapi_startkit.masoniteorm.schema import Schema
 from fastapi_startkit.masoniteorm.schema.platforms import SQLitePlatform
-from fastapi_startkit.masoniteorm.tests.integrations.config.database import DB
 
 
 class Profile(Model):

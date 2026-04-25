@@ -1,12 +1,10 @@
 """Helpers for multiple data structures"""
 
 import importlib
-from importlib.abc import Loader
+
 from dotty_dict import dotty
 
 from ..exceptions.exceptions import LoaderNotFound
-
-from .str import modularize
 
 
 def load(path, object_name=None, default=None, raise_exception=False):

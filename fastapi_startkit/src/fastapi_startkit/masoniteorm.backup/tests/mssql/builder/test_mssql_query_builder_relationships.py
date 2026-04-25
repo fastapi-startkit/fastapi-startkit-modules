@@ -1,7 +1,6 @@
 import unittest
 
 from dotenv import load_dotenv
-
 from src.masoniteorm.models import Model
 from src.masoniteorm.query import QueryBuilder
 from src.masoniteorm.query.grammars import MSSQLGrammar

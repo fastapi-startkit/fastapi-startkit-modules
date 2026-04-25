@@ -2,11 +2,9 @@ import os
 import unittest
 
 from src.masoniteorm import Model
-from tests.integrations.config.database import DATABASES
 from src.masoniteorm.connections import MySQLConnection
 from src.masoniteorm.schema import Schema
 from src.masoniteorm.schema.platforms import MySQLPlatform
-
 from tests.integrations.config.database import DATABASES
 
 

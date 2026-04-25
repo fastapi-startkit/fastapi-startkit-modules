@@ -4,7 +4,6 @@ import unittest
 from pathlib import Path
 
 import pytest
-
 from src.masoniteorm.config import load_config
 from src.masoniteorm.connections import ConnectionResolver
 from src.masoniteorm.exceptions import (

@@ -1,9 +1,11 @@
-from cleo.helpers import argument, option
 import os
 import re
 import shlex
 import subprocess
 from collections import OrderedDict
+
+from cleo.helpers import option
+
 from .Command import Command
 
 

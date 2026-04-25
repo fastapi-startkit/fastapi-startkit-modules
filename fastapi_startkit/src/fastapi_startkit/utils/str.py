@@ -2,8 +2,8 @@
 
 import random
 import string
-from urllib import parse
 from typing import Any
+from urllib import parse
 
 
 def random_string(length=4):

@@ -1,5 +1,4 @@
-from fastapi_startkit.orm.tests.fixtures.model import Profile
-from fastapi_startkit.orm.tests.fixtures.model import User
+from fastapi_startkit.orm.tests.fixtures.model import Profile, User
 from fastapi_startkit.orm.tests.sqlite.test_case import TestCase
 
 

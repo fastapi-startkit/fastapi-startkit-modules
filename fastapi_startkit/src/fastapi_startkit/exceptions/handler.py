@@ -1,8 +1,6 @@
-import sys
 import atexit
+import sys
 from typing import Any, Callable, Dict, List, Optional, Type
-
-from dumpdie import dd
 
 
 class ExceptionHandler:

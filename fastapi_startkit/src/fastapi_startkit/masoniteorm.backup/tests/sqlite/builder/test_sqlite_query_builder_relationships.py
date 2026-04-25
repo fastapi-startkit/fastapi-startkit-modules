@@ -1,7 +1,6 @@
 import unittest
 
 from dotenv import load_dotenv
-
 from src.masoniteorm.connections import ConnectionFactory
 from src.masoniteorm.models import Model
 from src.masoniteorm.query import QueryBuilder

@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 
 from fastapi_startkit.masoniteorm.connections.factory import ConnectionFactory
 
-
 load_dotenv(".env")
 
 

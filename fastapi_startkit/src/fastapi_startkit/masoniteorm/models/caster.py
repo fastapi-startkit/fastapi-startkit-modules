@@ -1,11 +1,13 @@
-import json
-import pendulum
 import datetime
+import json
+from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, get_type_hints, Optional
+from typing import TYPE_CHECKING, Any, Optional, get_type_hints
+
+import pendulum
 from pydantic.fields import FieldInfo
+
 from fastapi_startkit.carbon import Carbon
 
 if TYPE_CHECKING:
@@ -133,7 +135,6 @@ class Caster:
     @classmethod
     def build_casts(cls, model):
         model = model if isinstance(model, type) else model.__class__
-        from .registry import Registry
         from fastapi_startkit.masoniteorm.relationships.BaseRelationship import BaseRelationship
 
         try:

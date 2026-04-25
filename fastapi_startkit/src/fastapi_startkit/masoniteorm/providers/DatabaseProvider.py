@@ -1,14 +1,14 @@
 from pathlib import Path
 
 from fastapi_startkit.masoniteorm.commands import (
+    DBMigrateCommand,
     DBSeedCommand,
     MakeMigrationCommand,
     MakeModelCommand,
     MakeSeedCommand,
-    DBMigrateCommand,
-    MigrateStatusCommand,
     MigrateRollbackCommand,
     MigrateFreshCommand,
+    MigrateStatusCommand,
 )
 from fastapi_startkit.masoniteorm.connections.factory import ConnectionFactory
 from fastapi_startkit.masoniteorm.connections.manager import DatabaseManager

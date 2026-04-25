@@ -1,8 +1,10 @@
 import os
 import pathlib
-from inflection import camelize, tableize, underscore
-from .Command import Command
+
 from cleo.helpers import argument, option
+from inflection import camelize, tableize, underscore
+
+from .Command import Command
 
 
 class MakeModelCommand(Command):

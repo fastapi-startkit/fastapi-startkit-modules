@@ -1,4 +1,5 @@
 from cleo.helpers import option
+
 from .Command import Command
 
 

@@ -1,4 +1,4 @@
-from .model import User, Profile, Articles, Logo
+from .model import Articles, Logo, Profile, User
 
 
 async def seeder():

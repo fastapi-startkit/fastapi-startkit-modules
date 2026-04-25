@@ -1,4 +1,5 @@
 from cleo.helpers import option
+
 from ..migrations import Migration
 from .Command import Command
 
