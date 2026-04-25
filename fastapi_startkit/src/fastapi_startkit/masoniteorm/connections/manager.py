@@ -14,9 +14,9 @@ class DatabaseManager:
         name = self.get_default_connection_name(name)
         assert name is not None
         connections = self.config.get("connections", {})
-        if not name in connections:
+        if name not in connections:
             raise ValueError(f"No connection name {name} found")
-        
+
         config = connections[name]
         if name not in self.connections:
             self.connections[name] = self.factory.make(config, name)
@@ -36,4 +36,5 @@ class DatabaseManager:
 
     def get_schema_builder(self):
         from fastapi_startkit.masoniteorm.schema import Schema
+
         return Schema(self)

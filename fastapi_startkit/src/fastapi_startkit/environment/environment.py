@@ -2,8 +2,9 @@
 
 import os
 import sys
-from dotenv import load_dotenv
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 
 class LoadEnvironment:

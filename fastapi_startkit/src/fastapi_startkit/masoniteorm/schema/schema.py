@@ -22,7 +22,6 @@ class Schema:
     def platform(self):
         return self.get_connection().get_default_platform()()
 
-
     async def create(self, table: str) -> Blueprint:
         """Return a Blueprint for a new table (async context manager)."""
         connection = self.get_connection()

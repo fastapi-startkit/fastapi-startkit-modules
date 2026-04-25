@@ -1,9 +1,11 @@
-from cleo.helpers import argument, option
 import os
 import re
 import shlex
 import subprocess
 from collections import OrderedDict
+
+from cleo.helpers import option
+
 from .Command import Command
 
 
@@ -42,9 +44,7 @@ class ShellCommand(Command):
             connection = resolver.get_connection_details()["default"]
         config = resolver.get_connection_information(connection)
         if not config.get("full_details"):
-            self.line(
-                f"<error>Connection configuration for '{connection}' not found !</error>"
-            )
+            self.line(f"<error>Connection configuration for '{connection}' not found !</error>")
             exit(-1)
 
         command, env = self.get_command(config)
@@ -78,19 +78,14 @@ class ShellCommand(Command):
         try:
             get_driver_args = getattr(self, f"get_{driver}_args")
         except AttributeError:
-            self.line(
-                f"<error>Connecting with driver '{driver}' is not implemented !</error>"
-            )
+            self.line(f"<error>Connecting with driver '{driver}' is not implemented !</error>")
             exit(-1)
         args, options = get_driver_args(config)
         # process positional arguments
         args = " ".join(args)
         # process optional arguments
         options = self.remove_empty_options(options)
-        options_string = " ".join(
-            f"{option} {value}" if value else option
-            for option, value in options.items()
-        )
+        options_string = " ".join(f"{option} {value}" if value else option for option, value in options.items())
         # finally build command string
         command = program
         if args:
@@ -117,9 +112,7 @@ class ShellCommand(Command):
                 "--port": config.get("port"),
                 "--user": config.get("user"),
                 "--password": config.get("password"),
-                "--default-character-set": config.get("options", {}).get(
-                    "charset"
-                ),
+                "--default-character-set": config.get("options", {}).get("charset"),
             }
         )
         return args, options
@@ -148,9 +141,7 @@ class ShellCommand(Command):
         if config.get("port"):
             server += f",{config.get('port')}"
 
-        trusted_connection = (
-            config.get("options").get("trusted_connection") == "Yes"
-        )
+        trusted_connection = config.get("options").get("trusted_connection") == "Yes"
         options = OrderedDict(
             {
                 "-d": config.get("database"),
@@ -186,9 +177,7 @@ class ShellCommand(Command):
     def get_sensitive_options(self, config):
         driver = config.get("full_details").get("driver")
         try:
-            sensitive_options = getattr(
-                self, f"get_{driver}_sensitive_options"
-            )()
+            sensitive_options = getattr(self, f"get_{driver}_sensitive_options")()
         except AttributeError:
             sensitive_options = []
         return sensitive_options
@@ -210,7 +199,5 @@ class ShellCommand(Command):
             if option in command:
                 match = re.search(rf"{option} (\w+)", command)
                 if match.groups():
-                    cleaned_command = cleaned_command.replace(
-                        match.groups()[0], "***"
-                    )
+                    cleaned_command = cleaned_command.replace(match.groups()[0], "***")
         return cleaned_command

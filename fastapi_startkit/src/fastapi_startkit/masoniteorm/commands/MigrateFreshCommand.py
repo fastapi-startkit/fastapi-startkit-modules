@@ -1,4 +1,5 @@
 from cleo.helpers import option
+
 from .Command import Command
 
 
@@ -40,10 +41,12 @@ class MigrateFreshCommand(Command):
 
     def handle(self):
         import asyncio
+
         return asyncio.run(self.handle_async())
 
     async def handle_async(self):
         from ..migrations import Migration
+
         migration = Migration(
             command_class=self,
             connection=self.option("connection"),

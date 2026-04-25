@@ -1,4 +1,5 @@
 from cleo.helpers import argument, option
+
 from ..config import load_config
 from .Command import Command
 
@@ -7,9 +8,7 @@ class MakeModelDocstringCommand(Command):
     name = "model:docstring"
     description = "Generate model docstring and type hints (for auto-completion)."
 
-    arguments = [
-        argument("table", description="The table you want to generate docstring and type hints")
-    ]
+    arguments = [argument("table", description="The table you want to generate docstring and type hints")]
 
     options = [
         option(
@@ -28,9 +27,7 @@ class MakeModelDocstringCommand(Command):
         schema = DB.get_schema_builder(self.option("connection"))
 
         if not schema.has_table(table):
-            return self.line_error(
-                f"There is no such table {table} for this connection."
-            )
+            return self.line_error(f"There is no such table {table} for this connection.")
 
         self.info(f"Model Docstring for table: {table}")
         print('"""')

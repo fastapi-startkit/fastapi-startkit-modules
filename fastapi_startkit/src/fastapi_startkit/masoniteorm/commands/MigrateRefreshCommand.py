@@ -1,4 +1,5 @@
 from cleo.helpers import option
+
 from .Command import Command
 
 
@@ -21,9 +22,7 @@ class MigrateRefreshCommand(Command):
             default="default",
             description="The connection you want to run migrations on",
         ),
-        option(
-            "schema", None, flag=False, default=None, description="Sets the schema to be migrated"
-        ),
+        option("schema", None, flag=False, default=None, description="Sets the schema to be migrated"),
         option(
             "directory",
             "d",
@@ -49,10 +48,12 @@ class MigrateRefreshCommand(Command):
 
     def handle(self):
         import asyncio
+
         return asyncio.run(self.handle_async())
 
     async def handle_async(self):
         from ..migrations import Migration
+
         migration = Migration(
             command_class=self,
             connection=self.option("connection"),

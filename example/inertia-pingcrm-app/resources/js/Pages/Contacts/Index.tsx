@@ -11,10 +11,7 @@ const Index = () => {
     contacts: PaginatedData<Contact>;
   }>().props;
 
-  const {
-    data,
-    meta: { links }
-  } = contacts;
+  const { data, meta } = contacts;
 
   return (
     <div>
@@ -50,7 +47,7 @@ const Index = () => {
         rows={data}
         getRowDetailsUrl={row => route('contacts.edit', row.id)}
       />
-      <Pagination links={links} />
+      <Pagination meta={meta} />
     </div>
   );
 };

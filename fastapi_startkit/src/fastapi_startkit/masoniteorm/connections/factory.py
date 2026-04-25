@@ -1,17 +1,17 @@
 from typing import Any
 
 from sqlalchemy import StaticPool
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from fastapi_startkit.masoniteorm.connections.connection import Connection
-from fastapi_startkit.masoniteorm.connections.sqlite_connection import SQliteConnection
 from fastapi_startkit.masoniteorm.connections.postgres_connection import PostgresConnection
+from fastapi_startkit.masoniteorm.connections.sqlite_connection import SQliteConnection
 
 
 class ConnectionFactory:
     DRIVER_URLS = {
-        "sqlite":   "sqlite+aiosqlite",
-        "mysql":    "mysql+aiomysql",
+        "sqlite": "sqlite+aiosqlite",
+        "mysql": "mysql+aiomysql",
         "postgres": "postgresql+asyncpg",
     }
 
@@ -22,11 +22,11 @@ class ConnectionFactory:
 
         driver = config["driver"]
         scheme = cls.DRIVER_URLS[driver]
-        user   = config.get("username", "")
-        pwd    = config.get("password", "")
-        host   = config.get("host", "localhost")
-        port   = config.get("port", "")
-        db     = config.get("database", "")
+        user = config.get("username", "")
+        pwd = config.get("password", "")
+        host = config.get("host", "localhost")
+        port = config.get("port", "")
+        db = config.get("database", "")
         return f"{scheme}://{user}:{pwd}@{host}:{port}/{db}"
 
     @classmethod
@@ -35,15 +35,16 @@ class ConnectionFactory:
         kwargs: dict[str, Any] = {"echo": True}
         if cfg["driver"] == "sqlite":
             kwargs["connect_args"] = {"check_same_thread": False}
-            kwargs["poolclass"]    = StaticPool
+            kwargs["poolclass"] = StaticPool
         return create_async_engine(url, **kwargs)
 
     def make(self, config: dict, name: str) -> type[Connection]:
         engine = self.create_engine(config)
-        driver = config['driver']
+        driver = config["driver"]
         match driver:
-            case 'sqlite':   return SQliteConnection(engine, config)
-            case 'postgres': return PostgresConnection(engine, config)
+            case "sqlite":
+                return SQliteConnection(engine, config)
+            case "postgres":
+                return PostgresConnection(engine, config)
 
         raise ValueError(f"Unsupported driver: {driver}")
-

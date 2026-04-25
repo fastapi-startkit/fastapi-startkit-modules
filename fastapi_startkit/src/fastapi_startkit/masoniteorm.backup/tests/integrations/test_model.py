@@ -1,5 +1,6 @@
 from fastapi_startkit.masoniteorm.testing import TestCase
-from fastapi_startkit.masoniteorm.tests.integrations.model import User, Gender, Address
+from fastapi_startkit.masoniteorm.tests.integrations.model import Address, Gender, User
+
 
 class TestModelCast(TestCase):
     migration_directory = "src/fastapi_startkit/masoniteorm/tests/integrations/databases/migrations"
@@ -36,7 +37,7 @@ class TestModelCast(TestCase):
             "bio": "A long text for bio...",
             "price": 19.99,
             "gender": Gender.MALE,
-            "address": {"city": "New York", "country": "USA", "street": "Broadway"}
+            "address": {"city": "New York", "country": "USA", "street": "Broadway"},
         }
         await User.create(data)
 

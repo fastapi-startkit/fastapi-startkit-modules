@@ -1,12 +1,11 @@
 from ...providers import Provider
-
 from ..Configuration import Configuration
 
 
 class ConfigurationProvider(Provider):
     def register(self):
         config = Configuration(self.app)
-        config.load()
+        # config.load()
         self.app.bind("config", config)
 
     def boot(self):

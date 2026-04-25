@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Any
+from typing import Any, Dict
 
 from fastapi_startkit.environment import env
 from fastapi_startkit.masoniteorm import SQLiteConfig
@@ -9,16 +9,16 @@ from fastapi_startkit.masoniteorm import SQLiteConfig
 class DatabaseConfig:
     default: str = field(default_factory=lambda: env("DB_CONNECTION", "pgsql"))
 
-    connections: Dict[str, Dict[str, Any]] = field(default_factory=lambda: {
-        "sqlite": SQLiteConfig(
-            driver="sqlite",
-            database=env("DB_DATABASE", "database.sqlite"),
-            options=None,
-        ),
-    })
+    connections: Dict[str, Dict[str, Any]] = field(
+        default_factory=lambda: {
+            "sqlite": SQLiteConfig(
+                driver="sqlite",
+                database=env("DB_DATABASE", "database.sqlite"),
+                options=None,
+            ),
+        }
+    )
 
-    migrations: Dict[str, Dict[str, Any]] = field(default_factory=lambda: {
-        "table": "migrations",
-
-        "path": "databases/migrations"
-    })
+    migrations: Dict[str, Dict[str, Any]] = field(
+        default_factory=lambda: {"table": "migrations", "path": "databases/migrations"}
+    )

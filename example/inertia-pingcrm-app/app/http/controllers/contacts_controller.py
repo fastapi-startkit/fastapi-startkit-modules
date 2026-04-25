@@ -1,18 +1,20 @@
-from fastapi import Request
+from fastapi import Depends, Request
 from fastapi.responses import RedirectResponse
-from fastapi_startkit.facades import Inertia
+from fastapi_startkit.inertia import Inertia
+from app.http.requests.contact import ContactListRequest
 from app.models.Contact import Contact
 from app.models.Organization import Organization
 
 
-async def index(request: Request):
-    search = request.query_params.get('search', '')
-    query = Contact.query()
-    if search:
-        query = query.where('first_name', 'like', f'%{search}%').or_where('last_name', 'like', f'%{search}%')
-    contacts = await query.limit(10).get()
-    return Inertia.render(request, 'Contacts/Index', {
-        'filters': {'search': search},
+async def index(filters: ContactListRequest = Depends()):
+    contacts = await (
+        Contact.query()
+        .when(filters.search, lambda q: q.where('first_name', 'like', f'%{filters.search}%').or_where('last_name', 'like', f'%{filters.search}%'))
+        .limit(10)
+        .get()
+    )
+    return Inertia.render('Contacts/Index', {
+        'filters': {'search': filters.search},
         'contacts': {
             'data': [
                 {
@@ -35,9 +37,9 @@ async def index(request: Request):
     })
 
 
-async def create(request: Request):
+async def create():
     organizations = await Organization.query().limit(100).get()
-    return Inertia.render(request, 'Contacts/Create', {
+    return Inertia.render('Contacts/Create', {
         'organizations': [
             {'id': o.id, 'name': o.name} for o in organizations
         ]
@@ -50,10 +52,10 @@ async def store(request: Request):
     return RedirectResponse(url="/contacts", status_code=303)
 
 
-async def edit(request: Request, contact: str):
+async def edit(contact: str):
     c = await Contact.find(contact)
     organizations = await Organization.query().limit(100).get()
-    return Inertia.render(request, 'Contacts/Edit', {
+    return Inertia.render('Contacts/Edit', {
         'contact': {
             'id': c.id,
             'first_name': c.first_name,
@@ -81,9 +83,9 @@ async def update(request: Request, contact: str):
     return RedirectResponse(url=f"/contacts/{contact}/edit", status_code=303)
 
 
-async def destroy(request: Request, contact: str):
+async def destroy(contact: str):
     return RedirectResponse(url="/contacts", status_code=303)
 
 
-async def restore(request: Request, contact: str):
+async def restore(contact: str):
     return RedirectResponse(url="/contacts", status_code=303)

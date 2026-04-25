@@ -1,8 +1,5 @@
-from typing import Any
-
 import dataclasses
-
-from dumpdie import dd
+from typing import Any
 
 
 class Dataclass:

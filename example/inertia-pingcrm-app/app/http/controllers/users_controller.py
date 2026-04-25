@@ -1,12 +1,12 @@
 from fastapi import Request
 from fastapi.responses import RedirectResponse
-from fastapi_startkit.facades import Inertia
+from fastapi_startkit.inertia import Inertia
 from app.models.User import User
 
 
-async def index(request: Request):
+async def index():
     users = await User.query().limit(10).get()
-    return Inertia.render(request, 'Users/Index', {
+    return Inertia.render('Users/Index', {
         'users': {
             'data': [
                 {
@@ -28,8 +28,8 @@ async def index(request: Request):
     })
 
 
-async def create(request: Request):
-    return Inertia.render(request, 'Users/Create', {})
+async def create():
+    return Inertia.render('Users/Create', {})
 
 
 async def store(request: Request):
@@ -38,9 +38,9 @@ async def store(request: Request):
     return RedirectResponse(url="/users", status_code=303)
 
 
-async def edit(request: Request, user: str):
+async def edit(user: str):
     u = await User.find(user)
-    return Inertia.render(request, 'Users/Edit', {
+    return Inertia.render('Users/Edit', {
         'user': {
             'id': u.id,
             'first_name': u.first_name,
@@ -61,9 +61,9 @@ async def update(request: Request, user: str):
     return RedirectResponse(url=f"/users/{user}/edit", status_code=303)
 
 
-async def destroy(request: Request, user: str):
+async def destroy(user: str):
     return RedirectResponse(url="/users", status_code=303)
 
 
-async def restore(request: Request, user: str):
+async def restore(user: str):
     return RedirectResponse(url="/users", status_code=303)

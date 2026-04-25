@@ -4,6 +4,7 @@ import logging
 class LoggingHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
         from fastapi_startkit.logging.logger import Logger
+
         Logger.log(record.levelname, self.format(record))
 
     @staticmethod

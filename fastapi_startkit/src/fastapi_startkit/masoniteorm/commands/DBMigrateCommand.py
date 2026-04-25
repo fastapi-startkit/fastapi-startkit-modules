@@ -1,6 +1,9 @@
 import os
-from .Command import Command
+
 from cleo.helpers import option
+
+from .Command import Command
+
 
 class DBMigrateCommand(Command):
     name = "db:migrate"
@@ -21,9 +24,7 @@ class DBMigrateCommand(Command):
             default="default",
             description="The connection you want to run migrations on",
         ),
-        option(
-            "force", "f", flag=True, description="Force migrations without prompt in production"
-        ),
+        option("force", "f", flag=True, description="Force migrations without prompt in production"),
         option(
             "show",
             "s",
@@ -41,17 +42,17 @@ class DBMigrateCommand(Command):
 
     def handle(self):
         import asyncio
+
         return asyncio.run(self.handle_async())
 
     async def handle_async(self):
         from ..migrations import Migration
+
         # prompt user for confirmation in production
         if os.getenv("APP_ENV") == "production" and not self.option("force"):
             answer = ""
             while answer not in ["y", "n"]:
-                answer = input(
-                    "Do you want to run migrations in PRODUCTION ? (y/n)\n"
-                ).lower()
+                answer = input("Do you want to run migrations in PRODUCTION ? (y/n)\n").lower()
             if answer != "y":
                 self.info("Migrations cancelled")
                 exit(0)

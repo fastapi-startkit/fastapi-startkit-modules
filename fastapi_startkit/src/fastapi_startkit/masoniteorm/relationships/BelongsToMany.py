@@ -1,27 +1,28 @@
 import pendulum
 from inflection import singularize
 
+from fastapi_startkit.masoniteorm.models import registry
+
 from ..collection import Collection
 from ..models.pivot import Pivot
 from .BaseRelationship import BaseRelationship
-from fastapi_startkit.masoniteorm.models import registry
 
 
 class BelongsToMany(BaseRelationship):
     """Has Many Relationship Class."""
 
     def __init__(
-            self,
-            fn=None,
-            local_foreign_key=None,
-            other_foreign_key=None,
-            local_owner_key=None,
-            other_owner_key=None,
-            table=None,
-            with_timestamps=False,
-            pivot_id="id",
-            attribute="pivot",
-            with_fields=[],
+        self,
+        fn=None,
+        local_foreign_key=None,
+        other_foreign_key=None,
+        local_owner_key=None,
+        other_owner_key=None,
+        table=None,
+        with_timestamps=False,
+        pivot_id="id",
+        attribute="pivot",
+        with_fields=[],
     ):
         if isinstance(fn, str):
             self.fn = self.fn = lambda x: registry.Registry.resolve(fn)
@@ -100,9 +101,7 @@ class BelongsToMany(BaseRelationship):
         )
 
         if hasattr(owner, self.local_owner_key):
-            result.where(
-                f"{table1}.{self.local_owner_key}", getattr(owner, self.local_owner_key)
-            )
+            result.where(f"{table1}.{self.local_owner_key}", getattr(owner, self.local_owner_key))
 
         if self.with_fields:
             for field in self.with_fields:
@@ -237,14 +236,10 @@ class BelongsToMany(BaseRelationship):
                 Collection(relation._get_value(self.local_owner_key)).unique(),
             ).get()
         else:
-            return await result.where(
-                self.local_owner_key, getattr(relation, self.local_owner_key)
-            ).get()
+            return await result.where(self.local_owner_key, getattr(relation, self.local_owner_key)).get()
 
     async def get_related(self, query, relation, eagers=None, callback=None):
-        final_result = await self.make_query(
-            query, relation, eagers=eagers, callback=callback
-        )
+        final_result = await self.make_query(query, relation, eagers=eagers, callback=callback)
         builder = self.make_builder(eagers)
 
         for model in final_result:
@@ -335,9 +330,7 @@ class BelongsToMany(BaseRelationship):
         )
 
         if hasattr(owner, self.local_owner_key):
-            result.where(
-                f"{table1}.{self.local_owner_key}", getattr(owner, self.local_owner_key)
-            )
+            result.where(f"{table1}.{self.local_owner_key}", getattr(owner, self.local_owner_key))
 
         if self.with_fields:
             for field in self.with_fields:
@@ -349,13 +342,7 @@ class BelongsToMany(BaseRelationship):
         return related_result
 
     def register_related(self, key, model, collection):
-        model.add_relation(
-            {
-                key: collection.where(
-                    f"{self._table}_id", getattr(model, self.local_owner_key)
-                )
-            }
-        )
+        model.add_relation({key: collection.where(f"{self._table}_id", getattr(model, self.local_owner_key))})
 
     def joins(self, builder, clause=None):
         if not self._table:
@@ -437,9 +424,7 @@ class BelongsToMany(BaseRelationship):
                 f"{pivot_table}.{self.local_key}",
                 f"{builder.get_table_name()}.{self.local_owner_key}",
             )
-            .where_in(
-                self.other_owner_key, callback(query.select(self.other_owner_key))
-            )
+            .where_in(self.other_owner_key, callback(query.select(self.other_owner_key)))
         )
 
     def query_has(self, builder, method="where_exists"):
@@ -479,22 +464,18 @@ class BelongsToMany(BaseRelationship):
         return_query = builder.add_select(
             f"{query.get_table_name()}_count",
             lambda q: (
-                (
-                    q.count("*")
-                    .where_column(
-                        f"{builder.get_table_name()}.{self.local_owner_key}",
-                        f"{self._table}.{self.local_key}",
-                    )
-                    .table(self._table)
-                    .when(
-                        callback,
-                        lambda q: (
-                            q.where_in(
-                                self.foreign_key,
-                                callback(query.select(self.other_owner_key)),
-                            )
-                        ),
-                    )
+                q.count("*")
+                .where_column(
+                    f"{builder.get_table_name()}.{self.local_owner_key}",
+                    f"{self._table}.{self.local_key}",
+                )
+                .table(self._table)
+                .when(
+                    callback,
+                    lambda q: q.where_in(
+                        self.foreign_key,
+                        callback(query.select(self.other_owner_key)),
+                    ),
                 )
             ),
         )
@@ -507,9 +488,7 @@ class BelongsToMany(BaseRelationship):
             self.foreign_key: getattr(related_record, self.other_owner_key),
         }
 
-        self._table = self._table or self.get_pivot_table_name(
-            current_model, related_record
-        )
+        self._table = self._table or self.get_pivot_table_name(current_model, related_record)
 
         if self.with_timestamps:
             data.update(
@@ -519,12 +498,7 @@ class BelongsToMany(BaseRelationship):
                 }
             )
 
-        return (
-            Pivot.on(current_model.get_builder().connection)
-            .table(self._table)
-            .without_global_scopes()
-            .create(data)
-        )
+        return Pivot.on(current_model.get_builder().connection).table(self._table).without_global_scopes().create(data)
 
     def detach(self, current_model, related_record):
         data = {
@@ -532,9 +506,7 @@ class BelongsToMany(BaseRelationship):
             self.foreign_key: getattr(related_record, self.other_owner_key),
         }
 
-        self._table = self._table or self.get_pivot_table_name(
-            current_model, related_record
-        )
+        self._table = self._table or self.get_pivot_table_name(current_model, related_record)
 
         return (
             Pivot.on(current_model.get_builder().connection)
@@ -550,9 +522,7 @@ class BelongsToMany(BaseRelationship):
             self.foreign_key: getattr(related_record, self.other_owner_key),
         }
 
-        self._table = self._table or self.get_pivot_table_name(
-            current_model, related_record
-        )
+        self._table = self._table or self.get_pivot_table_name(current_model, related_record)
 
         if self.with_timestamps:
             data.update(
@@ -575,9 +545,7 @@ class BelongsToMany(BaseRelationship):
             self.foreign_key: getattr(related_record, self.other_owner_key),
         }
 
-        self._table = self._table or self.get_pivot_table_name(
-            current_model, related_record
-        )
+        self._table = self._table or self.get_pivot_table_name(current_model, related_record)
 
         if self.with_timestamps:
             data.update(

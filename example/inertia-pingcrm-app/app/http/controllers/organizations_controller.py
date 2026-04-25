@@ -1,37 +1,39 @@
+from fastapi import Depends
 from fastapi import Request
-from fastapi.responses import JSONResponse, RedirectResponse
-from fastapi_startkit.facades import Inertia
+from fastapi.responses import RedirectResponse
+from fastapi_startkit.inertia import Inertia
+
+from app.http.requests.organization import OrganizationListRequest
 from app.models.Organization import Organization
 
-async def index(request: Request):
-    search = request.query_params.get('search', '')
-    query = Organization.query()
-    if search:
-        query = query.where('name', 'like', f'%{search}%')
-    organizations = await query.limit(10).get()
-    return Inertia.render(request, 'Organizations/Index', {
-        'filters': {'search': search},
-        'organizations': {
-            'data': [
-                {
-                    'id': org.id,
-                    'name': org.name,
-                    'phone': org.phone,
-                    'city': org.city,
-                    'deleted_at': None,
-                } for org in organizations
-            ],
-            'links': {'first': None, 'last': None, 'prev': None, 'next': None},
-            'meta': {
-                'current_page': 1, 'last_page': 1, 'per_page': 10,
-                'from': 1, 'to': len(organizations), 'total': len(organizations),
-                'path': '/organizations', 'links': [],
-            },
-        }
+
+async def index(filters: OrganizationListRequest = Depends()):
+    paginator = await (
+        Organization.query()
+        .when(filters.search, lambda q: q.where('name', 'like', f'%{filters.search}%'))
+        .paginate(page=filters.page, per_page=filters.limit)
+    )
+
+    return Inertia.render('Organizations/Index', {
+        'data': [
+            {
+                'id': org.id,
+                'name': org.name,
+                'phone': org.phone,
+                'city': org.city,
+                'deleted_at': None,
+            } for org in paginator.result
+        ],
+        'meta': {
+            'current_page': paginator.current_page,
+            'last_page': paginator.last_page,
+            'per_page': paginator.per_page,
+            'total': paginator.total,
+        },
     })
 
-async def create(request: Request):
-    return Inertia.render(request, 'Organizations/Create', {})
+async def create():
+    return Inertia.render('Organizations/Create')
 
 async def store(request: Request):
     form = await request.json()
@@ -39,9 +41,9 @@ async def store(request: Request):
     await Organization.create(form)
     return RedirectResponse(url="/organizations", status_code=303)
 
-async def edit(request: Request, organization: str):
+async def edit(organization: str):
     org = await Organization.find(organization)
-    return Inertia.render(request, 'Organizations/Edit', {
+    return Inertia.render('Organizations/Edit', {
         'organization': {
             'id': org.id,
             'name': org.name,
@@ -62,11 +64,10 @@ async def update(request: Request, organization: str):
     await org.update(form)
     return RedirectResponse(url=f"/organizations/{organization}/edit", status_code=303)
 
-async def destroy(request: Request, organization: str):
+async def destroy(organization: str):
     # org = await Organization.find(organization)
     # await org.delete()
     return RedirectResponse(url="/organizations", status_code=303)
 
-async def restore(request: Request, organization: str):
+async def restore(organization: str):
     return RedirectResponse(url="/organizations", status_code=303)
-

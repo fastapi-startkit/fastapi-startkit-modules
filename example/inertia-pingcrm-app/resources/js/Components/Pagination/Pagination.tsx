@@ -1,76 +1,75 @@
 import { Link } from '@inertiajs/react';
 import classNames from 'classnames';
 
-interface PaginationProps {
-  links: PaginationItem[];
+interface PaginationMeta {
+  current_page: number;
+  last_page: number;
 }
 
-export default function Pagination({ links = [] }: PaginationProps) {
-  /**
-   * If there are only 3 links, it means there are no previous or next pages.
-   * So, we don't need to render the pagination.
-   */
-  if (links.length === 3) return null;
+interface PaginationProps {
+  meta: PaginationMeta;
+}
+
+export default function Pagination({ meta }: PaginationProps) {
+  const { current_page, last_page } = meta;
+
+  if (last_page <= 1) return null;
+
+  const links = [
+    {
+      label: '&laquo; Previous',
+      url: current_page > 1 ? `?page=${current_page - 1}` : null,
+      active: false,
+    },
+    ...Array.from({ length: last_page }, (_, i) => ({
+      label: String(i + 1),
+      url: `?page=${i + 1}`,
+      active: i + 1 === current_page,
+    })),
+    {
+      label: 'Next &raquo;',
+      url: current_page < last_page ? `?page=${current_page + 1}` : null,
+      active: false,
+    },
+  ];
 
   return (
     <div className="flex flex-wrap mt-6 -mb-1">
-      {links?.map(link => {
-        return link?.url === null ? (
+      {links.map(link =>
+        link.url === null ? (
           <PageInactive key={link.label} label={link.label} />
         ) : (
-          <PaginationItem key={link.label} {...link} />
-        );
-      })}
+          <PageItem key={link.label} {...link} />
+        )
+      )}
     </div>
   );
 }
 
-interface PaginationItem {
-  url: null | string;
+interface PageItemProps {
+  url: string;
   label: string;
   active: boolean;
 }
 
-function PaginationItem({ active, label, url }: PaginationItem) {
+function PageItem({ active, label, url }: PageItemProps) {
   const className = classNames(
-    [
-      'mr-1 mb-1',
-      'px-4 py-3',
-      'border border-solid border-gray-300 rounded',
-      'text-sm',
-      'hover:bg-white',
-      'focus:outline-none focus:border-indigo-700 focus:text-indigo-700'
-    ],
-    {
-      'bg-white': active
-    }
+    ['mr-1 mb-1', 'px-4 py-3', 'border border-solid border-gray-300 rounded', 'text-sm', 'hover:bg-white', 'focus:outline-none focus:border-indigo-700 focus:text-indigo-700'],
+    { 'bg-white': active }
   );
 
-  /**
-   * Note: In general you should be aware when using `dangerouslySetInnerHTML`.
-   *
-   * In this case, `label` from the API is a string, so it's safe to use it.
-   * It will be either `&laquo; Previous` or `Next &raquo;`
-   */
   return (
-    <Link className={className} href={url as string}>
-      <span dangerouslySetInnerHTML={{ __html: label }}></span>
+    <Link className={className} href={url}>
+      <span dangerouslySetInnerHTML={{ __html: label }} />
     </Link>
   );
 }
 
-function PageInactive({ label }: Pick<PaginationItem, 'label'>) {
-  const className = classNames(
-    'mr-1 mb-1 px-4 py-3 text-sm border rounded border-solid border-gray-300 text-gray'
-  );
-
-  /**
-   * Note: In general you should be aware when using `dangerouslySetInnerHTML`.
-   *
-   * In this case, `label` from the API is a string, so it's safe to use it.
-   * It will be either `&laquo; Previous` or `Next &raquo;`
-   */
+function PageInactive({ label }: { label: string }) {
   return (
-    <div className={className} dangerouslySetInnerHTML={{ __html: label }} />
+    <div
+      className="mr-1 mb-1 px-4 py-3 text-sm border rounded border-solid border-gray-300 text-gray"
+      dangerouslySetInnerHTML={{ __html: label }}
+    />
   );
 }

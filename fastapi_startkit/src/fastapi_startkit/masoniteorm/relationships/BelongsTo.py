@@ -1,8 +1,7 @@
-from typing import Callable
+from fastapi_startkit.masoniteorm.models import registry
 
 from ..collection import Collection
 from . import BaseRelationship
-from fastapi_startkit.masoniteorm.models import registry
 
 
 class BelongsTo(BaseRelationship):
@@ -30,9 +29,7 @@ class BelongsTo(BaseRelationship):
         Returns:
             dict -- A dictionary of data which will be hydrated.
         """
-        return foreign.where(
-            self.foreign_key, owner.__attributes__[self.local_key]
-        ).first()
+        return foreign.where(self.foreign_key, owner.__attributes__[self.local_key]).first()
 
     def query_has(self, current_query_builder, method="where_exists"):
         related_builder = self.get_builder()
@@ -109,7 +106,5 @@ class BelongsTo(BaseRelationship):
         return (
             self.get_builder()
             .where(self.foreign_key, related_record.__attributes__[self.local_key])
-            ._set_creates_related(
-                {self.foreign_key: related_record.__attributes__[self.local_key]}
-            )
+            ._set_creates_related({self.foreign_key: related_record.__attributes__[self.local_key]})
         )

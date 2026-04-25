@@ -1,5 +1,5 @@
-from ...request import Request
 from ...controllers import Controller
+from ...request import Request
 from ...response import Response
 
 

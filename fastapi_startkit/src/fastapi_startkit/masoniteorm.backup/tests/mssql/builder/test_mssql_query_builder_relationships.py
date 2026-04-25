@@ -1,7 +1,6 @@
 import unittest
 
 from dotenv import load_dotenv
-
 from src.masoniteorm.models import Model
 from src.masoniteorm.query import QueryBuilder
 from src.masoniteorm.query.grammars import MSSQLGrammar
@@ -92,9 +91,7 @@ class BaseTestQueryRelationships(unittest.TestCase):
 
     def test_where_has_query(self):
         builder = self.get_builder()
-        sql = builder.where_has(
-            "articles", lambda q: q.where("active", 1)
-        ).to_sql()
+        sql = builder.where_has("articles", lambda q: q.where("active", 1)).to_sql()
         self.assertEqual(
             sql,
             """SELECT * FROM [users] WHERE EXISTS ("""

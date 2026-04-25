@@ -7,14 +7,7 @@ import { Link, usePage } from "@inertiajs/react"
 import { Trash2 } from "lucide-react"
 
 function Index() {
-    const { organizations } = usePage<{
-        organizations: PaginatedData<Organization>;
-    }>().props
-
-    const {
-        data,
-        meta: { links },
-    } = organizations
+    const { data, meta } = usePage<PaginatedData<Organization>>().props
 
     return (
         <div>
@@ -49,7 +42,7 @@ function Index() {
                 rows={data}
                 getRowDetailsUrl={row => route("organizations.edit", row.id)}
             />
-            <Pagination links={links}/>
+            <Pagination meta={meta}/>
         </div>
     )
 }

@@ -1,7 +1,9 @@
-from cleo.helpers import argument, option
 import os
 import pathlib
+
+from cleo.helpers import argument, option
 from inflection import camelize, underscore
+
 from .Command import Command
 
 
@@ -41,18 +43,12 @@ class MakeSeedCommand(Command):
             output = output.replace("__SEEDER_NAME__", camelize(name))
 
         file_name = f"{underscore(name)}.py"
-        full_path = pathlib.Path(
-            os.path.join(os.getcwd(), seed_directory, file_name)
-        )
+        full_path = pathlib.Path(os.path.join(os.getcwd(), seed_directory, file_name))
 
-        path_normalized = pathlib.Path(seed_directory) / pathlib.Path(
-            file_name
-        )
+        path_normalized = pathlib.Path(seed_directory) / pathlib.Path(file_name)
 
         if os.path.exists(full_path):
-            return self.line(
-                f"<error>{path_normalized} already exists.</error>"
-            )
+            return self.line(f"<error>{path_normalized} already exists.</error>")
 
         with open(full_path, "w") as fp:
             fp.write(output)

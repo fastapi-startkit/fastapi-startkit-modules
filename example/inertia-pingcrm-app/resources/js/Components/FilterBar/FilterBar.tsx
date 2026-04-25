@@ -8,16 +8,16 @@ import { useEffect, useState } from "react"
 import { usePrevious } from "react-use"
 
 export default function FilterBar() {
-    const { filters } = usePage<{
-        filters: { role?: string; search?: string; trashed?: string };
+    const { filters = {} } = usePage<{
+        filters?: { role?: string; search?: string; trashed?: string };
     }>().props
 
     const [opened, setOpened] = useState(false)
 
     const [values, setValues] = useState({
-        role: filters.role || "", // role is used only on users page
-        search: filters.search || "",
-        trashed: filters.trashed || "",
+        role: filters?.role || "",
+        search: filters?.search || "",
+        trashed: filters?.trashed || "",
     })
 
     const prevValues = usePrevious(values)
@@ -68,7 +68,7 @@ export default function FilterBar() {
                         className="fixed inset-0 z-20 bg-black opacity-25"
                     />
                     <div className="relative z-30 w-64 px-4 py-6 mt-2 bg-white rounded shadow-lg space-y-4">
-                        {filters.hasOwnProperty("role") && (
+                        {filters?.hasOwnProperty("role") && (
                             <FieldGroup label="Role" name="role">
                                 <SelectInput
                                     name="role"

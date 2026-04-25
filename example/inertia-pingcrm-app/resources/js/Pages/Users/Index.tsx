@@ -9,10 +9,7 @@ import { Trash2 } from 'lucide-react';
 const Index = () => {
   const { users } = usePage<{ users: PaginatedData<User> }>().props;
 
-  const {
-    data,
-    meta: { links }
-  } = users;
+  const { data, meta } = users;
 
   return (
     <div>
@@ -60,7 +57,7 @@ const Index = () => {
         rows={data}
         getRowDetailsUrl={row => route('users.edit', row.id)}
       />
-      <Pagination links={links} />
+      <Pagination meta={meta} />
     </div>
   );
 };

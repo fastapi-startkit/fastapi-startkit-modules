@@ -1,6 +1,6 @@
 class ObservesEvents:
     def observe_events(self, model, event):
-        if model.__has_events__ == True:
+        if model.__has_events__:
             for klass in type(model).__mro__:
                 for observer in model.__observers__.get(klass, []):
                     try:

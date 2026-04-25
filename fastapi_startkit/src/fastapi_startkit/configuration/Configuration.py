@@ -1,6 +1,7 @@
 from fastapi_startkit.loader import Loader
+
+from ..exceptions import InvalidConfigurationSetup
 from ..utils.structures import data
-from ..exceptions import InvalidConfigurationLocation, InvalidConfigurationSetup
 
 
 class Configuration:
@@ -26,13 +27,10 @@ class Configuration:
     def load(self):
         """At boot load configuration from all files and store them in here."""
         config_root = self.application.make("config.location")
-        for module_name, module in Loader().get_modules(
-            config_root, raise_exception=True
-        ).items():
+        for module_name, module in Loader().get_modules(config_root, raise_exception=True).items():
             params = Loader().get_parameters(module)
             for name, value in params.items():
                 self._config[f"{module_name}.{name.lower()}"] = value
-
 
     def merge_with(self, path, external_config):
         """Merge external config at key with project config at same key. It's especially
@@ -43,9 +41,7 @@ class Configuration:
         (such as 'application').
         """
         if path in self.reserved_keys:
-            raise InvalidConfigurationSetup(
-                f"{path} is a reserved configuration key name. Please use an other key."
-            )
+            raise InvalidConfigurationSetup(f"{path} is a reserved configuration key name. Please use an other key.")
         if isinstance(external_config, str):
             # config is a path and should be loaded
             params = Loader().get_parameters(external_config)

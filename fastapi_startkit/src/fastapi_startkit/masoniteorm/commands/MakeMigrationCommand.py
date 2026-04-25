@@ -1,8 +1,10 @@
 import datetime
 import os
 import pathlib
-from inflection import camelize, tableize
+
 from cleo.helpers import argument, option
+from inflection import camelize, tableize
+
 from .Command import Command
 
 
@@ -53,11 +55,7 @@ class MakeMigrationCommand(Command):
 
         file_name = f"{now.strftime('%Y_%m_%d_%H%M%S')}_{name}.py"
 
-        with open(
-            os.path.join(os.getcwd(), migration_directory, file_name), "w"
-        ) as fp:
+        with open(os.path.join(os.getcwd(), migration_directory, file_name), "w") as fp:
             fp.write(output)
 
-        self.info(
-            f"Migration file created: {os.path.join(migration_directory, file_name)}"
-        )
+        self.info(f"Migration file created: {os.path.join(migration_directory, file_name)}")

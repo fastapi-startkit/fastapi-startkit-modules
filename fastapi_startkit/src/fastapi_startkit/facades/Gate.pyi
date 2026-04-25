@@ -1,7 +1,8 @@
-from typing import TYPE_CHECKING, Callable, List, Tuple, Any
+from typing import TYPE_CHECKING, Any, Callable, List, Tuple
 
 if TYPE_CHECKING:
-    from ..authorization import AuthorizationResponse, Policy, Gate as GateObject
+    from ..authorization import AuthorizationResponse, Policy
+    from ..authorization import Gate as GateObject
 
 class Gate:
     """Gate facade."""

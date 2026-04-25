@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import fastapi from "fastapi-vite-plugin"
-import { resolve } from 'path'
+import { resolve } from "path"
 
 export default defineConfig({
     plugins: [

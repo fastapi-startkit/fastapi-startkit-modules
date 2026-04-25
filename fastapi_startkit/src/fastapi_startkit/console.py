@@ -1,6 +1,8 @@
 from cleo.application import Application as BaseApplication
 from cleo.io.io import IO
+
 from fastapi_startkit.application import Application
+
 
 class ConsoleApplication(BaseApplication):
     def __init__(self, app: Application):

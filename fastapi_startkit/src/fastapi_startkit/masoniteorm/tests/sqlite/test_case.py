@@ -16,5 +16,5 @@ class TestCase(IsolatedAsyncioTestCase):
     async def asyncTearDown(self):
         await self.rollback()
 
-    async def rollback(self)-> None:
+    async def rollback(self) -> None:
         await wipe()

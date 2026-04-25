@@ -1,7 +1,6 @@
 from dataclasses import dataclass
+from typing import Any, Dict, Optional
 
-from typing import Optional, Dict, Any
-from dataclasses import dataclass
 from fastapi_startkit.environment.environment import env
 
 
@@ -11,6 +10,7 @@ class SQLiteConfig:
     url: Optional[str] = env("DB_URL", None)
     database: str = env("DB_DATABASE", "database.sqlite")
     options: Optional[Dict[str, Any]] = None
+
 
 @dataclass
 class MySQLConfig:
@@ -36,6 +36,6 @@ class PostgresConfig:
     database: str = env("DB_DATABASE", "inertia")
     username: str = env("DB_USERNAME", "postgres")
     password: str = env("DB_PASSWORD", "")
-    charset: str =  env('DB_CHARSET', 'utf8')
+    charset: str = env("DB_CHARSET", "utf8")
     sslmode: str = env("DB_SSLMODE", "prefer")
     options: Optional[Dict[str, Any]] = None

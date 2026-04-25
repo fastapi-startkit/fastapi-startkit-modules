@@ -1,6 +1,5 @@
-from fastapi import Request
-from fastapi_startkit.facades import Inertia
+from fastapi_startkit.inertia import Inertia
 
-async def index(request: Request):
-    return Inertia.render(request, 'Reports/Index', {})
 
+async def index():
+    return Inertia.render('Reports/Index', {})

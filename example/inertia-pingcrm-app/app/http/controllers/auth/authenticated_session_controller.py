@@ -1,10 +1,10 @@
 from fastapi import Request
 from fastapi.responses import RedirectResponse
-from fastapi_startkit.facades import Inertia
+from fastapi_startkit.inertia import Inertia
 from app.models.User import User
 
-async def create(request: Request):
-    return Inertia.render(request, 'Auth/Login', {})
+async def create():
+    return Inertia.render('Auth/Login', {})
 
 async def store(request: Request):
     form = await request.json()
@@ -16,11 +16,10 @@ async def store(request: Request):
         request.session["user_id"] = user.id
         return RedirectResponse(url="/", status_code=303)
 
-    return Inertia.render(request, 'Auth/Login', {
+    return Inertia.render('Auth/Login', {
         'errors': {'email': 'These credentials do not match our records.'}
     })
 
 async def destroy(request: Request):
     request.session.clear()
     return RedirectResponse(url="/login", status_code=303)
-

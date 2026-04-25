@@ -1,6 +1,7 @@
 from fastapi import FastAPI
-from fastapi_startkit.providers import Provider
+
 from fastapi_startkit.fastapi.commands import ServeCommand
+from fastapi_startkit.providers import Provider
 
 
 class FastAPIProvider(Provider):
@@ -14,25 +15,19 @@ class FastAPIProvider(Provider):
         self.app.use_fastapi(fastapi)
 
     def boot(self):
-        self.commands([
-            ServeCommand
-        ])
+        self.commands([ServeCommand])
+        self._register_exception_handlers()
 
-        """
-        Register routes
-        
-        ```python routes/api.py
-        from fastapi import APIRouter
-        
-        public = APIRouter()
-        ```
-        
-        ```python providers/fastapi_provider.py
-        
-        class FastAPIServiceProvider(BaseServiceProvider):
-            def boot(self):
-                from routes.api import public
-                
-                self.app.use_router(public)
-        ```
-        """
+    def _register_exception_handlers(self):
+        """Wire exception_manager as a catch-all handler for all exceptions."""
+        if not self.app.exception_manager:
+            return
+
+        exception_manager = self.app.exception_manager
+
+        async def handler(request, exc):
+            return await exception_manager.handle(exc, {"request": request})
+
+        self.app.fastapi.add_exception_handler(Exception, handler)
+
+
