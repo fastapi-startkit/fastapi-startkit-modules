@@ -29,5 +29,3 @@ class FastAPIProvider(Provider):
             return await exception_manager.handle(exc, {"request": request})
 
         self.app.fastapi.add_exception_handler(Exception, handler)
-
-

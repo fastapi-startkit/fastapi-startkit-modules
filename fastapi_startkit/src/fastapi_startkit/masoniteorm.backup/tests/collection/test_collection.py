@@ -325,6 +325,7 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
     def test_reduce(self):
         def callback(x, y):
             return x + y
+
         collection = Collection([1, 1, 2, 4])
         sum = collection.sum()
 

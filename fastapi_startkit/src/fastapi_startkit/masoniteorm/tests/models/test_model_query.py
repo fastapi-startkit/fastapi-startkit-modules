@@ -67,11 +67,13 @@ async def users_table(db, UserModel):
 @pytest.fixture
 async def seeded_users(UserModel, users_table):
     """Insert three users and return them as a list."""
-    await UserModel.query().insert([
-        {"name": "Alice", "email": "alice@example.com", "is_admin": True},
-        {"name": "Bob", "email": "bob@example.com", "is_admin": False},
-        {"name": "Charlie", "email": "charlie@example.com", "is_admin": False},
-    ])
+    await UserModel.query().insert(
+        [
+            {"name": "Alice", "email": "alice@example.com", "is_admin": True},
+            {"name": "Bob", "email": "bob@example.com", "is_admin": False},
+            {"name": "Charlie", "email": "charlie@example.com", "is_admin": False},
+        ]
+    )
     return await UserModel.query().get()
 
 
@@ -126,11 +128,7 @@ class TestOrWhere:
 
     async def test_or_where_like(self, UserModel, seeded_users):
         # Match names starting with 'A' OR ending with 'e'
-        results = (
-            await UserModel.where("name", "like", "A%")
-            .or_where("name", "like", "%e")
-            .get()
-        )
+        results = await UserModel.where("name", "like", "A%").or_where("name", "like", "%e").get()
         names = {u.name for u in results}
         # "Alice" matches both; "Charlie" matches '%e'
         assert "Alice" in names
@@ -266,10 +264,12 @@ class TestFirstOrCreate:
 
 class TestBulkInsert:
     async def test_insert_list_of_dicts(self, UserModel, users_table):
-        await UserModel.query().insert([
-            {"name": "Dave", "email": "dave@example.com"},
-            {"name": "Eve", "email": "eve@example.com"},
-        ])
+        await UserModel.query().insert(
+            [
+                {"name": "Dave", "email": "dave@example.com"},
+                {"name": "Eve", "email": "eve@example.com"},
+            ]
+        )
         results = await UserModel.query().get()
         assert len(results) == 2
 
@@ -322,10 +322,5 @@ class TestCombinedQueries:
         assert results.first().name == "Alice"
 
     async def test_or_where_and_limit(self, UserModel, seeded_users):
-        results = (
-            await UserModel.where("name", "Alice")
-            .or_where("name", "Charlie")
-            .limit(1)
-            .get()
-        )
+        results = await UserModel.where("name", "Alice").or_where("name", "Charlie").limit(1).get()
         assert len(results) == 1

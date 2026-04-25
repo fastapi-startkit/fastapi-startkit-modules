@@ -6,8 +6,8 @@ from fastapi_startkit.masoniteorm.commands import (
     MakeMigrationCommand,
     MakeModelCommand,
     MakeSeedCommand,
-    MigrateFreshCommand,
     MigrateRollbackCommand,
+    MigrateFreshCommand,
     MigrateStatusCommand,
 )
 from fastapi_startkit.masoniteorm.connections.factory import ConnectionFactory

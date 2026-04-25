@@ -10,12 +10,13 @@ from starlette.responses import RedirectResponse, Response
 
 
 class InertiaMiddleware(BaseHTTPMiddleware):
-    _root_view: str = 'index.html'
+    _root_view: str = "index.html"
 
     @staticmethod
     def version(request: Request) -> Optional[str]:
         """Determine the current asset version from the Vite manifest hash."""
         from fastapi_startkit.application import app as container
+
         if container().has("vite"):
             return container().make("vite").manifest_hash()
         return None
@@ -24,7 +25,7 @@ class InertiaMiddleware(BaseHTTPMiddleware):
     def share(request: Request) -> dict:
         """Define props that are shared on every response."""
         return {
-            'errors': InertiaMiddleware.resolve_validation_errors(request),
+            "errors": InertiaMiddleware.resolve_validation_errors(request),
         }
 
     @classmethod
@@ -43,7 +44,7 @@ class InertiaMiddleware(BaseHTTPMiddleware):
         finally:
             current_request.reset(token)
 
-        response.headers['Vary'] = Header.INERTIA
+        response.headers["Vary"] = Header.INERTIA
 
         is_redirect = response.status_code in (301, 302, 303, 307, 308)
         if is_redirect:
@@ -53,10 +54,7 @@ class InertiaMiddleware(BaseHTTPMiddleware):
             return response
 
         # Version conflict — ask client to do a full page reload
-        if (
-            request.method == "GET"
-            and request.headers.get(Header.INERTIA_VERSION, '') != (Inertia.get_version() or '')
-        ):
+        if request.method == "GET" and request.headers.get(Header.INERTIA_VERSION, "") != (Inertia.get_version() or ""):
             return self.on_version_change(request, response)
 
         # 302 → 303 for PUT/PATCH/DELETE so browser issues a GET
@@ -67,7 +65,6 @@ class InertiaMiddleware(BaseHTTPMiddleware):
         location = response.headers.get("location", "")
         if is_redirect and "#" in location:
             return self.on_redirect_with_fragment(request, response)
-
         return response
 
     @staticmethod

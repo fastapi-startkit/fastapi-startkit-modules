@@ -6,6 +6,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.responses import Response
 
+
 from fastapi_startkit.inertia.props.props import OptionalProp
 from fastapi_startkit.inertia.constant import Header
 from fastapi_startkit.inertia.context import current_request
@@ -35,13 +36,13 @@ class ResponseFactory:
         v = self.version() if callable(self.version) else self.version
         return str(v) if v is not None else None
 
-    def render(self, component: str, props: dict) -> 'InertiaResponse':
+    def render(self, component: str, props: dict) -> "InertiaResponse":
         return InertiaResponse(
             component=component,
             shared_props=self.shared_props,
             props=props,
             root_view=self.root_view,
-            version=self.get_version() or '',
+            version=self.get_version() or "",
         )
 
 
@@ -51,8 +52,8 @@ class InertiaResponse(Response):
         component: str,
         shared_props: dict,
         props: dict,
-        root_view: str = 'index.html',
-        version: str = '',
+        root_view: str = "index.html",
+        version: str = "",
     ):
         # Do not call supper().__init__() — body is built lazily in __call__
         self.background = None  # required by FastAPI's response handling
@@ -62,14 +63,14 @@ class InertiaResponse(Response):
         self.root_view = root_view
         self.version = version
 
-    def with_(self, key: Union[str, Dict[str, Any]], value: Any = None) -> 'InertiaResponse':
+    def with_(self, key: Union[str, Dict[str, Any]], value: Any = None) -> "InertiaResponse":
         if isinstance(key, dict):
             self.props = {**self.props, **key}
         else:
             self.props[key] = value
         return self
 
-    def with_root_view(self, root_view: str) -> 'InertiaResponse':
+    def with_root_view(self, root_view: str) -> "InertiaResponse":
         self.root_view = root_view
         return self
 
@@ -120,15 +121,18 @@ class InertiaResponse(Response):
             )
 
         from fastapi_startkit.application import app as container
-        if not container().has("templates"):
-            raise RuntimeError(
-                "Inertia requires 'templates' to be bound in the container for initial rendering."
-            )
 
-        return container().make("templates").TemplateResponse(
-            request,
-            self.root_view,
-            {"page": page},
+        if not container().has("templates"):
+            raise RuntimeError("Inertia requires 'templates' to be bound in the container for initial rendering.")
+
+        return (
+            container()
+            .make("templates")
+            .TemplateResponse(
+                request,
+                self.root_view,
+                {"page": page},
+            )
         )
 
     def _get_url(self, request: Request) -> str:

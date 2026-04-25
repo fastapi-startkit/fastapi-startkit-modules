@@ -1,6 +1,0 @@
-/* @import 'components/form'; */
-@import 'components/button';
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;

@@ -1,4 +1,5 @@
 from fastapi_startkit.facades import Config
+from ..factory import DriverFactory
 
 from ..factory import DriverFactory
 from .BaseChannel import BaseChannel
