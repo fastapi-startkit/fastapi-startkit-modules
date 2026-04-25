@@ -1,0 +1,41 @@
+{
+  "_jsx-runtime-BOY_dY-B.js": {
+    "file": "assets/jsx-runtime-BOY_dY-B.js",
+    "name": "jsx-runtime"
+  },
+  "resources/js/Pages/Auth/Login.jsx": {
+    "file": "assets/Login-DctyCLpe.js",
+    "name": "Login",
+    "src": "resources/js/Pages/Auth/Login.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_jsx-runtime-BOY_dY-B.js",
+      "resources/js/app.jsx"
+    ]
+  },
+  "resources/js/Pages/Welcome.jsx": {
+    "file": "assets/Welcome-D-Dzf8fI.js",
+    "name": "Welcome",
+    "src": "resources/js/Pages/Welcome.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_jsx-runtime-BOY_dY-B.js"
+    ]
+  },
+  "resources/js/app.jsx": {
+    "file": "assets/app-pf2bBpN-.js",
+    "name": "app",
+    "src": "resources/js/app.jsx",
+    "isEntry": true,
+    "imports": [
+      "_jsx-runtime-BOY_dY-B.js"
+    ],
+    "dynamicImports": [
+      "resources/js/Pages/Auth/Login.jsx",
+      "resources/js/Pages/Welcome.jsx"
+    ],
+    "css": [
+      "assets/app-CHO-dvOl.css"
+    ]
+  }
+}
