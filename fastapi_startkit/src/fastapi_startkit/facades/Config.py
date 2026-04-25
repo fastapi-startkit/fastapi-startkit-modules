@@ -1,5 +1,3 @@
-from .Facade import Facade
+from fastapi_startkit.configuration.config import Config
 
-
-class Config(metaclass=Facade):
-    key = "config"
+__all__ = ["Config"]

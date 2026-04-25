@@ -30,16 +30,16 @@ class Application(Container, Generic[TConfig]):
     ]
 
     def __init__(
-        self,
-        base_path: str = None,
-        env=None,
-        providers=None,
-        config: Type[TConfig] | None = None,
-        exception_handler: Type[ExceptionHandler] | None = None,
+            self,
+            base_path: str | Path = None,
+            env=None,
+            providers=None,
+            config: Type[TConfig] | None = None,
+            exception_handler: Type[ExceptionHandler] | None = None,
     ):
         super().__init__()
 
-        self.base_path: str = base_path or os.getcwd()
+        self.base_path: str = str(base_path) if isinstance(base_path, Path) else base_path or os.getcwd()
         self.env = env
         self.providers = self.DEFAULT_PROVIDERS + (providers or [])
         self.published_resources = {}
@@ -62,6 +62,10 @@ class Application(Container, Generic[TConfig]):
 
         self._fastapi: Optional["FastAPI"] = None
         self.load_providers()
+
+    def set_environment(self, env: str):
+        self.env = env
+        return self
 
     def configure_exception_handler(self):
         self.exception_manager: ExceptionHandler = self._exception_handler_class(
@@ -145,7 +149,7 @@ class Application(Container, Generic[TConfig]):
 
     # Add custom exception handlers
     def add_exception_handler(
-        self, exc_class_or_status_code: Any, handler: Callable[..., Any]
+            self, exc_class_or_status_code: Any, handler: Callable[..., Any]
     ):
         self._fastapi.add_exception_handler(exc_class_or_status_code, handler)
         return self
@@ -172,9 +176,9 @@ class Application(Container, Generic[TConfig]):
 
     def is_debug(self) -> bool:
         return (
-            hasattr(self, "_config_instance")
-            and self._config_instance is not None
-            and getattr(self._config_instance, "debug", False)
+                hasattr(self, "_config_instance")
+                and self._config_instance is not None
+                and getattr(self._config_instance, "debug", False)
         )
 
     def configure_config(self):

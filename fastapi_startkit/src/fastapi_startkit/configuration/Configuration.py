@@ -55,7 +55,8 @@ class Configuration:
         self.set(path, merged_config)
 
     def set(self, path, value):
-        self._config[path] = value
+        from fastapi_startkit.helpers.dataclass import Dataclass
+        self._config[path] = Dataclass.to_dict(value)
 
     def has(self, path):
         return path in self._config

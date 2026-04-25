@@ -1,1 +1,0 @@
-import{t as e}from"./jsx-runtime-BOY_dY-B.js";var t=e();function n({user:e,framework:n,app_name:r}){return(0,t.jsx)(`div`,{className:`min-h-screen`})}export{n as default};
