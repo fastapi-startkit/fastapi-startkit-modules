@@ -68,6 +68,3 @@ async def destroy(organization: str):
     # org = await Organization.find(organization)
     # await org.delete()
     return RedirectResponse(url="/organizations", status_code=303)
-
-async def restore(organization: str):
-    return RedirectResponse(url="/organizations", status_code=303)

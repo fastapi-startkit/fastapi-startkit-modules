@@ -7,11 +7,7 @@ import Table from '@/Components/Table/Table';
 import { Trash2 } from 'lucide-react';
 
 const Index = () => {
-  const { contacts } = usePage<{
-    contacts: PaginatedData<Contact>;
-  }>().props;
-
-  const { data, meta } = contacts;
+  const { data, meta } = usePage<PaginatedData<Contact>>().props;
 
   return (
     <div>
