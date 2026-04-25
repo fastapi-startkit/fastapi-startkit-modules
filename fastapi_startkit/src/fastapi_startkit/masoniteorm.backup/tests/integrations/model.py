@@ -14,31 +14,31 @@ class Address:
 
     def get(self, value):
         import json
+
         if isinstance(value, str):
             value = json.loads(value)
 
-        return Address(
-            city=value.get("city"),
-            country=value.get("country"),
-            street=value.get("street")
-        )
+        return Address(city=value.get("city"), country=value.get("country"), street=value.get("street"))
 
     def set(self, value):
         import json
+
         if isinstance(value, Address):
             return json.dumps(asdict(value))
         return json.dumps(value)
+
 
 class Gender(StrEnum):
     MALE = "male"
     FEMALE = "female"
     OTHER = "other"
 
+
 class User(Model):
     __primary_key__ = "id"
     __table__ = "users"
     __casts__ = {
-        'metadata': 'json',
+        "metadata": "json",
     }
 
     id: int

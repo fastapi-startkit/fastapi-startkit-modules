@@ -7,16 +7,14 @@ class HasOneThrough(BaseRelationship):
     """HasOneThrough Relationship Class."""
 
     def __init__(
-            self,
-            fn=list[str],
-            local_foreign_key=None,
-            other_foreign_key=None,
-            local_owner_key=None,
-            other_owner_key=None,
+        self,
+        fn=list[str],
+        local_foreign_key=None,
+        other_foreign_key=None,
+        local_owner_key=None,
+        other_owner_key=None,
     ):
-        self.fn = lambda x: [
-            registry.Registry.resolve(class_str) for class_str in fn
-        ]
+        self.fn = lambda x: [registry.Registry.resolve(class_str) for class_str in fn]
 
         self.local_key = local_foreign_key
         self.foreign_key = other_foreign_key
@@ -62,9 +60,7 @@ class HasOneThrough(BaseRelationship):
         if self.attribute in instance._relationships:
             return instance._relationships[self.attribute]
 
-        return self.apply_relation_query(
-            self.distant_builder, self.intermediary_builder, instance
-        )
+        return self.apply_relation_query(self.distant_builder, self.intermediary_builder, instance)
 
     def apply_relation_query(self, distant_builder, intermediary_builder, owner):
         """
@@ -86,9 +82,7 @@ class HasOneThrough(BaseRelationship):
         int_table = intermediary_builder.get_table_name()
 
         return (
-            distant_builder.select(
-                f"{dist_table}.*, {int_table}.{self.local_owner_key} as {self.local_key}"
-            )
+            distant_builder.select(f"{dist_table}.*, {int_table}.{self.local_owner_key} as {self.local_key}")
             .join(
                 f"{int_table}",
                 f"{int_table}.{self.foreign_key}",
@@ -162,9 +156,7 @@ class HasOneThrough(BaseRelationship):
             callback(current_builder)
 
         (
-            self.distant_builder.select(
-                f"{dist_table}.*, {int_table}.{self.local_owner_key} as {self.local_key}"
-            ).join(
+            self.distant_builder.select(f"{dist_table}.*, {int_table}.{self.local_owner_key} as {self.local_key}").join(
                 f"{int_table}",
                 f"{int_table}.{self.foreign_key}",
                 "=",
@@ -216,7 +208,7 @@ class HasOneThrough(BaseRelationship):
                 f"{int_table}.{self.local_owner_key}",
                 f"{current_builder.get_table_name()}.{self.local_key}",
             )
-            .when(callback, lambda q: (callback(q)))
+            .when(callback, lambda q: callback(q))
         )
 
     def get_with_count_query(self, current_builder, callback):
@@ -229,30 +221,24 @@ class HasOneThrough(BaseRelationship):
         return_query = current_builder.add_select(
             f"{self.attribute}_count",
             lambda q: (
-                (
-                    q.count("*")
-                    .join(
-                        f"{int_table}",
-                        f"{int_table}.{self.foreign_key}",
-                        "=",
-                        f"{dist_table}.{self.other_owner_key}",
-                    )
-                    .where_column(
-                        f"{int_table}.{self.local_owner_key}",
-                        f"{current_builder.get_table_name()}.{self.local_key}",
-                    )
-                    .table(dist_table)
-                    .when(
-                        callback,
-                        lambda q: (
-                            q.where_in(
-                                self.foreign_key,
-                                callback(
-                                    self.distant_builder.select(self.other_owner_key)
-                                ),
-                            )
-                        ),
-                    )
+                q.count("*")
+                .join(
+                    f"{int_table}",
+                    f"{int_table}.{self.foreign_key}",
+                    "=",
+                    f"{dist_table}.{self.other_owner_key}",
+                )
+                .where_column(
+                    f"{int_table}.{self.local_owner_key}",
+                    f"{current_builder.get_table_name()}.{self.local_key}",
+                )
+                .table(dist_table)
+                .when(
+                    callback,
+                    lambda q: q.where_in(
+                        self.foreign_key,
+                        callback(self.distant_builder.select(self.other_owner_key)),
+                    ),
                 )
             ),
         )

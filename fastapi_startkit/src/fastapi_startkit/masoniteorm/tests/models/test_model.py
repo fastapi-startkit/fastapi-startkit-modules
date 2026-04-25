@@ -55,6 +55,7 @@ async def users_table(db):
 # Schema
 # ---------------------------------------------------------------------------
 
+
 class TestSchema:
     async def test_create_table(self, db, users_table):
         schema = db.get_schema_builder()
@@ -74,6 +75,7 @@ class TestSchema:
 # ---------------------------------------------------------------------------
 # INSERT (Model.save on a new record)
 # ---------------------------------------------------------------------------
+
 
 class TestModelInsert:
     async def test_save_inserts_row(self, UserModel, users_table):
@@ -116,6 +118,7 @@ class TestModelInsert:
 # ---------------------------------------------------------------------------
 # UPDATE (Model.save on an existing record)
 # ---------------------------------------------------------------------------
+
 
 class TestModelUpdate:
     async def test_save_updates_dirty_attribute(self, UserModel, users_table):

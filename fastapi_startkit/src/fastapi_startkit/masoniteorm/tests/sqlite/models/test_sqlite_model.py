@@ -18,7 +18,7 @@ class SqliteTestQueryBuilderModel(TestCase):
         sql, bindings = mock_update.call_args[0]
 
         self.assertEqual(sql, 'UPDATE "users" SET "name" = ? WHERE "id" = ?')
-        self.assertEqual(bindings, ['joe', 1])
+        self.assertEqual(bindings, ["joe", 1])
 
     async def test_update_all_records(self):
         mock_update = AsyncMock(return_value=1)
@@ -30,7 +30,7 @@ class SqliteTestQueryBuilderModel(TestCase):
         sql, bindings = mock_update.call_args[0]
 
         self.assertEqual(sql, 'UPDATE "users" SET "name" = ?')
-        self.assertEqual(bindings, ['joe'])
+        self.assertEqual(bindings, ["joe"])
 
     async def test_can_find_list(self):
         mock_select = AsyncMock(return_value=[])
@@ -59,7 +59,7 @@ class SqliteTestQueryBuilderModel(TestCase):
         sql, bindings = mock_update.call_args[0]
 
         self.assertEqual(sql, 'UPDATE "users" SET "name" = ? WHERE "id" = ?')
-        self.assertEqual(bindings, ['new_name', 1])
+        self.assertEqual(bindings, ["new_name", 1])
 
     @unittest.skip("find() not yet implemented")
     async def test_can_find_list(self):

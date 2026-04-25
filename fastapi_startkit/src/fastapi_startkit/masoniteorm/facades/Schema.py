@@ -14,7 +14,8 @@ class Schema:
     def instance(cls) -> "SchemaBuilder":
         if cls._instance is None:
             from fastapi_startkit.application import app
-            cls._instance = app().make('schema')
+
+            cls._instance = app().make("schema")
         return cls._instance  # type: ignore[return-value]
 
     @classmethod

@@ -118,9 +118,7 @@ class Vite:
 
         if self.is_running_hot():
             hot_origin = self._read_hot_origin()
-            tags = [
-                self._make_tag_for_chunk("@vite/client", f"{hot_origin}/@vite/client", None, None)
-            ]
+            tags = [self._make_tag_for_chunk("@vite/client", f"{hot_origin}/@vite/client", None, None)]
             for ep in entrypoints:
                 tags.append(self._make_tag_for_chunk(ep, f"{hot_origin}/{ep}", None, None))
             return "".join(tags)
@@ -133,21 +131,25 @@ class Vite:
         for entrypoint in entrypoints:
             chunk = self._chunk(manifest, entrypoint)
 
-            preloads.append((
-                chunk.get("src", entrypoint),
-                self._asset_path(f"{build_directory}/{chunk['file']}"),
-                chunk,
-                manifest,
-            ))
+            preloads.append(
+                (
+                    chunk.get("src", entrypoint),
+                    self._asset_path(f"{build_directory}/{chunk['file']}"),
+                    chunk,
+                    manifest,
+                )
+            )
 
             for import_key in self._resolve_imports(manifest, chunk):
                 import_chunk = manifest[import_key]
-                preloads.append((
-                    import_key,
-                    self._asset_path(f"{build_directory}/{import_chunk['file']}"),
-                    import_chunk,
-                    manifest,
-                ))
+                preloads.append(
+                    (
+                        import_key,
+                        self._asset_path(f"{build_directory}/{import_chunk['file']}"),
+                        import_chunk,
+                        manifest,
+                    )
+                )
 
                 for css in import_chunk.get("css", []):
                     url = self._asset_path(f"{build_directory}/{css}")
@@ -156,12 +158,14 @@ class Vite:
                     preloads.append((src, url, css_chunk, manifest))
                     tags.append(self._make_tag_for_chunk(src, url, css_chunk, manifest))
 
-            tags.append(self._make_tag_for_chunk(
-                entrypoint,
-                self._asset_path(f"{build_directory}/{chunk['file']}"),
-                chunk,
-                manifest,
-            ))
+            tags.append(
+                self._make_tag_for_chunk(
+                    entrypoint,
+                    self._asset_path(f"{build_directory}/{chunk['file']}"),
+                    chunk,
+                    manifest,
+                )
+            )
 
             for css in chunk.get("css", []):
                 url = self._asset_path(f"{build_directory}/{css}")
@@ -215,7 +219,7 @@ class Vite:
         hot_url = f"{self._read_hot_origin()}/@react-refresh"
 
         return (
-            f"<script type=\"module\"{nonce_attr}>\n"
+            f'<script type="module"{nonce_attr}>\n'
             f"    import RefreshRuntime from '{hot_url}'\n"
             f"    RefreshRuntime.injectIntoGlobalHook(window)\n"
             f"    window.$RefreshReg$ = () => {{}}\n"
@@ -273,9 +277,7 @@ class Vite:
         path = self._manifest_path(build_directory)
         if path not in Vite._manifests:
             if not os.path.isfile(path):
-                raise ViteManifestNotFoundException(
-                    f"Vite manifest not found at: {path}"
-                )
+                raise ViteManifestNotFoundException(f"Vite manifest not found at: {path}")
             with open(path) as f:
                 Vite._manifests[path] = json.load(f)
         return Vite._manifests[path]
@@ -341,14 +343,10 @@ class Vite:
         if attributes is False:
             return ""
 
-        self._preloaded_assets[url] = self._parse_attributes(
-            {k: v for k, v in attributes.items() if k != "href"}
-        )
-        return f'<link {" ".join(self._parse_attributes(attributes))} />'
+        self._preloaded_assets[url] = self._parse_attributes({k: v for k, v in attributes.items() if k != "href"})
+        return f"<link {' '.join(self._parse_attributes(attributes))} />"
 
-    def _resolve_script_tag_attributes(
-        self, src, url, chunk, manifest
-    ) -> dict:
+    def _resolve_script_tag_attributes(self, src, url, chunk, manifest) -> dict:
         attrs: dict = {}
         if self._integrity_key is not False:
             attrs["integrity"] = (chunk or {}).get(self._integrity_key, False)
@@ -356,9 +354,7 @@ class Vite:
             attrs.update(resolver(src, url, chunk, manifest))
         return attrs
 
-    def _resolve_stylesheet_tag_attributes(
-        self, src, url, chunk, manifest
-    ) -> dict:
+    def _resolve_stylesheet_tag_attributes(self, src, url, chunk, manifest) -> dict:
         attrs: dict = {}
         if self._integrity_key is not False:
             attrs["integrity"] = (chunk or {}).get(self._integrity_key, False)
@@ -366,27 +362,23 @@ class Vite:
             attrs.update(resolver(src, url, chunk, manifest))
         return attrs
 
-    def _resolve_preload_tag_attributes(
-        self, src, url, chunk, manifest
-    ) -> dict | bool:
+    def _resolve_preload_tag_attributes(self, src, url, chunk, manifest) -> dict | bool:
         if self._is_css_path(url):
             attrs = {
                 "rel": "preload",
                 "as": "style",
                 "href": url,
                 "nonce": self._nonce or False,
-                "crossorigin": self._resolve_stylesheet_tag_attributes(
-                    src, url, chunk, manifest
-                ).get("crossorigin", False),
+                "crossorigin": self._resolve_stylesheet_tag_attributes(src, url, chunk, manifest).get(
+                    "crossorigin", False
+                ),
             }
         else:
             attrs = {
                 "rel": "modulepreload",
                 "href": url,
                 "nonce": self._nonce or False,
-                "crossorigin": self._resolve_script_tag_attributes(
-                    src, url, chunk, manifest
-                ).get("crossorigin", False),
+                "crossorigin": self._resolve_script_tag_attributes(src, url, chunk, manifest).get("crossorigin", False),
             }
 
         if self._integrity_key is not False:
@@ -401,22 +393,26 @@ class Vite:
         return attrs
 
     def _make_script_tag_with_attributes(self, url: str, attributes: dict) -> str:
-        attrs = self._parse_attributes({
-            "type": "module",
-            "src": url,
-            "nonce": self._nonce or False,
-            **attributes,
-        })
-        return f'<script {" ".join(attrs)}></script>'
+        attrs = self._parse_attributes(
+            {
+                "type": "module",
+                "src": url,
+                "nonce": self._nonce or False,
+                **attributes,
+            }
+        )
+        return f"<script {' '.join(attrs)}></script>"
 
     def _make_stylesheet_tag_with_attributes(self, url: str, attributes: dict) -> str:
-        attrs = self._parse_attributes({
-            "rel": "stylesheet",
-            "href": url,
-            "nonce": self._nonce or False,
-            **attributes,
-        })
-        return f'<link {" ".join(attrs)} />'
+        attrs = self._parse_attributes(
+            {
+                "rel": "stylesheet",
+                "href": url,
+                "nonce": self._nonce or False,
+                **attributes,
+            }
+        )
+        return f"<link {' '.join(attrs)} />"
 
     def _is_css_path(self, path: str) -> bool:
         return bool(

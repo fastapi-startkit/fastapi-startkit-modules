@@ -4,6 +4,7 @@ from fastapi import Request, Response
 from fastapi.responses import JSONResponse, HTMLResponse
 from starlette.templating import Jinja2Templates
 
+
 class Inertia:
     def __init__(self, application):
         self.app = application
@@ -33,11 +34,11 @@ class Inertia:
     def render(self, request: Request, component: str, props: Optional[Dict[str, Any]] = None) -> Response:
         """Render an Inertia response."""
         props = props or {}
-        
+
         # Merge shared data
         # Note: In a real implementation, we might want to resolve callables here
         all_props = {**self._shared_data, **props}
-        
+
         # Handle Partial Reloads
         partial_component = request.headers.get("X-Inertia-Partial-Component")
         if partial_component == component:
@@ -59,16 +60,12 @@ class Inertia:
                 headers={
                     "X-Inertia": "true",
                     "Vary": "Accept",
-                }
+                },
             )
 
         # Initial render: return HTML root view
         if not self.app.has("templates"):
             raise RuntimeError("Inertia requires 'templates' to be bound in the container for initial rendering.")
-            
+
         templates = self.app.make("templates")
-        return templates.TemplateResponse(
-            request,
-            self._root_view,
-            {"page": page}
-        )
+        return templates.TemplateResponse(request, self._root_view, {"page": page})

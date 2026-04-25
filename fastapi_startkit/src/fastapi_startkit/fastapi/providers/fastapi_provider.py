@@ -14,9 +14,7 @@ class FastAPIProvider(Provider):
         self.app.use_fastapi(fastapi)
 
     def boot(self):
-        self.commands([
-            ServeCommand
-        ])
+        self.commands([ServeCommand])
 
         """
         Register routes

@@ -15,9 +15,7 @@ class HasMany(BaseRelationship):
         Returns:
             dict -- A dictionary of data which will be hydrated.
         """
-        result = foreign.where(
-            self.foreign_key, owner.__attributes__[self.local_key]
-        ).get()
+        result = foreign.where(self.foreign_key, owner.__attributes__[self.local_key]).get()
 
         return result
 
@@ -28,9 +26,7 @@ class HasMany(BaseRelationship):
         return self
 
     def register_related(self, key, model, collection):
-        model.add_relation(
-            {key: collection.get(getattr(model, self.local_key)) or Collection()}
-        )
+        model.add_relation({key: collection.get(getattr(model, self.local_key)) or Collection()})
 
     def map_related(self, related_result):
         return related_result.group_by(self.foreign_key)

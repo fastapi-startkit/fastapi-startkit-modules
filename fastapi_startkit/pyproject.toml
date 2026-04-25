@@ -1,6 +1,6 @@
 [project]
 name = "fastapi-startkit"
-version = "0.13.6"
+version = "0.13.7"
 description = "Fastapi Starter kit components"
 authors = [
     {name = "Bedram Tamang", email = "tmgbedu@gmail.com"}
@@ -46,6 +46,7 @@ dev = [
     "dumpdie>=1.5.0",
     "pytest>=9.0.3",
     "pytest-asyncio>=1.3.0",
+    "ruff>=0.15.12",
     "twine>=6.2.0",
 ]
 
@@ -59,3 +60,14 @@ build-backend = "uv_build"
 
 [tool.uv]
 workspace = { members = ["application", "example/*"] }
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
+fixable = ["ALL"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]

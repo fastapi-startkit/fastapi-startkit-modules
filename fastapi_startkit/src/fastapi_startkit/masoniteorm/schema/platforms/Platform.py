@@ -14,9 +14,7 @@ class Platform:
         sql = []
         for name, column in columns.items():
             if column.length:
-                length = self.create_column_length(column.column_type).format(
-                    length=column.length
-                )
+                length = self.create_column_length(column.column_type).format(length=column.length)
             else:
                 length = ""
 
@@ -25,10 +23,7 @@ class Platform:
             elif column.default in self.premapped_defaults.keys():
                 default = self.premapped_defaults.get(column.default)
             elif column.default:
-                if (
-                    isinstance(column.default, (str,))
-                    and not column.default_is_raw
-                ):
+                if isinstance(column.default, (str,)) and not column.default_is_raw:
                     default = f" DEFAULT '{column.default}'"
                 else:
                     default = f" DEFAULT {column.default}"
@@ -72,9 +67,7 @@ class Platform:
                     constraint_name=foreign_key.constraint_name,
                     table=self.wrap_table(table),
                     foreign_table=self.wrap_table(foreign_key.foreign_table),
-                    foreign_column=self.wrap_column(
-                        foreign_key.foreign_column
-                    ),
+                    foreign_column=self.wrap_column(foreign_key.foreign_column),
                     cascade=cascade,
                 )
             )
@@ -84,9 +77,9 @@ class Platform:
         sql = []
         for name, constraint in constraints.items():
             sql.append(
-                getattr(
-                    self, f"get_{constraint.constraint_type}_constraint_string"
-                )().format(columns=", ".join(constraint._columns))
+                getattr(self, f"get_{constraint.constraint_type}_constraint_string")().format(
+                    columns=", ".join(constraint._columns)
+                )
             )
         return sql
 

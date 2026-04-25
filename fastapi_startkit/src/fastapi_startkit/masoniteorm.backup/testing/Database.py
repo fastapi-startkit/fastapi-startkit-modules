@@ -3,6 +3,7 @@ from ..config import load_config
 from ..migrations import Migration
 from ..seeds import Seeder
 
+
 class Database:
     _migrated = False
     migration_directory = "databases/migrations"
@@ -13,9 +14,7 @@ class Database:
         Run migrations once per test suite.
         """
         if not Database._migrated:
-            migration = Migration(
-                migration_directory=self.migration_directory
-            )
+            migration = Migration(migration_directory=self.migration_directory)
             await migration.create_table_if_not_exists()
             await migration.migrate()
             Database._migrated = True
@@ -29,7 +28,7 @@ class Database:
         self._session = resolver.get_session_factory()()
         await self._session.__aenter__()
         self._transaction = await self._session.begin()
-        
+
         # Make this session "sticky" so QueryBuilder uses it
         resolver.set_sticky_session(self._session)
 
@@ -39,14 +38,14 @@ class Database:
         """
         resolver = load_config().DB
         resolver.remove_sticky_session()
-        
+
         if hasattr(self, "_transaction"):
             try:
                 await self._transaction.rollback()
             except Exception:
                 # Transaction might already be closed or inactive
                 pass
-        
+
         if hasattr(self, "_session"):
             await self._session.__aexit__(None, None, None)
 
