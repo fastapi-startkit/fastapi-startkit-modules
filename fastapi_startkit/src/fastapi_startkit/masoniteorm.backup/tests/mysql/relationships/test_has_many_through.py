@@ -1,10 +1,10 @@
 import unittest
 
-from dotenv import load_dotenv
 from src.masoniteorm.models import Model
 from src.masoniteorm.relationships import (
     has_many_through,
 )
+from dotenv import load_dotenv
 
 load_dotenv(".env")
 
@@ -43,7 +43,9 @@ class MySQLRelationships(unittest.TestCase):
         )
 
     def test_where_has_query(self):
-        sql = InboundShipment.where_has("from_country", lambda query: query.where("name", "USA")).to_sql()
+        sql = InboundShipment.where_has(
+            "from_country", lambda query: query.where("name", "USA")
+        ).to_sql()
 
         self.assertEqual(
             sql,
@@ -73,7 +75,9 @@ class MySQLRelationships(unittest.TestCase):
     def test_or_where_doesnt_have(self):
         sql = (
             InboundShipment.where("name", "Joe")
-            .or_where_doesnt_have("from_country", lambda query: query.where("name", "USA"))
+            .or_where_doesnt_have(
+                "from_country", lambda query: query.where("name", "USA")
+            )
             .to_sql()
         )
 

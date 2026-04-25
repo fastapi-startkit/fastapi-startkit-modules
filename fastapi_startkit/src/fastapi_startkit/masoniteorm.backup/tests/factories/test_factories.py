@@ -36,7 +36,9 @@ class TestFactories(unittest.TestCase):
         self.assertIsInstance(user, User)
 
     def test_can_make_several(self):
-        users = factory(User).make([{"id": 1, "name": "Joe"}, {"id": 2, "name": "Bob"}])
+        users = factory(User).make(
+            [{"id": 1, "name": "Joe"}, {"id": 2, "name": "Bob"}]
+        )
 
         self.assertEqual(users.count(), 2)
 

@@ -12,7 +12,7 @@ DATABASES = {
         "log_queries": False,
         "options": {
             #
-        },
+        }
     },
     "postgres": {
         "host": "127.0.0.1",
@@ -24,14 +24,14 @@ DATABASES = {
         "log_queries": False,
         "options": {
             #
-        },
+        }
     },
     "sqlite": {
         "driver": "sqlite",
         "database": "masonite.sqlite3",
-    },
+    }
 }
 
-MIGRATION_PATH = "databases/migrations"
+MIGRATION_PATH = 'databases/migrations'
 
-SEEDER_PATH = "databases/seeders"
+SEEDER_PATH = 'databases/seeders'

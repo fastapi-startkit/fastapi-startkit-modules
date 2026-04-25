@@ -1,34 +1,32 @@
 import pytest_asyncio
-from fastapi_startkit.masoniteorm.tests.integrations.config.database import DB
 
 from fastapi_startkit.masoniteorm.connections.sqlite_connection import SQLiteConnection
 from fastapi_startkit.masoniteorm.models import Model
 from fastapi_startkit.masoniteorm.relationships import BelongsTo, MorphTo
 from fastapi_startkit.masoniteorm.schema import Schema
 from fastapi_startkit.masoniteorm.schema.platforms import SQLitePlatform
+from fastapi_startkit.masoniteorm.tests.integrations.config.database import DB
 
 
 class Profile(Model):
     __table__ = "profiles"
     __connection__ = "dev"
 
-
 class Logo(Model):
     __table__ = "logos"
     __connection__ = "dev"
-
 
 class Articles(Model):
     __table__ = "articles"
     __connection__ = "dev"
 
-    logo: "Logo" = BelongsTo("Logo", "id", "article_id")
+    logo: 'Logo' = BelongsTo('Logo', 'id', 'article_id')
 
 
 class Like(Model):
     __connection__ = "dev"
 
-    record: "Like" = MorphTo("Like", "record_type", "record_id")
+    record: 'Like' = MorphTo('Like', 'record_type', 'record_id')
 
 
 class User(Model):
@@ -49,56 +47,38 @@ class TestRelationships:
         self.schema = Schema(
             connection="dev",
             platform=SQLitePlatform,
-            config_path="fastapi_startkit/masoniteorm/tests/integrations/config/database",
+            config_path='fastapi_startkit/masoniteorm/tests/integrations/config/database'
         ).on("dev")
 
-        async with await self.schema.create_table_if_not_exists("users") as table:
+        async with (await self.schema.create_table_if_not_exists("users")) as table:
             table.integer("id").primary()
             table.string("name")
 
-        async with await self.schema.create_table_if_not_exists("articles") as table:
+        async with (await self.schema.create_table_if_not_exists("articles")) as table:
             table.integer("id").primary()
             table.string("title")
 
-        async with await self.schema.create_table_if_not_exists("likes") as table:
+        async with (await self.schema.create_table_if_not_exists("likes")) as table:
             table.integer("id").primary()
             table.string("record_type")
             table.integer("record_id")
 
-        await (
-            User()
-            .get_builder()
-            .bulk_create(
-                [
-                    {"id": 1, "name": "Alice"},
-                    {"id": 2, "name": "Bob"},
-                ]
-            )
-        )
+        await User().get_builder().bulk_create([
+            {"id": 1, "name": "Alice"},
+            {"id": 2, "name": "Bob"},
+        ])
 
-        await (
-            Articles()
-            .get_builder()
-            .bulk_create(
-                [
-                    {"id": 1, "title": "First Article"},
-                    {"id": 2, "title": "Second Article"},
-                ]
-            )
-        )
+        await Articles().get_builder().bulk_create([
+            {"id": 1, "title": "First Article"},
+            {"id": 2, "title": "Second Article"},
+        ])
 
-        await (
-            Like()
-            .get_builder()
-            .bulk_create(
-                [
-                    {"id": 1, "record_type": "user", "record_id": 1},
-                    {"id": 2, "record_type": "user", "record_id": 2},
-                    {"id": 3, "record_type": "article", "record_id": 1},
-                    {"id": 4, "record_type": "article", "record_id": 2},
-                ]
-            )
-        )
+        await Like().get_builder().bulk_create([
+            {"id": 1, "record_type": "user", "record_id": 1},
+            {"id": 2, "record_type": "user", "record_id": 2},
+            {"id": 3, "record_type": "article", "record_id": 1},
+            {"id": 4, "record_type": "article", "record_id": 2},
+        ])
 
         yield
 

@@ -7,4 +7,6 @@ class AppProvider(Provider):
         pass
 
     def boot(self) -> None:
-        self.commands([PublishCommand])
+        self.commands([
+            PublishCommand
+        ])

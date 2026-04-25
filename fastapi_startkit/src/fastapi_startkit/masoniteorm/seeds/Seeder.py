@@ -2,7 +2,9 @@ import pydoc
 
 
 class Seeder:
-    def __init__(self, seed_path="databases/seeds", connection=None):
+    def __init__(
+        self, seed_path="databases/seeds", connection=None
+    ):
         self.ran_seeds = []
         self.seed_path = seed_path
         self.connection = connection
@@ -14,10 +16,12 @@ class Seeder:
             await seeder_class(connection=self.connection).run()
 
     async def run_database_seed(self):
-        database_seeder = pydoc.locate(f"{self.seed_module}.database_seeder.DatabaseSeeder")
+        database_seeder = pydoc.locate(
+            f"{self.seed_module}.database_seeder.DatabaseSeeder"
+        )
 
         if not database_seeder:
-            raise ValueError(f"Could not find the DatabaseSeeder class in {self.seed_module}.database_seeder")
+             raise ValueError(f"Could not find the DatabaseSeeder class in {self.seed_module}.database_seeder")
 
         self.ran_seeds.append(database_seeder)
 

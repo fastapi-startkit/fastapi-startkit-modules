@@ -17,7 +17,9 @@ class TestPostgresGrammar(BaseTestCaseSelectGrammar, unittest.TestCase):
         """
         self.builder.select('username', 'password').to_sql()
         """
-        return """SELECT "users"."username", "users"."password" FROM "users\""""
+        return (
+            """SELECT "users"."username", "users"."password" FROM "users\""""
+        )
 
     def can_compile_with_where(self):
         """
@@ -158,7 +160,9 @@ class TestPostgresGrammar(BaseTestCaseSelectGrammar, unittest.TestCase):
         self.builder.where_column('name', 'email').to_sql()
         """
 
-        return """SELECT * FROM "users" WHERE "users"."name" = "users"."email\""""
+        return (
+            """SELECT * FROM "users" WHERE "users"."name" = "users"."email\""""
+        )
 
     def can_compile_or_where(self):
         """
@@ -297,10 +301,16 @@ class TestPostgresGrammar(BaseTestCaseSelectGrammar, unittest.TestCase):
 
     def test_can_compile_where_raw(self):
         to_sql = self.builder.where_raw(""" "age" = '18'""").to_sql()
-        self.assertEqual(to_sql, """SELECT * FROM "users" WHERE "age" = '18'""")
+        self.assertEqual(
+            to_sql, """SELECT * FROM "users" WHERE "age" = '18'"""
+        )
 
     def test_can_compile_having_raw(self):
-        to_sql = self.builder.select_raw("COUNT(*) as counts").having_raw("counts > 10").to_sql()
+        to_sql = (
+            self.builder.select_raw("COUNT(*) as counts")
+            .having_raw("counts > 10")
+            .to_sql()
+        )
         self.assertEqual(
             to_sql,
             """SELECT COUNT(*) as counts FROM "users" HAVING counts > 10""",
@@ -308,7 +318,10 @@ class TestPostgresGrammar(BaseTestCaseSelectGrammar, unittest.TestCase):
 
     def test_can_compile_having_raw_order(self):
         to_sql = (
-            self.builder.select_raw("COUNT(*) as counts").having_raw("counts > 10").order_by_raw("counts DESC").to_sql()
+            self.builder.select_raw("COUNT(*) as counts")
+            .having_raw("counts > 10")
+            .order_by_raw("counts DESC")
+            .to_sql()
         )
         self.assertEqual(
             to_sql,
@@ -316,9 +329,9 @@ class TestPostgresGrammar(BaseTestCaseSelectGrammar, unittest.TestCase):
         )
 
     def test_can_compile_where_raw_and_where_with_multiple_bindings(self):
-        query = self.builder.where_raw(""" "age" = ? AND "is_admin" = ?""", [18, True]).where(
-            "email", "test@example.com"
-        )
+        query = self.builder.where_raw(
+            """ "age" = ? AND "is_admin" = ?""", [18, True]
+        ).where("email", "test@example.com")
         self.assertEqual(
             query.to_qmark(),
             """SELECT * FROM "users" WHERE "age" = ? AND "is_admin" = ? AND "users"."email" = ?""",
@@ -331,7 +344,9 @@ class TestPostgresGrammar(BaseTestCaseSelectGrammar, unittest.TestCase):
 
     def test_can_compile_select_raw_with_select(self):
         to_sql = self.builder.select("id").select_raw("COUNT(*)").to_sql()
-        self.assertEqual(to_sql, """SELECT "users"."id", COUNT(*) FROM "users\"""")
+        self.assertEqual(
+            to_sql, """SELECT "users"."id", COUNT(*) FROM "users\""""
+        )
 
     def can_compile_first_or_fail(self):
         """
@@ -345,7 +360,9 @@ class TestPostgresGrammar(BaseTestCaseSelectGrammar, unittest.TestCase):
         builder = self.get_builder()
         builder.where("age", "not like", "%name%").to_sql()
         """
-        return """SELECT * FROM "users" WHERE "users"."age" NOT ILIKE '%name%'"""
+        return (
+            """SELECT * FROM "users" WHERE "users"."age" NOT ILIKE '%name%'"""
+        )
 
     def where_like(self):
         """
@@ -443,9 +460,7 @@ class TestPostgresGrammar(BaseTestCaseSelectGrammar, unittest.TestCase):
             ),
         ).to_sql()
         """
-        return (
-            """SELECT * FROM "users" LEFT JOIN "report_groups" AS "rg" ON "bgt"."fund" = "rg"."fund" OR "bgt" IS NULL"""
-        )
+        return """SELECT * FROM "users" LEFT JOIN "report_groups" AS "rg" ON "bgt"."fund" = "rg"."fund" OR "bgt" IS NULL"""
 
     def can_compile_right_join_clause_with_lambda(self):
         """

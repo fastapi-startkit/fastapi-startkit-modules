@@ -1,5 +1,6 @@
 """Helpers for working with HTTP."""
 
+
 HTTP_STATUS_CODES = {
     100: "100 Continue",
     101: "101 Switching Protocol",

@@ -1,11 +1,10 @@
 import os
-from pathlib import Path
 
-from starlette.templating import Jinja2Templates
+from dumpdie import dd
 
 from fastapi_startkit.providers import Provider
-
 from ..config.vite import ViteConfig
+
 from ..vite import Vite
 
 
@@ -14,14 +13,8 @@ class ViteProvider(Provider):
 
     def register(self) -> None:
         from ..config.vite import ViteConfig
-
         config = self.resolve_config(ViteConfig)
         self.merge_config_from(config, self.provider_key)
-
-        # Bind Jinja2Templates so ViteProvider can inject vite() globals into it.
-        templates_dir = Path(self.app.base_path) / "templates"
-        templates = Jinja2Templates(directory=str(templates_dir))
-        self.app.bind("templates", templates)
 
         config = ViteConfig(**config)
 
@@ -35,6 +28,7 @@ class ViteProvider(Provider):
 
         self.app.bind("vite", vite)
 
+
     def boot(self) -> None:
         vite: Vite = self.app.make("vite")
         config = self.app.make("config").get(self.provider_key)
@@ -44,7 +38,9 @@ class ViteProvider(Provider):
         self.register_jinja_directives(vite)
 
         source = os.path.abspath(str(os.path.join(str(os.path.dirname(__file__)), "../config/vite.py")))
-        self.publishes({source: "config/vite.py"})
+        self.publishes({
+            source: 'config/vite.py'
+        })
 
     def mount_static_file_if_require(self, config: ViteConfig):
         if config.mount_static:

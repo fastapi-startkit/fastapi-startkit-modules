@@ -3,9 +3,8 @@ import unittest
 
 class TestCase(unittest.TestCase):
     def setUp(self):
-        from fastapi.testclient import TestClient
-
         from fastapi_startkit.application import app
+        from fastapi.testclient import TestClient
 
         self.client = TestClient(app())
 

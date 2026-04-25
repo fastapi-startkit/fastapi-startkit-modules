@@ -1,5 +1,6 @@
-import dataclasses
 from typing import Any
+
+import dataclasses
 
 
 class Dataclass:

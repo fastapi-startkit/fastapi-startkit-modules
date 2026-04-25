@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from fastapi_startkit.masoniteorm.schema.Blueprint import Blueprint
     from fastapi_startkit.orm.schema.schema import Schema as SchemaBuilder
+    from fastapi_startkit.masoniteorm.schema.Blueprint import Blueprint
 
 
 class Schema:
@@ -14,8 +14,7 @@ class Schema:
     def instance(cls) -> "SchemaBuilder":
         if cls._instance is None:
             from fastapi_startkit.application import app
-
-            cls._instance = app().make("schema")
+            cls._instance = app().make('schema')
         return cls._instance  # type: ignore[return-value]
 
     @classmethod

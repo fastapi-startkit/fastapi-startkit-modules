@@ -1,6 +1,7 @@
 import unittest
 
 from dotenv import load_dotenv
+
 from src.masoniteorm.connections import ConnectionFactory
 from src.masoniteorm.models import Model
 from src.masoniteorm.query import QueryBuilder
@@ -74,7 +75,9 @@ class SqliteTestQueryBuilderRelationships(unittest.TestCase):
 
     def test_where_doesnt_have(self):
         builder = self.get_builder()
-        sql = builder.where_doesnt_have("articles", lambda q: q.where("title", "Eggs and Ham")).to_sql()
+        sql = builder.where_doesnt_have(
+            "articles", lambda q: q.where("title", "Eggs and Ham")
+        ).to_sql()
         self.assertEqual(
             sql,
             """SELECT * FROM "users" WHERE NOT EXISTS ("""
@@ -84,7 +87,9 @@ class SqliteTestQueryBuilderRelationships(unittest.TestCase):
 
     def test_where_has_query(self):
         builder = self.get_builder()
-        sql = builder.where_has("articles", lambda q: q.where("active", 1)).to_sql()
+        sql = builder.where_has(
+            "articles", lambda q: q.where("active", 1)
+        ).to_sql()
         self.assertEqual(
             sql,
             """SELECT * FROM "users" WHERE EXISTS ("""

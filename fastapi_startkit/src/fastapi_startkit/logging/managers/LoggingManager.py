@@ -10,5 +10,4 @@ class LoggingManager:
     @classmethod
     def configure_python_logging(cls):
         from ..handler import LoggingHandler
-
         LoggingHandler.install()

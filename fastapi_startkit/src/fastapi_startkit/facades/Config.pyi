@@ -1,5 +1,6 @@
 from typing import Any
 
+
 class Config:
     """Configuration facades to manage Masonite config files."""
     @staticmethod

@@ -4,6 +4,7 @@ import unittest
 import uuid
 
 import pendulum
+
 from src.masoniteorm.models import Model
 from src.masoniteorm.scopes import (
     SoftDeletesMixin,

@@ -1,7 +1,7 @@
 """Loader class to easily list, find or load any object in a given module, or folder."""
-
 import inspect
 import pkgutil
+import os
 
 from ..exceptions import LoaderNotFound
 from ..utils.str import as_filepath
@@ -9,7 +9,10 @@ from ..utils.structures import load
 
 
 def parameters_filter(obj_name, obj):
-    return not obj_name.startswith("__") and not obj_name.endswith("__")
+    return (
+        not obj_name.startswith("__")
+        and not obj_name.endswith("__")
+    )
 
 
 class Loader:
@@ -33,7 +36,9 @@ class Loader:
             if name == class_name:
                 return obj
         if raise_exception:
-            raise LoaderNotFound(f"No {class_instance} named {class_name} has been found in {paths}")
+            raise LoaderNotFound(
+                f"No {class_instance} named {class_name} has been found in {paths}"
+            )
         return None
 
     def find_all(self, class_instance, paths, raise_exception=False):

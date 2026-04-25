@@ -1,6 +1,5 @@
-from typing import Any, Callable
-
-from jinja2 import BaseLoader, PackageLoader
+from typing import Callable, Any
+from jinja2 import PackageLoader, BaseLoader
 
 class View:
     """View facade."""

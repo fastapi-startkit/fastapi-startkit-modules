@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Callable
+from typing import Any, Callable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..rates.limiters import Limiter
@@ -15,7 +15,9 @@ class RateLimiter:
     def get_limiter(self, name: str) -> "Limiter":
         """Get rate limiter registered with the given name."""
         ...
-    def attempt(key: str, callback: Callable, max_attempts: int, delay: int = 60) -> Any:
+    def attempt(
+        key: str, callback: Callable, max_attempts: int, delay: int = 60
+    ) -> Any:
         """Try to execute the given callback if not limited by the 'key' rate limiter."""
         ...
     def too_many_attempts(self, key: str, max_attempts: int) -> bool:

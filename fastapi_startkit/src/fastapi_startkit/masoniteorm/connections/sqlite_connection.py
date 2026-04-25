@@ -1,9 +1,7 @@
 from fastapi_startkit.masoniteorm.query.grammars import SQLiteGrammar
 from fastapi_startkit.masoniteorm.query.processors import SQLitePostProcessor
 from fastapi_startkit.masoniteorm.schema.platforms import SQLitePlatform
-
 from .connection import Connection
-
 
 class SQliteConnection(Connection):
     @classmethod

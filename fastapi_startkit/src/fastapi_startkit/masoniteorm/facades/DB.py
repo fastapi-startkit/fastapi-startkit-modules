@@ -15,8 +15,7 @@ class DB:
     def instance(cls) -> "DatabaseManager":
         if cls._instance is None:
             from fastapi_startkit.application import app
-
-            cls._instance = app().make("db")
+            cls._instance = app().make('db')
         return cls._instance  # type: ignore[return-value]
 
     @classmethod

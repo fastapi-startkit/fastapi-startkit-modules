@@ -1,23 +1,19 @@
-import datetime
 import json
-from dataclasses import dataclass, field
+import pendulum
+import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Optional, get_type_hints
-
-import pendulum
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any, get_type_hints, Optional
 from pydantic.fields import FieldInfo
-
 from fastapi_startkit.carbon import Carbon
 
 if TYPE_CHECKING:
     from .model import Model
 
-
 @dataclass
 class BaseCast:
     """Base class for all casters"""
-
     config: Optional[FieldInfo] = field(default=None, kw_only=True)
 
     def get(self, value):
@@ -125,9 +121,12 @@ class Caster:
         "decimal": DecimalCast,
     }
 
-    IGNORE_CASTS = ["caster", "db_manager"]
+    IGNORE_CASTS = [
+        'caster',
+        'db_manager'
+    ]
 
-    def __init__(self, model: "Model", casts: dict | None = None):
+    def __init__(self, model: 'Model', casts: dict|None=None):
         self.model = model
         self.casts = Caster.build_casts(model)
         self.casts.update(casts or {})
@@ -135,23 +134,24 @@ class Caster:
     @classmethod
     def build_casts(cls, model):
         model = model if isinstance(model, type) else model.__class__
+        from .registry import Registry
         from fastapi_startkit.masoniteorm.relationships.BaseRelationship import BaseRelationship
-
         try:
             annotations = get_type_hints(model)
         except NameError:
             annotations = {}
             for klass in reversed(model.__mro__):
-                for name, hint in vars(klass).get("__annotations__", {}).items():
+                for name, hint in vars(klass).get('__annotations__', {}).items():
                     if not isinstance(getattr(model, name, None), BaseRelationship):
                         annotations[name] = hint
 
         annotations = {
-            k: v for k, v in annotations.items() if not isinstance(getattr(model, k, None), BaseRelationship)
+            k: v for k, v in annotations.items()
+            if not isinstance(getattr(model, k, None), BaseRelationship)
         }
 
         # Ignore the builder
-        annotations = {k: v for k, v in annotations.items() if k not in cls.IGNORE_CASTS}
+        annotations = {k:v for k, v in annotations.items() if k not in cls.IGNORE_CASTS}
         from .fields import FieldDescriptor
 
         # 1. Collect all potential fields (annotations + descriptors)

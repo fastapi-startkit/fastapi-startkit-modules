@@ -10,3 +10,7 @@ class ViteConfig:
     asset_url: str = ""
     static_url: str = "/build"
     mount_static: bool = True
+
+
+
+

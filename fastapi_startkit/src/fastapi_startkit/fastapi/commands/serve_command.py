@@ -15,7 +15,6 @@ class ServeCommand(Command):
 
     def handle(self):
         import uvicorn
-
         from fastapi_startkit.container import Container
 
         port = int(self.option("port"))
@@ -33,29 +32,30 @@ class ServeCommand(Command):
         }
 
         if exist:
-            kwargs.update(
-                {
-                    "app": app,
-                    "reload": reload,
-                    "factory": True,
-                    "reload_excludes": ["*.log", "tests/*"],
-                }
-            )
+            kwargs.update({
+                'app': app,
+                'reload': reload,
+                "factory": True,
+                "reload_excludes": ["*.log", "tests/*"],
+            })
 
             self.line(f"<info>Starting Uvicorn server on {host}:{port} [{app}]...</info>")
 
+
         else:
             self.line(f"<info>Starting Uvicorn server on {host}:{port}...</info>")
-            kwargs.update({"app": Container.instance().fastapi, "reload": False})
+            kwargs.update({
+                "app": Container.instance().fastapi,
+                "reload": False
+            })
 
         try:
             uvicorn.run(**kwargs)
         except KeyboardInterrupt:
             self.line("<comment>Server stopped manually.</comment>")
 
-    def is_app_exist(self) -> "bool":
+    def is_app_exist(self) -> 'bool':
         import importlib.util
-
         app = self.option("app")
 
         module_name = app.split(":")[0]
@@ -66,6 +66,6 @@ class ServeCommand(Command):
         except (ImportError, ValueError):
             pass
 
-        self.line("<fg=yellow>Unable to detect the application, run the command with --app={app}</>")
+        self.line('<fg=yellow>Unable to detect the application, run the command with --app={app}</>')
 
         return False

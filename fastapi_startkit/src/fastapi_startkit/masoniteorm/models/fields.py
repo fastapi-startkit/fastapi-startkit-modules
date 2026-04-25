@@ -1,7 +1,7 @@
-from typing import Any
-
-from pydantic import Field as BaseField
+import pendulum
 from pydantic.fields import FieldInfo
+from pydantic import Field as BaseField
+from typing import Any
 
 from fastapi_startkit.masoniteorm.models.observer import CreatedAtObserver, UpdatedAtObserver
 
@@ -11,7 +11,6 @@ class FieldDescriptor:
     A descriptor that wraps Pydantic's FieldInfo.
     It allows us to store metadata that the Caster can later discover.
     """
-
     def __init__(self, field_info: FieldInfo):
         self.field_info = field_info
         self.name = None
@@ -31,13 +30,11 @@ class FieldDescriptor:
         # When setting (e.g., user.name = 'Joe'), update ORM storage
         instance.set_value(self.name, value)
 
-
 def Field(*args, **kwargs) -> Any:
     """
     Factory function that returns a FieldDescriptor wrapping a Pydantic Field.
     """
     return FieldDescriptor(BaseField(*args, **kwargs))
-
 
 class DateTimeField:
     def __init__(self, fmt: str = "YYYY-MM-DD HH:mm:ss", tz: str = "UTC"):
@@ -55,7 +52,6 @@ class DateTimeField:
 
     # def __set__(self, instance, value):
     #     instance.set_attribute(self.name, value)
-
 
 class CreatedAtField:
     def __init__(self, fmt: str = "YYYY-MM-DD HH:mm:ss", tz: str = "UTC"):

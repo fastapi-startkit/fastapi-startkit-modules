@@ -276,7 +276,9 @@ class Collection:
 
                 if k == value:
                     if key:
-                        attributes[self._data_get(item, key)] = self._data_get(item, value)
+                        attributes[self._data_get(item, key)] = self._data_get(
+                            item, value
+                        )
                     else:
                         attributes.append(v)
 
@@ -308,7 +310,9 @@ class Collection:
         if collection_count == 0:
             return None
         elif count and count > collection_count:
-            raise ValueError("count argument must be inferior to collection length.")
+            raise ValueError(
+                "count argument must be inferior to collection length."
+            )
         elif count:
             self._items = random.sample(self._items, k=count)
             return self
@@ -369,7 +373,10 @@ class Collection:
         return getattr(item, key, None)
 
     def sort(self, key=None, reverse=False):
-        self._items.sort(key=lambda item: self.val(item, key), reverse=reverse)
+        self._items.sort(
+            key=lambda item: self.val(item, key),
+            reverse=reverse
+        )
         return self
 
     def sum(self, key=None):
@@ -436,7 +443,9 @@ class Collection:
             if isinstance(item, dict):
                 comparison = item.get(key)
             else:
-                comparison = getattr(item, key) if hasattr(item, key) else False
+                comparison = (
+                    getattr(item, key) if hasattr(item, key) else False
+                )
             if self._make_comparison(comparison, value, op):
                 attributes.append(item)
         return self.__class__(attributes)
@@ -490,7 +499,9 @@ class Collection:
     def zip(self, items):
         items = self.__get_items(items)
         if not isinstance(items, list):
-            raise ValueError("The 'items' parameter must be a list or a Collection")
+            raise ValueError(
+                "The 'items' parameter must be a list or a Collection"
+            )
 
         _items = []
         for x, y in zip(self, items):

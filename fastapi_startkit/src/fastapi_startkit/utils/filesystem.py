@@ -1,7 +1,7 @@
-import mimetypes
 import os
-import pathlib
 import platform
+import pathlib
+import mimetypes
 
 
 def make_directory(directory):

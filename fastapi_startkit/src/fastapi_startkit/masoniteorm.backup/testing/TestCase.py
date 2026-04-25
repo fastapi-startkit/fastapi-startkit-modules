@@ -1,7 +1,5 @@
 from unittest import IsolatedAsyncioTestCase
-
 from .Database import Database
-
 
 class TestCase(IsolatedAsyncioTestCase, Database):
     async def asyncSetUp(self):

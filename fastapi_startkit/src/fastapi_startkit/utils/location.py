@@ -1,7 +1,6 @@
 """Helpers to resolve absolute paths to the different app resources using a configured
 location."""
-
-from os.path import abspath, join
+from os.path import join, abspath
 
 from .str import as_filepath
 

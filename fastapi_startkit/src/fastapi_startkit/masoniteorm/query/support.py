@@ -29,6 +29,9 @@ class SupportMixin:
             value = args[0]
 
         if operator not in operators:
-            raise ValueError("Invalid comparison operator. The operator can be %s" % ", ".join(operators))
+            raise ValueError(
+                "Invalid comparison operator. The operator can be %s"
+                % ", ".join(operators)
+            )
 
         return operator, value
