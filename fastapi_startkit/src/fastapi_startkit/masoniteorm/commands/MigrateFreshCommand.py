@@ -21,7 +21,9 @@ class MigrateFreshCommand(Command):
             default="databases/migrations",
             description="The location of the migration directory",
         ),
-        option("ignore-fk", "i", flag=True, description="Ignore foreign key constraints"),
+        option(
+            "ignore-fk", "i", flag=True, description="Ignore foreign key constraints"
+        ),
         option(
             "seed",
             "s",
@@ -40,10 +42,12 @@ class MigrateFreshCommand(Command):
 
     def handle(self):
         import asyncio
+
         return asyncio.run(self.handle_async())
 
     async def handle_async(self):
         from ..migrations import Migration
+
         migration = Migration(
             command_class=self,
             connection=self.option("connection"),

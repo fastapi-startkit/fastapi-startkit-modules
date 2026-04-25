@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 class QueryBuilder(EagerLoadMixin, SupportMixin):
-    def __init__(self, connection: 'Connection', grammar, processor):
+    def __init__(self, connection: "Connection", grammar, processor):
         super().__init__()
         self.connection = connection
         self.grammar = grammar
@@ -35,33 +35,31 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         self._global_scopes = {}
         self._action = "select"
 
-    def set_action(self, action: str) -> 'QueryBuilder':
+    def set_action(self, action: str) -> "QueryBuilder":
         self._action = action
         return self
 
-    def set_model(self, model) -> 'QueryBuilder':
+    def set_model(self, model) -> "QueryBuilder":
         self._model = model
         self._table = model.get_table_name()
         self._global_scopes = model._global_scopes
         return self
 
-    def with_(self, *eagers) -> 'QueryBuilder':
+    def with_(self, *eagers) -> "QueryBuilder":
         self._eager_relation.register(eagers)
         return self
 
     def get_table_name(self) -> str:
         return self._table
 
-    def where_in(self, column: str, values) -> 'QueryBuilder':
-        if hasattr(values, '_items'):
+    def where_in(self, column: str, values) -> "QueryBuilder":
+        if hasattr(values, "_items"):
             values = values._items
         values = list(values) if not isinstance(values, list) else values
-        self._wheres.append(
-            QueryExpression(column, "IN", values)
-        )
+        self._wheres.append(QueryExpression(column, "IN", values))
         return self
 
-    def select(self, *args) -> 'QueryBuilder':
+    def select(self, *args) -> "QueryBuilder":
         for arg in args:
             if isinstance(arg, list):
                 for column in arg:
@@ -71,16 +69,12 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
                     self._columns += (SelectExpression(column),)
         return self
 
-    def limit(self, limit: int) -> 'QueryBuilder':
+    def limit(self, limit: int) -> "QueryBuilder":
         self._limit = limit
         return self
 
-    async def find(self, primary_key: str|int, columns=None):
-        return (
-            await self
-            .where(self._model.primary_key, primary_key)
-            .first(columns)
-        )
+    async def find(self, primary_key: str | int, columns=None):
+        return await self.where(self._model.primary_key, primary_key).first(columns)
 
     async def first(self, columns=None):
         if not columns:
@@ -112,7 +106,7 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
     def get_bindings(self) -> tuple:
         return self._bindings
 
-    def run_scopes(self) -> 'QueryBuilder':
+    def run_scopes(self) -> "QueryBuilder":
         for name, scope in self._global_scopes.get(self._action, {}).items():
             scope(self)
         return self
@@ -197,14 +191,8 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
                 self._wheres += ((QueryExpression(key, "=", value, "value")),)
         elif isinstance(value, QueryBuilder):
             self._wheres += (
-                (
-                    QueryExpression(
-                        column, operator, SubSelectExpression(value)
-                    )
-                ),
+                (QueryExpression(column, operator, SubSelectExpression(value))),
             )
         else:
-            self._wheres += (
-                (QueryExpression(column, operator, value, "value")),
-            )
+            self._wheres += ((QueryExpression(column, operator, value, "value")),)
         return self

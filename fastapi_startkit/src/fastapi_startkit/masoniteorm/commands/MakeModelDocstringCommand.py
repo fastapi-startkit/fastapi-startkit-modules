@@ -8,7 +8,10 @@ class MakeModelDocstringCommand(Command):
     description = "Generate model docstring and type hints (for auto-completion)."
 
     arguments = [
-        argument("table", description="The table you want to generate docstring and type hints")
+        argument(
+            "table",
+            description="The table you want to generate docstring and type hints",
+        )
     ]
 
     options = [
@@ -18,7 +21,13 @@ class MakeModelDocstringCommand(Command):
             description="The table you want to generate docstring and type hints",
             flag=True,
         ),
-        option("connection", "c", flag=False, default="default", description="The connection you want to use"),
+        option(
+            "connection",
+            "c",
+            flag=False,
+            default="default",
+            description="The connection you want to use",
+        ),
     ]
 
     def handle(self):

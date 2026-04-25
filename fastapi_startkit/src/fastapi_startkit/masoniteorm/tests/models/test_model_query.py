@@ -67,11 +67,13 @@ async def users_table(db, UserModel):
 @pytest.fixture
 async def seeded_users(UserModel, users_table):
     """Insert three users and return them as a list."""
-    await UserModel.query().insert([
-        {"name": "Alice", "email": "alice@example.com", "is_admin": True},
-        {"name": "Bob", "email": "bob@example.com", "is_admin": False},
-        {"name": "Charlie", "email": "charlie@example.com", "is_admin": False},
-    ])
+    await UserModel.query().insert(
+        [
+            {"name": "Alice", "email": "alice@example.com", "is_admin": True},
+            {"name": "Bob", "email": "bob@example.com", "is_admin": False},
+            {"name": "Charlie", "email": "charlie@example.com", "is_admin": False},
+        ]
+    )
     return await UserModel.query().get()
 
 
@@ -104,7 +106,9 @@ class TestWhere:
         results = await UserModel.where({"name": "Alice", "is_admin": True}).get()
         assert len(results) == 1
 
-    async def test_where_returns_empty_collection_when_no_match(self, UserModel, seeded_users):
+    async def test_where_returns_empty_collection_when_no_match(
+        self, UserModel, seeded_users
+    ):
         results = await UserModel.where("name", "Nobody").get()
         assert len(results) == 0
 
@@ -121,7 +125,9 @@ class TestOrWhere:
         assert names == {"Alice", "Bob"}
 
     async def test_or_where_no_match_returns_empty(self, UserModel, seeded_users):
-        results = await UserModel.where("name", "Nobody").or_where("name", "Ghost").get()
+        results = (
+            await UserModel.where("name", "Nobody").or_where("name", "Ghost").get()
+        )
         assert len(results) == 0
 
     async def test_or_where_like(self, UserModel, seeded_users):
@@ -266,10 +272,12 @@ class TestFirstOrCreate:
 
 class TestBulkInsert:
     async def test_insert_list_of_dicts(self, UserModel, users_table):
-        await UserModel.query().insert([
-            {"name": "Dave", "email": "dave@example.com"},
-            {"name": "Eve", "email": "eve@example.com"},
-        ])
+        await UserModel.query().insert(
+            [
+                {"name": "Dave", "email": "dave@example.com"},
+                {"name": "Eve", "email": "eve@example.com"},
+            ]
+        )
         results = await UserModel.query().get()
         assert len(results) == 2
 

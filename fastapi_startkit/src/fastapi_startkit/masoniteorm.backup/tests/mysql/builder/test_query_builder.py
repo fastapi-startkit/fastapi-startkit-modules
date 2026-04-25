@@ -160,9 +160,7 @@ class BaseTestQueryBuilder:
         builder = self.get_builder()
         builder._model = None
         builder.find([10, 20, 30], column="age", query=True)
-        sql = (
-            """SELECT * FROM `users` WHERE `users`.`age` IN ('10','20','30')"""
-        )
+        sql = """SELECT * FROM `users` WHERE `users`.`age` IN ('10','20','30')"""
         self.assertEqual(builder.to_sql(), sql)
 
     def test_find_with_builder_without_column(self):
@@ -811,9 +809,7 @@ class MySQLQueryBuilderTest(BaseTestQueryBuilder, unittest.TestCase):
         """
         builder.where_column('name', 'username')
         """
-        return (
-            "SELECT * FROM `users` WHERE `users`.`name` = `users`.`username`"
-        )
+        return "SELECT * FROM `users` WHERE `users`.`name` = `users`.`username`"
 
     def where_null(self):
         """
@@ -849,9 +845,7 @@ class MySQLQueryBuilderTest(BaseTestQueryBuilder, unittest.TestCase):
         """
         builder.not_between('id', 2, 5)
         """
-        return (
-            "SELECT * FROM `users` WHERE `users`.`id` NOT BETWEEN '2' AND '5'"
-        )
+        return "SELECT * FROM `users` WHERE `users`.`id` NOT BETWEEN '2' AND '5'"
 
     def having(self):
         """
@@ -905,7 +899,9 @@ class MySQLQueryBuilderTest(BaseTestQueryBuilder, unittest.TestCase):
         builder = self.get_builder()
         builder.where('age', '20').or_where('age','<', 20)
         """
-        return "SELECT * FROM `users` WHERE `users`.`age` = '20' OR `users`.`age` < '20'"
+        return (
+            "SELECT * FROM `users` WHERE `users`.`age` = '20' OR `users`.`age` < '20'"
+        )
 
     def where_like(self):
         """
@@ -951,9 +947,7 @@ class MySQLQueryBuilderTest(BaseTestQueryBuilder, unittest.TestCase):
         builder = self.get_builder()
         builder.truncate()
         """
-        return (
-            "SELECT * FROM `users` WHERE `users`.`votes` >= '100' FOR UPDATE"
-        )
+        return "SELECT * FROM `users` WHERE `users`.`votes` >= '100' FOR UPDATE"
 
     def test_latest(self):
         builder = self.get_builder()

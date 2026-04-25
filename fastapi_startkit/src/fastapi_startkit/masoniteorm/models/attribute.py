@@ -5,6 +5,7 @@ from fastapi_startkit.masoniteorm.models.caster import Caster
 if TYPE_CHECKING:
     from fastapi_startkit.orm.connections.manager import Model
 
+
 class Attribute:
     # Attributes that are model infrastructure, not data columns.
     # Assignments to these bypass set_attribute() and go straight to __dict__.
@@ -15,7 +16,7 @@ class Attribute:
     caster: Caster = None
 
     def __init__(self, attributes: dict = None, **kwargs):
-        model: 'Model' = self.__class__
+        model: "Model" = self.__class__
         self.caster = Caster(model)
 
         self._original = {}
@@ -64,7 +65,10 @@ class Attribute:
         if "_attributes" in self.__dict__ and key in self.__dict__["_attributes"]:
             value = self.__dict__["_attributes"][key]
 
-        if "_dirty_attributes" in self.__dict__ and key in self.__dict__["_dirty_attributes"]:
+        if (
+            "_dirty_attributes" in self.__dict__
+            and key in self.__dict__["_dirty_attributes"]
+        ):
             value = self.__dict__["_dirty_attributes"][key]
 
         return self.caster.get(key, value)
@@ -102,6 +106,3 @@ class Attribute:
 
     def get_attributes_for_insert(self) -> dict:
         return {**self._attributes, **self._dirty_attributes}
-
-
-

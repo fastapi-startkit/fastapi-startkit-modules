@@ -87,9 +87,7 @@ class SqliteTestQueryBuilderRelationships(unittest.TestCase):
 
     def test_where_has_query(self):
         builder = self.get_builder()
-        sql = builder.where_has(
-            "articles", lambda q: q.where("active", 1)
-        ).to_sql()
+        sql = builder.where_has("articles", lambda q: q.where("active", 1)).to_sql()
         self.assertEqual(
             sql,
             """SELECT * FROM "users" WHERE EXISTS ("""

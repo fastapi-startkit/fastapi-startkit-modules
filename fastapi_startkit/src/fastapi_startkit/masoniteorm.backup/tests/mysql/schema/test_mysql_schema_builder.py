@@ -76,8 +76,8 @@ class TestMySQLSchemaBuilder(unittest.TestCase):
         with self.schema.create("users") as blueprint:
             blueprint.string("name")
             blueprint.integer("age")
-            blueprint.unique("name"),
-            blueprint.unique("name", name="table_unique"),
+            (blueprint.unique("name"),)
+            (blueprint.unique("name", name="table_unique"),)
 
         self.assertEqual(len(blueprint.table.added_columns), 2)
         self.assertEqual(
@@ -316,7 +316,7 @@ class TestMySQLSchemaBuilder(unittest.TestCase):
 
         self.assertEqual(
             blueprint.to_sql(),
-            ["CREATE TABLE `users` (" "`profile_id` VARCHAR(255) NOT NULL DEFAULT '')"],
+            ["CREATE TABLE `users` (`profile_id` VARCHAR(255) NOT NULL DEFAULT '')"],
         )
 
     def test_can_have_float_type(self):
@@ -325,7 +325,7 @@ class TestMySQLSchemaBuilder(unittest.TestCase):
 
         self.assertEqual(
             blueprint.to_sql(),
-            ["CREATE TABLE `users` (" "`amount` FLOAT(19, 4) NOT NULL)"],
+            ["CREATE TABLE `users` (`amount` FLOAT(19, 4) NOT NULL)"],
         )
 
     def test_has_table(self):

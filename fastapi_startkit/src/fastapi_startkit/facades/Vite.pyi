@@ -1,6 +1,5 @@
 from typing import Callable, Optional
 
-
 class Vite:
     """Facade for the Vite asset helper.
 

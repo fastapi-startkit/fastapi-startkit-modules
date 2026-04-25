@@ -12,15 +12,15 @@ if TYPE_CHECKING:
 class Provider:
     provider_key: str = None
 
-    def __init__(self, application: 'Application', config: dict = None):
-        self.app: 'Application' = application
+    def __init__(self, application: "Application", config: dict = None):
+        self.app: "Application" = application
         self.config = config or {}
 
         if self.provider_key is None:
             self.provider_key = str(
                 Str.of(self.__class__.__name__)
-                .trim('ServiceProvider')
-                .trim('Provider')
+                .trim("ServiceProvider")
+                .trim("Provider")
                 .slugify()
             )
 
@@ -37,7 +37,7 @@ class Provider:
         return {**default_config, **user_config}
 
     def merge_config_from(self, source: str | dict, provider_key: str) -> None:
-        self.app.make('config').merge_with(provider_key, source)
+        self.app.make("config").merge_with(provider_key, source)
 
     def publishes(self, resources: dict, tag: str = None) -> None:
         self.app.published_resources.setdefault(self.provider_key, {}).update(resources)

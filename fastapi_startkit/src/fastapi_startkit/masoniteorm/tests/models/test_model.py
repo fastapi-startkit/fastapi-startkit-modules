@@ -55,6 +55,7 @@ async def users_table(db):
 # Schema
 # ---------------------------------------------------------------------------
 
+
 class TestSchema:
     async def test_create_table(self, db, users_table):
         schema = db.get_schema_builder()
@@ -74,6 +75,7 @@ class TestSchema:
 # ---------------------------------------------------------------------------
 # INSERT (Model.save on a new record)
 # ---------------------------------------------------------------------------
+
 
 class TestModelInsert:
     async def test_save_inserts_row(self, UserModel, users_table):
@@ -110,12 +112,16 @@ class TestModelInsert:
         saved = await user.save()
 
         assert saved is True
-        assert user.email_verified_at.format("YYYY-MM-DD HH:mm:ss") == "2026-10-01 12:12:12"
+        assert (
+            user.email_verified_at.format("YYYY-MM-DD HH:mm:ss")
+            == "2026-10-01 12:12:12"
+        )
 
 
 # ---------------------------------------------------------------------------
 # UPDATE (Model.save on an existing record)
 # ---------------------------------------------------------------------------
+
 
 class TestModelUpdate:
     async def test_save_updates_dirty_attribute(self, UserModel, users_table):

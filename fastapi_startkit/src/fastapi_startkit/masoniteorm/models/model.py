@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class Model(Attribute, Relationship, ObservesEvents):
-    db_manager: 'DatabaseManager' = None
+    db_manager: "DatabaseManager" = None
     __table__ = None
     __primary_key__ = "id"
     __timestamps__ = True
@@ -27,7 +27,6 @@ class Model(Attribute, Relationship, ObservesEvents):
 
     __fillable__: list[str] = []
 
-
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         Registry.register(cls)
@@ -35,7 +34,10 @@ class Model(Attribute, Relationship, ObservesEvents):
         fillable = []
         for name, _typ in cls.__annotations__.items():
             attr = getattr(cls, name, None)
-            from fastapi_startkit.masoniteorm.relationships.BaseRelationship import BaseRelationship
+            from fastapi_startkit.masoniteorm.relationships.BaseRelationship import (
+                BaseRelationship,
+            )
+
             if isinstance(attr, BaseRelationship):
                 continue
             if callable(attr):
@@ -48,7 +50,7 @@ class Model(Attribute, Relationship, ObservesEvents):
 
     def __init__(self, attributes: dict = None, **kwargs):
         super().__init__(attributes, **kwargs)
-        self.connection = 'default'
+        self.connection = "default"
         self._global_scopes = {}
         self.__with__ = {}
         self._exists = False
@@ -77,11 +79,11 @@ class Model(Attribute, Relationship, ObservesEvents):
         return getattr(self.__class__, key)
 
     @classmethod
-    def with_(cls, *eagers) -> 'QueryBuilder':
+    def with_(cls, *eagers) -> "QueryBuilder":
         return cls.query().with_(*eagers)
 
     @classmethod
-    async def find(cls, primary_key: str|int, columns=None):
+    async def find(cls, primary_key: str | int, columns=None):
         return await cls.query().find(primary_key, columns)
 
     @classmethod
@@ -151,7 +153,9 @@ class Model(Attribute, Relationship, ObservesEvents):
         return cls().new_query()
 
     @classmethod
-    async def first_or_create(cls, search: dict, attributes: dict | None = None) -> 'Model':
+    async def first_or_create(
+        cls, search: dict, attributes: dict | None = None
+    ) -> "Model":
         return await cls.query().first_or_create(search, attributes)
 
     @classmethod
@@ -167,7 +171,7 @@ class Model(Attribute, Relationship, ObservesEvents):
 
         return await self.fill(attributes).save()
 
-    def fill(self, attributes: dict) -> 'Model':
+    def fill(self, attributes: dict) -> "Model":
         for key, value in attributes.items():
             if key in self.__fillable__:
                 self.set_attribute(key, value)

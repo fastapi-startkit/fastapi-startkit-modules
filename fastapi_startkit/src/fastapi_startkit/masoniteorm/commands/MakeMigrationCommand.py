@@ -13,8 +13,12 @@ class MakeMigrationCommand(Command):
     arguments = [argument("name", description="The name of the migration")]
 
     options = [
-        option("create", "c", flag=False, default="None", description="The table to create"),
-        option("table", "t", flag=False, default="None", description="The table to alter"),
+        option(
+            "create", "c", flag=False, default="None", description="The table to create"
+        ),
+        option(
+            "table", "t", flag=False, default="None", description="The table to alter"
+        ),
         option(
             "directory",
             "d",
@@ -53,9 +57,7 @@ class MakeMigrationCommand(Command):
 
         file_name = f"{now.strftime('%Y_%m_%d_%H%M%S')}_{name}.py"
 
-        with open(
-            os.path.join(os.getcwd(), migration_directory, file_name), "w"
-        ) as fp:
+        with open(os.path.join(os.getcwd(), migration_directory, file_name), "w") as fp:
             fp.write(output)
 
         self.info(

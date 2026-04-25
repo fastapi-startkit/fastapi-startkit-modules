@@ -13,6 +13,7 @@ class ViteProvider(Provider):
 
     def register(self) -> None:
         from ..config.vite import ViteConfig
+
         config = self.resolve_config(ViteConfig)
         self.merge_config_from(config, self.provider_key)
 
@@ -28,7 +29,6 @@ class ViteProvider(Provider):
 
         self.app.bind("vite", vite)
 
-
     def boot(self) -> None:
         vite: Vite = self.app.make("vite")
         config = self.app.make("config").get(self.provider_key)
@@ -37,10 +37,10 @@ class ViteProvider(Provider):
         self.mount_static_file_if_require(config)
         self.register_jinja_directives(vite)
 
-        source = os.path.abspath(str(os.path.join(str(os.path.dirname(__file__)), "../config/vite.py")))
-        self.publishes({
-            source: 'config/vite.py'
-        })
+        source = os.path.abspath(
+            str(os.path.join(str(os.path.dirname(__file__)), "../config/vite.py"))
+        )
+        self.publishes({source: "config/vite.py"})
 
     def mount_static_file_if_require(self, config: ViteConfig):
         if config.mount_static:
@@ -70,4 +70,6 @@ class ViteProvider(Provider):
 
                 templates.env.globals["vite"] = lambda *a, **kw: Markup(vite(*a, **kw))
                 templates.env.globals["vite_asset"] = vite.asset
-                templates.env.globals["vite_react_refresh"] = lambda: Markup(vite.react_refresh())
+                templates.env.globals["vite_react_refresh"] = lambda: Markup(
+                    vite.react_refresh()
+                )

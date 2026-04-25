@@ -43,26 +43,32 @@ def UserModel(db):
 # DatabaseManager / ConnectionFactory
 # ---------------------------------------------------------------------------
 
+
 class TestConnectionFactory:
     def test_build_url_uses_explicit_url(self):
-        url = ConnectionFactory.build_url({"driver": "sqlite", "url": "sqlite+aiosqlite:///test.db"})
+        url = ConnectionFactory.build_url(
+            {"driver": "sqlite", "url": "sqlite+aiosqlite:///test.db"}
+        )
         assert url == "sqlite+aiosqlite:///test.db"
 
     def test_build_url_constructs_from_parts(self):
-        url = ConnectionFactory.build_url({
-            "driver": "postgres",
-            "username": "user",
-            "password": "pass",
-            "host": "localhost",
-            "port": "5432",
-            "database": "mydb",
-        })
+        url = ConnectionFactory.build_url(
+            {
+                "driver": "postgres",
+                "username": "user",
+                "password": "pass",
+                "host": "localhost",
+                "port": "5432",
+                "database": "mydb",
+            }
+        )
         assert url == "postgresql+asyncpg://user:pass@localhost:5432/mydb"
 
     def test_make_returns_sqlite_connection(self):
         factory = ConnectionFactory()
         conn = factory.make(SQLITE_CONFIG["sqlite"], "sqlite")
         from fastapi_startkit.orm.connections.sqlite_connection import SQliteConnection
+
         assert isinstance(conn, SQliteConnection)
 
 
@@ -95,6 +101,7 @@ class TestDatabaseManager:
 # Model attribute access
 # ---------------------------------------------------------------------------
 
+
 class TestModelAttributes:
     def test_name_attribute(self, UserModel):
         user = UserModel(name="Alex", email="alex@gmail.com")
@@ -125,6 +132,7 @@ class TestModelAttributes:
 # DateTimeField casting
 # ---------------------------------------------------------------------------
 
+
 class TestDateTimeField:
     def test_email_verified_at_is_pendulum_datetime(self, UserModel):
         user = UserModel(
@@ -140,7 +148,10 @@ class TestDateTimeField:
             email="alex@gmail.com",
             email_verified_at="2026-10-01 12:12:12",
         )
-        assert user.email_verified_at.format("YYYY-MM-DD HH:mm:ss") == "2026-10-01 12:12:12"
+        assert (
+            user.email_verified_at.format("YYYY-MM-DD HH:mm:ss")
+            == "2026-10-01 12:12:12"
+        )
 
     def test_email_verified_at_none_when_not_set(self, UserModel):
         user = UserModel(name="Alex", email="alex@gmail.com")
@@ -150,6 +161,7 @@ class TestDateTimeField:
 # ---------------------------------------------------------------------------
 # created_at / updated_at (observer-driven timestamps)
 # ---------------------------------------------------------------------------
+
 
 class TestTimestampFields:
     def test_created_at_is_none_before_save(self, UserModel):
@@ -173,14 +185,17 @@ class TestTimestampFields:
 # query() returns a QueryBuilder
 # ---------------------------------------------------------------------------
 
+
 class TestModelQuery:
     def test_query_returns_query_builder(self, UserModel):
         from fastapi_startkit.orm.models.builder import QueryBuilder
+
         builder = UserModel.query()
         assert isinstance(builder, QueryBuilder)
 
     def test_query_builder_has_model_set(self, UserModel):
         from fastapi_startkit.orm.models.builder import QueryBuilder
+
         builder = UserModel.query()
         assert builder._model is not None
         assert isinstance(builder._model, UserModel)

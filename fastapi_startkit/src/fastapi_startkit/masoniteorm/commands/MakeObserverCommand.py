@@ -12,7 +12,13 @@ class MakeObserverCommand(Command):
     arguments = [argument("name", description="The name of the observer")]
 
     options = [
-        option("model", "m", flag=False, default="None", description="The name of the model"),
+        option(
+            "model",
+            "m",
+            flag=False,
+            default="None",
+            description="The name of the model",
+        ),
         option(
             "directory",
             "d",
@@ -52,9 +58,7 @@ class MakeObserverCommand(Command):
 
         os.makedirs(os.path.join(full_directory_path), exist_ok=True)
 
-        with open(
-            os.path.join(os.getcwd(), observer_directory, file_name), "w+"
-        ) as fp:
+        with open(os.path.join(os.getcwd(), observer_directory, file_name), "w+") as fp:
             fp.write(output)
 
         self.info(f"Observer created: {file_name}")

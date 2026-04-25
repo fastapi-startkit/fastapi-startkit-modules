@@ -22,7 +22,11 @@ class MigrateResetCommand(Command):
             description="The connection you want to run migrations on",
         ),
         option(
-            "schema", None, flag=False, default=None, description="Sets the schema to be migrated"
+            "schema",
+            None,
+            flag=False,
+            default=None,
+            description="Sets the schema to be migrated",
         ),
         option(
             "directory",
@@ -35,10 +39,12 @@ class MigrateResetCommand(Command):
 
     def handle(self):
         import asyncio
+
         return asyncio.run(self.handle_async())
 
     async def handle_async(self):
         from ..migrations import Migration
+
         migration = Migration(
             command_class=self,
             connection=self.option("connection"),

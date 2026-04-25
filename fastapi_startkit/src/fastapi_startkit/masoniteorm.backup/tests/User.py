@@ -1,4 +1,4 @@
-""" User Model """
+"""User Model"""
 
 from fastapi_startkit.masoniteorm.models import Model
 

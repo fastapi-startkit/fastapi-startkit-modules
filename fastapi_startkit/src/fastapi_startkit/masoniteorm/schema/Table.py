@@ -51,9 +51,7 @@ class Table:
             {name: Constraint(name, constraint_type, columns=columns or [])}
         )
 
-    def add_foreign_key(
-        self, column, table=None, foreign_column=None, name=None
-    ):
+    def add_foreign_key(self, column, table=None, foreign_column=None, name=None):
         foreign_key = ForeignKeyConstraint(
             column,
             table,

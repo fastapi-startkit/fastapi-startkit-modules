@@ -86,7 +86,7 @@ class MorphToMany(BaseRelationship):
                         Collection(items)
                         .pluck(self.morph_id, keep_nulls=False)
                         .unique(),
-                        ).get()
+                    ).get()
                 )
             return relations
         else:

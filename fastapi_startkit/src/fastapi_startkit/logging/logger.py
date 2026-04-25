@@ -3,12 +3,13 @@ import traceback
 from fastapi_startkit.application import app
 from fastapi_startkit.logging.channels import BaseChannel
 
+
 class Logger:
     instance = None
 
     def __init__(self):
         self.app = app()
-        self.logger: BaseChannel = self.app.make('logger')
+        self.logger: BaseChannel = self.app.make("logger")
 
     @classmethod
     def logger_info(cls) -> str:
@@ -21,7 +22,7 @@ class Logger:
             return ""
         filename = frame.filename
         lineno = frame.lineno
-        return f'{filename}:{str(lineno)} - '
+        return f"{filename}:{str(lineno)} - "
 
     @classmethod
     def init(cls) -> BaseChannel:

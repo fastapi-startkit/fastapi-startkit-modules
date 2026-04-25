@@ -2,9 +2,7 @@ import pydoc
 
 
 class Seeder:
-    def __init__(
-        self, seed_path="databases/seeds", connection=None
-    ):
+    def __init__(self, seed_path="databases/seeds", connection=None):
         self.ran_seeds = []
         self.seed_path = seed_path
         self.connection = connection
@@ -21,7 +19,9 @@ class Seeder:
         )
 
         if not database_seeder:
-             raise ValueError(f"Could not find the DatabaseSeeder class in {self.seed_module}.database_seeder")
+            raise ValueError(
+                f"Could not find the DatabaseSeeder class in {self.seed_module}.database_seeder"
+            )
 
         self.ran_seeds.append(database_seeder)
 

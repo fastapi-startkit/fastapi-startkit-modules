@@ -1,19 +1,22 @@
-import unittest
 import os
+import unittest
+
+from fastapi_startkit.masoniteorm.factories import Factory as factory
+from fastapi_startkit.masoniteorm.tests.integrations.config.database import DATABASES
+from fastapi_startkit.masoniteorm.tests.User import User
 
 from fastapi_startkit.masoniteorm.collection import Collection
-from fastapi_startkit.masoniteorm.factories import Factory as factory
 from fastapi_startkit.masoniteorm.models import Model
 from fastapi_startkit.masoniteorm.schema import Schema
 from fastapi_startkit.masoniteorm.schema.platforms import SQLitePlatform
-from fastapi_startkit.masoniteorm.tests.User import User
-from fastapi_startkit.masoniteorm.tests.integrations.config.database import DATABASES
 
 
 class TestCollection(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         # Set config path for Schema.on() to work in tests
-        os.environ["DB_CONFIG_PATH"] = "fastapi_startkit.masoniteorm.tests.integrations.config.database"
+        os.environ["DB_CONFIG_PATH"] = (
+            "fastapi_startkit.masoniteorm.tests.integrations.config.database"
+        )
 
         self.schema = Schema(
             connection="dev",
@@ -38,7 +41,9 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
         User.__connection__ = "dev"
 
         # Seed data
-        await User.create({"name": "Joe", "email": "joe@example.com", "password": "password"})
+        await User.create(
+            {"name": "Joe", "email": "joe@example.com", "password": "password"}
+        )
 
     async def asyncTearDown(self):
         # Drop table while still on 'dev' connection
@@ -324,7 +329,9 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(collection.all(), [[1, 1], [2, 4], [2, 1]])
 
     def test_reduce(self):
-        callback = lambda x, y: x + y
+        def callback(x, y):
+            return x + y
+
         collection = Collection([1, 1, 2, 4])
         sum = collection.sum()
 
@@ -624,8 +631,7 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(
             json_data,
-            '[{"name": "Corentin", "age": 10}, '
-            '{"name": "Joe", "age": 20}, {"name": "Marlysson", "age": 15}]',
+            '[{"name": "Corentin", "age": 10}, {"name": "Joe", "age": 20}, {"name": "Marlysson", "age": 15}]',
         )
 
     def test_contains(self):

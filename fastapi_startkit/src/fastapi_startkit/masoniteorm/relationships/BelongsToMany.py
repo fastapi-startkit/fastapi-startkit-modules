@@ -11,17 +11,17 @@ class BelongsToMany(BaseRelationship):
     """Has Many Relationship Class."""
 
     def __init__(
-            self,
-            fn=None,
-            local_foreign_key=None,
-            other_foreign_key=None,
-            local_owner_key=None,
-            other_owner_key=None,
-            table=None,
-            with_timestamps=False,
-            pivot_id="id",
-            attribute="pivot",
-            with_fields=[],
+        self,
+        fn=None,
+        local_foreign_key=None,
+        other_foreign_key=None,
+        local_owner_key=None,
+        other_owner_key=None,
+        table=None,
+        with_timestamps=False,
+        pivot_id="id",
+        attribute="pivot",
+        with_fields=[],
     ):
         if isinstance(fn, str):
             self.fn = self.fn = lambda x: registry.Registry.resolve(fn)
@@ -479,22 +479,18 @@ class BelongsToMany(BaseRelationship):
         return_query = builder.add_select(
             f"{query.get_table_name()}_count",
             lambda q: (
-                (
-                    q.count("*")
-                    .where_column(
-                        f"{builder.get_table_name()}.{self.local_owner_key}",
-                        f"{self._table}.{self.local_key}",
-                    )
-                    .table(self._table)
-                    .when(
-                        callback,
-                        lambda q: (
-                            q.where_in(
-                                self.foreign_key,
-                                callback(query.select(self.other_owner_key)),
-                            )
-                        ),
-                    )
+                q.count("*")
+                .where_column(
+                    f"{builder.get_table_name()}.{self.local_owner_key}",
+                    f"{self._table}.{self.local_key}",
+                )
+                .table(self._table)
+                .when(
+                    callback,
+                    lambda q: q.where_in(
+                        self.foreign_key,
+                        callback(query.select(self.other_owner_key)),
+                    ),
                 )
             ),
         )

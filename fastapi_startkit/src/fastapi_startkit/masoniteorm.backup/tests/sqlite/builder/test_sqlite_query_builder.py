@@ -518,9 +518,7 @@ class BaseTestQueryBuilder:
 
     def test_group_by_multiple(self):
         builder = self.get_builder(table="payments")
-        builder.select("user_id").min("salary").group_by("user_id").group_by(
-            "salary"
-        )
+        builder.select("user_id").min("salary").group_by("user_id").group_by("salary")
 
         sql = getattr(
             self, inspect.currentframe().f_code.co_name.replace("test_", "")
@@ -854,7 +852,9 @@ class SQLiteQueryBuilderTest(BaseTestQueryBuilder, unittest.TestCase):
         """
         builder.order_by('email', 'asc')
         """
-        return """SELECT * FROM "users" ORDER BY "email" ASC, "name" ASC, "active" ASC"""
+        return (
+            """SELECT * FROM "users" ORDER BY "email" ASC, "name" ASC, "active" ASC"""
+        )
 
     def order_by_raw(self):
         """
@@ -896,9 +896,7 @@ class SQLiteQueryBuilderTest(BaseTestQueryBuilder, unittest.TestCase):
         """
         builder.where_not_in('id', [1, 2, 3])
         """
-        return (
-            """SELECT * FROM "users" WHERE "users"."id" NOT IN ('1','2','3')"""
-        )
+        return """SELECT * FROM "users" WHERE "users"."id" NOT IN ('1','2','3')"""
 
     def where_in(self):
         """
@@ -910,9 +908,7 @@ class SQLiteQueryBuilderTest(BaseTestQueryBuilder, unittest.TestCase):
         """
         builder.between('id', 2, 5)
         """
-        return (
-            """SELECT * FROM "users" WHERE "users"."id" BETWEEN '2' AND '5'"""
-        )
+        return """SELECT * FROM "users" WHERE "users"."id" BETWEEN '2' AND '5'"""
 
     def not_between(self):
         """
@@ -998,24 +994,18 @@ class SQLiteQueryBuilderTest(BaseTestQueryBuilder, unittest.TestCase):
         builder = self.get_builder()
         builder.where("age", "like", "%name%")
         """
-        return (
-            """SELECT * FROM "users" WHERE "users"."age" NOT LIKE '%name%'"""
-        )
+        return """SELECT * FROM "users" WHERE "users"."age" NOT LIKE '%name%'"""
 
     def test_when(self):
         builder = self.get_builder()
-        sql = builder.when(
-            19 > 18, lambda q: q.where("age_restricted", 1)
-        ).to_sql()
+        sql = builder.when(19 > 18, lambda q: q.where("age_restricted", 1)).to_sql()
         return self.assertEqual(
             sql,
             """SELECT * FROM "users" WHERE "users"."age_restricted" = '1'""",
         )
 
         builder = self.get_builder()
-        sql = builder.when(
-            17 > 18, lambda q: q.where("age_restricted", 1)
-        ).to_sql()
+        sql = builder.when(17 > 18, lambda q: q.where("age_restricted", 1)).to_sql()
         return self.assertEqual(sql, """SELECT * FROM "users\"""")
 
     def truncate(self):

@@ -15,13 +15,18 @@ class PublishCommand(Command):
     description = "Publish provider config files into the project."
 
     options = [
-        option("provider", "p", description="Provider name to publish (e.g. LogProvider, log_provider).", flag=False),
+        option(
+            "provider",
+            "p",
+            description="Provider name to publish (e.g. LogProvider, log_provider).",
+            flag=False,
+        ),
     ]
 
     def handle(self):
         from fastapi_startkit.application import app
 
-        application: 'Application' = app()
+        application: "Application" = app()
 
         if not application.published_resources:
             self.line("<comment>Nothing to publish.</comment>")
@@ -37,7 +42,9 @@ class PublishCommand(Command):
                 if Str.slugify(name) == target
             }
             if not resources:
-                self.line(f"<error>No provider found matching '{provider_arg}'.</error>")
+                self.line(
+                    f"<error>No provider found matching '{provider_arg}'.</error>"
+                )
                 return
         else:
             resources = application.published_resources
@@ -47,9 +54,14 @@ class PublishCommand(Command):
                 dest_path = application.use_base_path(destination)
 
                 if os.path.exists(dest_path):
-                    overwrite = self.confirm(f"  <comment>{destination}</comment> already exists. Overwrite?", default=False)
+                    overwrite = self.confirm(
+                        f"  <comment>{destination}</comment> already exists. Overwrite?",
+                        default=False,
+                    )
                     if not overwrite:
-                        self.line(f"  [{provider_key}] Skipped <comment>{destination}</comment>")
+                        self.line(
+                            f"  [{provider_key}] Skipped <comment>{destination}</comment>"
+                        )
                         continue
 
                 os.makedirs(os.path.dirname(dest_path), exist_ok=True)

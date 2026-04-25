@@ -13,10 +13,10 @@ class Migration:
     db_manager: "DatabaseManager"
 
     def __init__(
-            self,
-            connection="default",
-            command_class=None,
-            migration_directory="databases/migrations",
+        self,
+        connection="default",
+        command_class=None,
+        migration_directory="databases/migrations",
     ):
         self.connection = connection
         self.migration_directory = migration_directory
@@ -39,8 +39,8 @@ class Migration:
             f.replace(".py", "")
             for f in listdir(directory_path)
             if isfile(join(directory_path, f))
-               and f != "__init__.py"
-               and not f.startswith(".")
+            and f != "__init__.py"
+            and not f.startswith(".")
         ]
         all_migrations.sort()
         unran_migrations = []
@@ -53,9 +53,7 @@ class Migration:
     async def get_rollback_migrations(self):
         all_migrations = await self.migration_model.all()
         return (
-            await self.migration_model.where(
-                "batch", all_migrations.max("batch")
-            )
+            await self.migration_model.where("batch", all_migrations.max("batch"))
             .order_by("migration_id", "desc")
             .get()
         ).pluck("migration")
@@ -75,13 +73,11 @@ class Migration:
         return await self.migration_model.where("migration", file_path).delete()
 
     def locate(self, file_name):
-        migration_name = camelize(
-            "_".join(file_name.split("_")[4:]).replace(".py", "")
-        )
+        migration_name = camelize("_".join(file_name.split("_")[4:]).replace(".py", ""))
         file_name = file_name.replace(".py", "")
-        migration_directory = self.migration_directory.replace(
-            "/", "."
-        ).replace("\\", ".")
+        migration_directory = self.migration_directory.replace("/", ".").replace(
+            "\\", "."
+        )
         return locate(f"{migration_directory}.{file_name}.{migration_name}")
 
     async def get_ran_migrations(self):
@@ -90,8 +86,8 @@ class Migration:
             f.replace(".py", "")
             for f in listdir(directory_path)
             if isfile(join(directory_path, f))
-               and f != "__init__.py"
-               and not f.startswith(".")
+            and f != "__init__.py"
+            and not f.startswith(".")
         ]
         all_migrations.sort()
         ran = []
@@ -124,9 +120,7 @@ class Migration:
 
             if migration_class is None:
                 if self.command_class:
-                    self.command_class.line(
-                        f"<error>Not Found: {migration}</error>"
-                    )
+                    self.command_class.line(f"<error>Not Found: {migration}</error>")
                 continue
 
             self.last_migrations_ran.append(migration)
@@ -135,9 +129,7 @@ class Migration:
                     f"<comment>Migrating:</comment> <question>{migration}</question>"
                 )
 
-            migration_class = migration_class(
-                connection=self.connection
-            )
+            migration_class = migration_class(connection=self.connection)
 
             if output:
                 migration_class.schema.dry()
@@ -183,9 +175,7 @@ class Migration:
             try:
                 migration_class = self.locate(migration)
             except TypeError:
-                self.command_class.line(
-                    f"<error>Not Found: {migration}</error>"
-                )
+                self.command_class.line(f"<error>Not Found: {migration}</error>")
                 continue
 
             migration_class = migration_class(
@@ -204,8 +194,8 @@ class Migration:
                     table = self.command_class.table()
                     table.set_header_row(["SQL"])
                     if (
-                            hasattr(migration_class.schema, "_blueprint")
-                            and migration_class.schema._blueprint
+                        hasattr(migration_class.schema, "_blueprint")
+                        and migration_class.schema._blueprint
                     ):
                         sql = migration_class.schema._blueprint.to_sql()
                         if isinstance(sql, list):
@@ -258,9 +248,7 @@ class Migration:
                 )
                 await migration_instance.down()
             except TypeError:
-                self.command_class.line(
-                    f"<error>Not Found: {migration}</error>"
-                )
+                self.command_class.line(f"<error>Not Found: {migration}</error>")
                 continue
 
                 # raise MigrationNotFound(f"Could not find {migration}")
@@ -303,9 +291,7 @@ class Migration:
 
         if not await self.get_unran_migrations():
             if self.command_class:
-                self.command_class.line(
-                    "<comment>Nothing to migrate</comment>"
-                )
+                self.command_class.line("<comment>Nothing to migrate</comment>")
             return
 
         await self.migrate(migration)

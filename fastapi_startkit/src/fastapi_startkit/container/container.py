@@ -27,9 +27,8 @@ class Container:
             raise RuntimeError("Container not initialized")
         return cls._instance
 
-
     def __init__(self):
-        if not hasattr(self, 'objects'):
+        if not hasattr(self, "objects"):
             self.objects = {}
             self.strict = False
             self.override = True
@@ -216,7 +215,13 @@ class Container:
                 raise ContainerError(str(e))
         else:
             for _, value in self.get_parameters(obj):
-                if type(value.annotation) in (str, int, dict, list, tuple) or value.annotation in (str, int, dict, list, tuple):
+                if type(value.annotation) in (
+                    str,
+                    int,
+                    dict,
+                    list,
+                    tuple,
+                ) or value.annotation in (str, int, dict, list, tuple):
                     # Ignore any times a user is simply type hinting a parameter like (parameter:str or parameter:"str").
                     # In this case we don't want to resolve anything but we do want
                     # to insert any passing arguments we passed in
@@ -449,7 +454,6 @@ class Container:
             and obj in self._hooks[action]
             or obj.__class__ in self._hooks[action]
         ):
-
             for _, hook_list in self._hooks[action].items():
                 for hook_obj in hook_list:
                     hook_obj(obj, self)

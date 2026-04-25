@@ -11,11 +11,11 @@ class Connection:
         self.config = config
         self.conn: AsyncEngine = connection
 
-    def query(self) -> 'QueryBuilder':
+    def query(self) -> "QueryBuilder":
         return QueryBuilder(
             connection=self,
             grammar=self.get_query_grammar(),
-            processor=self.get_post_processor()
+            processor=self.get_post_processor(),
         )
 
     def get_query_grammar(cls):
@@ -25,7 +25,7 @@ class Connection:
         pass
 
     @classmethod
-    def on(cls, connection: str) -> 'Connection':
+    def on(cls, connection: str) -> "Connection":
         return cls(connection)
 
     async def begin_transaction(self) -> None:
@@ -50,9 +50,9 @@ class Connection:
         params = {}
         if bindings:
             for i, val in enumerate(bindings):
-                name = f'p{i}'
+                name = f"p{i}"
                 params[name] = val
-                query = query.replace('?', f':{name}', 1)
+                query = query.replace("?", f":{name}", 1)
         return (query, params)
 
     async def run(self, query: str, bindings: list | None = None):
@@ -86,9 +86,9 @@ class Connection:
             result = await conn.execute(text(query), params)
             await conn.commit()
 
-        return result.rowcount # type: ignore[return-value]
+        return result.rowcount  # type: ignore[return-value]
 
-    async def delete(self, query: str, bindings:  list | None = None) -> int:
+    async def delete(self, query: str, bindings: list | None = None) -> int:
         result = await self.run(query, bindings)
         return result.rowcount  # type: ignore[return-value]
 

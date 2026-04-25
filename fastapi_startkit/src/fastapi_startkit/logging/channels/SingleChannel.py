@@ -8,7 +8,9 @@ from .BaseChannel import BaseChannel
 
 class SingleChannel(BaseChannel):
     def __init__(self, driver=None, path=None):
-        path = path or Config.get('logging.channels.single.path')
+        path = path or Config.get("logging.channels.single.path")
         make_directory(path)
-        self.max_level = Config.get('logging.channels.single.level')
-        self.driver = DriverFactory.make(driver or Config.get('logging.channels.single.driver'))(path=path, max_level=self.max_level)
+        self.max_level = Config.get("logging.channels.single.level")
+        self.driver = DriverFactory.make(
+            driver or Config.get("logging.channels.single.driver")
+        )(path=path, max_level=self.max_level)

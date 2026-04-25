@@ -1,4 +1,5 @@
 """Loader class to easily list, find or load any object in a given module, or folder."""
+
 import inspect
 import pkgutil
 import os
@@ -9,10 +10,7 @@ from ..utils.structures import load
 
 
 def parameters_filter(obj_name, obj):
-    return (
-        not obj_name.startswith("__")
-        and not obj_name.endswith("__")
-    )
+    return not obj_name.startswith("__") and not obj_name.endswith("__")
 
 
 class Loader:

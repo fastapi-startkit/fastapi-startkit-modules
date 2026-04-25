@@ -22,7 +22,6 @@ class Schema:
     def platform(self):
         return self.get_connection().get_default_platform()()
 
-
     async def create(self, table: str) -> Blueprint:
         """Return a Blueprint for a new table (async context manager)."""
         connection = self.get_connection()
@@ -71,7 +70,9 @@ class Schema:
         if self._connection is None:
             self._connection = self._manager.connection(None)
 
-        sql = self._connection.get_default_platform()().compile_drop_table_if_exists(table)
+        sql = self._connection.get_default_platform()().compile_drop_table_if_exists(
+            table
+        )
         await self._connection.statement(sql, ())
 
     async def has_table(self, table: str) -> bool:
@@ -86,7 +87,9 @@ class Schema:
         if self._connection is None:
             self._connection = self._manager.connection(None)
 
-        sql = self._connection.get_default_platform()().compile_rename_table(table, new_name)
+        sql = self._connection.get_default_platform()().compile_rename_table(
+            table, new_name
+        )
         await self._connection.run(sql, ())
 
     async def get_all_tables(self):

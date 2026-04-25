@@ -76,10 +76,7 @@ class MySQLPlatform(Platform):
             elif column.default in self.premapped_defaults.keys():
                 default = self.premapped_defaults.get(column.default)
             elif column.default:
-                if (
-                    isinstance(column.default, (str,))
-                    and not column.default_is_raw
-                ):
+                if isinstance(column.default, (str,)) and not column.default_is_raw:
                     default = f" DEFAULT '{column.default}'"
                 else:
                     default = f" DEFAULT {column.default}"
@@ -105,14 +102,10 @@ class MySQLPlatform(Platform):
                     nullable=self.premapped_nulls.get(column.is_null) or "",
                     default=default,
                     signed=(
-                        " " + self.signed.get(column._signed)
-                        if column._signed
-                        else ""
+                        " " + self.signed.get(column._signed) if column._signed else ""
                     ),
                     comment=(
-                        "COMMENT '" + column.comment + "'"
-                        if column.comment
-                        else ""
+                        "COMMENT '" + column.comment + "'" if column.comment else ""
                     ),
                 )
                 .strip()
@@ -130,15 +123,11 @@ class MySQLPlatform(Platform):
         sql.append(
             table_create_format.format(
                 table=self.get_table_string().format(table=table.name),
-                columns=", ".join(
-                    self.columnize(table.get_added_columns())
-                ).strip(),
+                columns=", ".join(self.columnize(table.get_added_columns())).strip(),
                 constraints=(
                     ", "
                     + ", ".join(
-                        self.constraintize(
-                            table.get_added_constraints(), table
-                        )
+                        self.constraintize(table.get_added_constraints(), table)
                     )
                     if table.get_added_constraints()
                     else ""
@@ -177,9 +166,9 @@ class MySQLPlatform(Platform):
 
             for name, column in table.get_added_columns().items():
                 if column.length:
-                    length = self.create_column_length(
-                        column.column_type
-                    ).format(length=column.length)
+                    length = self.create_column_length(column.column_type).format(
+                        length=column.length
+                    )
                 else:
                     length = ""
 
@@ -203,9 +192,7 @@ class MySQLPlatform(Platform):
                 add_columns.append(
                     self.add_column_string()
                     .format(
-                        name=self.get_column_string().format(
-                            column=column.name
-                        ),
+                        name=self.get_column_string().format(column=column.name),
                         data_type=self.type_map.get(column.column_type, ""),
                         column_constraint=column_constraint,
                         length=length,
@@ -235,9 +222,7 @@ class MySQLPlatform(Platform):
                 self.alter_format().format(
                     table=self.wrap_table(table.name),
                     columns=", ".join(add_columns).strip(),
-                    comment=(
-                        f" COMMENT '{table.comment}'" if table.comment else ""
-                    ),
+                    comment=(f" COMMENT '{table.comment}'" if table.comment else ""),
                 )
             )
 
@@ -246,9 +231,9 @@ class MySQLPlatform(Platform):
 
             for name, column in table.get_renamed_columns().items():
                 if column.length:
-                    length = self.create_column_length(
-                        column.column_type
-                    ).format(length=column.length)
+                    length = self.create_column_length(column.column_type).format(
+                        length=column.length
+                    )
                 else:
                     length = ""
 
@@ -273,8 +258,7 @@ class MySQLPlatform(Platform):
                 self.alter_format().format(
                     table=self.wrap_table(table.name),
                     columns=", ".join(
-                        f"MODIFY {x}"
-                        for x in self.columnize(table.changed_columns)
+                        f"MODIFY {x}" for x in self.columnize(table.changed_columns)
                     ),
                 )
             )
@@ -467,9 +451,7 @@ class MySQLPlatform(Platform):
             table.add_column(
                 column["Field"],
                 column_type,
-                column_python_type=Schema._type_hints_map.get(
-                    column_type, str
-                ),
+                column_python_type=Schema._type_hints_map.get(column_type, str),
                 default=default,
                 length=length,
             )

@@ -309,7 +309,7 @@ class TestPostgresSchemaBuilderAlter(unittest.TestCase):
         self.assertEqual(len(blueprint.table.added_columns), 1)
 
         sql = [
-            'ALTER TABLE "users" ADD COLUMN "status" VARCHAR(255) CHECK(status IN (\'active\', \'inactive\')) NOT NULL DEFAULT \'active\'',
+            "ALTER TABLE \"users\" ADD COLUMN \"status\" VARCHAR(255) CHECK(status IN ('active', 'inactive')) NOT NULL DEFAULT 'active'",
         ]
 
         self.assertEqual(blueprint.to_sql(), sql)

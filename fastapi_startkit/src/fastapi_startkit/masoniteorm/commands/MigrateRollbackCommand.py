@@ -28,7 +28,11 @@ class MigrateRollbackCommand(Command):
             description="Shows the output of SQL for migrations that would be running",
         ),
         option(
-            "schema", None, flag=False, default=None, description="Sets the schema to be migrated"
+            "schema",
+            None,
+            flag=False,
+            default=None,
+            description="Sets the schema to be migrated",
         ),
         option(
             "directory",
@@ -41,16 +45,16 @@ class MigrateRollbackCommand(Command):
 
     def handle(self):
         import asyncio
+
         return asyncio.run(self.handle_async())
 
     async def handle_async(self):
         from ..migrations import Migration
+
         await Migration(
             command_class=self,
             connection=self.option("connection"),
             migration_directory=self.option("directory"),
             config_path=self.option("config"),
             schema=self.option("schema"),
-        ).rollback(
-            migration=self.option("migration"), output=self.option("show")
-        )
+        ).rollback(migration=self.option("migration"), output=self.option("show"))
