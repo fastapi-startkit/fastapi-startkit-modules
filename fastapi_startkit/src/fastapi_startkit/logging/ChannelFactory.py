@@ -1,14 +1,14 @@
 from .channels import SingleChannel, DailyChannel, SlackChannel, StackChannel, SyslogChannel, TerminalChannel
 
-class ChannelFactory:
 
+class ChannelFactory:
     channels = {
-        'single': SingleChannel,
-        'daily': DailyChannel,
-        'slack': SlackChannel,
-        'stack': StackChannel,
-        'syslog': SyslogChannel,
-        'terminal': TerminalChannel
+        "single": SingleChannel,
+        "daily": DailyChannel,
+        "slack": SlackChannel,
+        "stack": StackChannel,
+        "syslog": SyslogChannel,
+        "terminal": TerminalChannel,
     }
 
     @classmethod

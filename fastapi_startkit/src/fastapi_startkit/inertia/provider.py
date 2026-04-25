@@ -3,6 +3,7 @@ from fastapi_startkit.providers import Provider
 from .inertia import Inertia
 from .middleware import InertiaMiddleware
 
+
 class InertiaProvider(Provider):
     provider_key = "inertia"
 
@@ -29,7 +30,9 @@ class InertiaProvider(Provider):
                 """Jinja2 helper to render the root div for Inertia."""
                 encoded_page = json.dumps(page)
                 # Ensure single quotes are used for the attribute to avoid conflict with JSON double quotes
-                return Markup(f'<script data-page="app" type="application/json">{encoded_page}</script><div id="app"></div>')
+                return Markup(
+                    f'<script data-page="app" type="application/json">{encoded_page}</script><div id="app"></div>'
+                )
 
             templates.env.globals["inertia"] = inertia_helper
 

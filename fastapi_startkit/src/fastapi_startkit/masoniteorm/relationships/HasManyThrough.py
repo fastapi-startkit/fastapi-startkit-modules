@@ -7,16 +7,14 @@ class HasManyThrough(BaseRelationship):
     """HasManyThrough Relationship Class."""
 
     def __init__(
-            self,
-            fn=list[str],
-            local_foreign_key=None,
-            other_foreign_key=None,
-            local_owner_key=None,
-            other_owner_key=None,
+        self,
+        fn=list[str],
+        local_foreign_key=None,
+        other_foreign_key=None,
+        local_owner_key=None,
+        other_owner_key=None,
     ):
-        self.fn = lambda x: [
-            registry.Registry.resolve(class_str) for class_str in fn
-        ]
+        self.fn = lambda x: [registry.Registry.resolve(class_str) for class_str in fn]
 
         self.local_key = local_foreign_key
         self.foreign_key = other_foreign_key
@@ -63,9 +61,7 @@ class HasManyThrough(BaseRelationship):
         if self.attribute in instance._relationships:
             return instance._relationships[self.attribute]
 
-        return self.apply_related_query(
-            self.distant_builder, self.intermediary_builder, instance
-        )
+        return self.apply_related_query(self.distant_builder, self.intermediary_builder, instance)
 
     def apply_related_query(self, distant_builder, intermediary_builder, owner):
         """
@@ -86,9 +82,7 @@ class HasManyThrough(BaseRelationship):
         intermediate_table = intermediary_builder.get_table_name()
 
         return (
-            self.distant_builder.select(
-                f"{distant_table}.*, {intermediate_table}.{self.local_key}"
-            )
+            self.distant_builder.select(f"{distant_table}.*, {intermediate_table}.{self.local_key}")
             .join(
                 f"{intermediate_table}",
                 f"{intermediate_table}.{self.foreign_key}",
@@ -159,9 +153,7 @@ class HasManyThrough(BaseRelationship):
             callback(current_builder)
 
         (
-            self.distant_builder.select(
-                f"{distant_table}.*, {intermediate_table}.{self.local_key}"
-            ).join(
+            self.distant_builder.select(f"{distant_table}.*, {intermediate_table}.{self.local_key}").join(
                 f"{intermediate_table}",
                 f"{intermediate_table}.{self.foreign_key}",
                 "=",
@@ -213,7 +205,7 @@ class HasManyThrough(BaseRelationship):
                 f"{intermediate_table}.{self.local_key}",
                 f"{current_builder.get_table_name()}.{self.local_owner_key}",
             )
-            .when(callback, lambda q: (callback(q)))
+            .when(callback, lambda q: callback(q))
         )
 
     def get_with_count_query(self, current_builder, callback):
@@ -226,30 +218,24 @@ class HasManyThrough(BaseRelationship):
         return_query = current_builder.add_select(
             f"{self.attribute}_count",
             lambda q: (
-                (
-                    q.count("*")
-                    .join(
-                        f"{intermediate_table}",
-                        f"{intermediate_table}.{self.foreign_key}",
-                        "=",
-                        f"{distant_table}.{self.other_owner_key}",
-                    )
-                    .where_column(
-                        f"{intermediate_table}.{self.local_key}",
-                        f"{current_builder.get_table_name()}.{self.local_owner_key}",
-                    )
-                    .table(distant_table)
-                    .when(
-                        callback,
-                        lambda q: (
-                            q.where_in(
-                                self.foreign_key,
-                                callback(
-                                    self.distant_builder.select(self.other_owner_key)
-                                ),
-                            )
-                        ),
-                    )
+                q.count("*")
+                .join(
+                    f"{intermediate_table}",
+                    f"{intermediate_table}.{self.foreign_key}",
+                    "=",
+                    f"{distant_table}.{self.other_owner_key}",
+                )
+                .where_column(
+                    f"{intermediate_table}.{self.local_key}",
+                    f"{current_builder.get_table_name()}.{self.local_owner_key}",
+                )
+                .table(distant_table)
+                .when(
+                    callback,
+                    lambda q: q.where_in(
+                        self.foreign_key,
+                        callback(self.distant_builder.select(self.other_owner_key)),
+                    ),
                 )
             ),
         )

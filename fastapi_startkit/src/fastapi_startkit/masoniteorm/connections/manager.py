@@ -32,4 +32,5 @@ class DatabaseManager:
 
     def get_schema_builder(self):
         from fastapi_startkit.masoniteorm.schema import Schema
+
         return Schema(self)

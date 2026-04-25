@@ -16,11 +16,12 @@ if TYPE_CHECKING:
 from fastapi_startkit.exceptions import ExceptionHandler
 
 
-def app() -> 'Container':
+def app() -> "Container":
     return Container.instance()
 
 
-TConfig = TypeVar('TConfig', bound=AppConfig)
+TConfig = TypeVar("TConfig", bound=AppConfig)
+
 
 class Application(Container, Generic[TConfig]):
     DEFAULT_PROVIDERS = [
@@ -28,7 +29,14 @@ class Application(Container, Generic[TConfig]):
         AppProvider,
     ]
 
-    def __init__(self, base_path: str = None, env=None, providers=None, config: Type[TConfig] | None = None, exception_handler: Type[ExceptionHandler] | None = None):
+    def __init__(
+        self,
+        base_path: str = None,
+        env=None,
+        providers=None,
+        config: Type[TConfig] | None = None,
+        exception_handler: Type[ExceptionHandler] | None = None,
+    ):
         super().__init__()
 
         self.base_path: str = base_path or os.getcwd()
@@ -119,7 +127,7 @@ class Application(Container, Generic[TConfig]):
         return self
 
     # Add middleware
-    def add_middleware(self, middleware_class: Type['BaseHTTPMiddleware'], **options):
+    def add_middleware(self, middleware_class: Type["BaseHTTPMiddleware"], **options):
         self._fastapi.add_middleware(middleware_class, **options)
         return self
 
@@ -144,9 +152,7 @@ class Application(Container, Generic[TConfig]):
             try:
                 from fastapi import FastAPI
             except ImportError:
-                raise RuntimeError(
-                    "FastAPI is not installed. Install it with: pip install fastapi"
-                )
+                raise RuntimeError("FastAPI is not installed. Install it with: pip install fastapi")
             self._fastapi = FastAPI()
         # Making the type hint work
         assert self._fastapi is not None
@@ -159,7 +165,11 @@ class Application(Container, Generic[TConfig]):
         LoadEnvironment(environment=self.env, base_path=self.base_path)
 
     def is_debug(self) -> bool:
-        return hasattr(self, '_config_instance') and self._config_instance is not None and getattr(self._config_instance, 'debug', False)
+        return (
+            hasattr(self, "_config_instance")
+            and self._config_instance is not None
+            and getattr(self._config_instance, "debug", False)
+        )
 
     def configure_config(self):
         if self._config is not None:
@@ -172,15 +182,15 @@ class Application(Container, Generic[TConfig]):
         return self._config_instance
 
     def configure_paths(self):
-        self.bind('config.location', os.path.join(self.base_path, "config"))
+        self.bind("config.location", os.path.join(self.base_path, "config"))
 
     def use_config_path(self, path: str = None):
-        self.bind('config.location', path)
+        self.bind("config.location", path)
 
         return self
 
     def use_storage_path(self, path: str = None):
-        self.bind('storage.location', path)
+        self.bind("storage.location", path)
 
         return self
 

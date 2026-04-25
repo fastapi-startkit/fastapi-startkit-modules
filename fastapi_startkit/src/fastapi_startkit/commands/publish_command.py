@@ -21,7 +21,7 @@ class PublishCommand(Command):
     def handle(self):
         from fastapi_startkit.application import app
 
-        application: 'Application' = app()
+        application: "Application" = app()
 
         if not application.published_resources:
             self.line("<comment>Nothing to publish.</comment>")
@@ -32,9 +32,7 @@ class PublishCommand(Command):
         if provider_arg:
             target = Str.slugify(provider_arg)
             resources = {
-                name: files
-                for name, files in application.published_resources.items()
-                if Str.slugify(name) == target
+                name: files for name, files in application.published_resources.items() if Str.slugify(name) == target
             }
             if not resources:
                 self.line(f"<error>No provider found matching '{provider_arg}'.</error>")
@@ -47,7 +45,9 @@ class PublishCommand(Command):
                 dest_path = application.use_base_path(destination)
 
                 if os.path.exists(dest_path):
-                    overwrite = self.confirm(f"  <comment>{destination}</comment> already exists. Overwrite?", default=False)
+                    overwrite = self.confirm(
+                        f"  <comment>{destination}</comment> already exists. Overwrite?", default=False
+                    )
                     if not overwrite:
                         self.line(f"  [{provider_key}] Skipped <comment>{destination}</comment>")
                         continue

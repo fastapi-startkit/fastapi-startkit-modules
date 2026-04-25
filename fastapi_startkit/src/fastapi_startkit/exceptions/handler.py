@@ -62,12 +62,14 @@ class ExceptionHandler:
         self.report_exception(exception)
 
     def report_exception(self, exception: Exception):
-        if self.app and self.app.has('logger'):
+        if self.app and self.app.has("logger"):
             from fastapi_startkit.logging.logger import Logger
+
             Logger.error(self._build_context(exception))
 
     def _build_context(self, exception: Exception) -> str:
         import traceback
+
         context = f"{type(exception).__name__}: {exception}"
         if self.app and self.app.is_debug():
             context += "\n" + "".join(traceback.format_exception(type(exception), exception, exception.__traceback__))

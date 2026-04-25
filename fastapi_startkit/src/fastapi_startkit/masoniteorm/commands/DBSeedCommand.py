@@ -8,9 +8,7 @@ class DBSeedCommand(Command):
     name = "db:seed"
     description = "Run seeds."
 
-    arguments = [
-        argument("table", default="None", description="Name of the table to seed", optional=True)
-    ]
+    arguments = [argument("table", default="None", description="Name of the table to seed", optional=True)]
 
     options = [
         option(
@@ -37,10 +35,12 @@ class DBSeedCommand(Command):
 
     def handle(self):
         import asyncio
+
         return asyncio.run(self.handle_async())
 
     async def handle_async(self):
         from ..seeds import Seeder
+
         seeder = Seeder(
             seed_path=self.option("directory"),
             connection=self.option("connection"),

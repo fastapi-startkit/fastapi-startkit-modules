@@ -268,9 +268,7 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
         collection = Collection([1, 1, 2, 4])
         self.assertEqual(collection.count(), 4)
 
-        collection = Collection(
-            [{"name": "Corentin All", "age": 1}, {"name": "Corentin All", "age": 2}]
-        )
+        collection = Collection([{"name": "Corentin All", "age": 1}, {"name": "Corentin All", "age": 2}])
         self.assertEqual(collection.count(), 2)
 
     def test_chunk(self):
@@ -390,9 +388,7 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
         collection.reject(lambda x: x if x["age"] > 2 else None)
 
         self.assertEqual(
-            Collection(
-                [{"name": "Corentin All", "age": 3}, {"name": "Corentin All", "age": 4}]
-            ),
+            Collection([{"name": "Corentin All", "age": 3}, {"name": "Corentin All", "age": 4}]),
             collection.all(),
         )
 
@@ -533,9 +529,7 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
         result = collection.implode("-")
         self.assertEqual(result, "1-2-3-4")
 
-        collection = Collection(
-            [{"name": "Corentin"}, {"name": "Joe"}, {"name": "Marlysson"}]
-        )
+        collection = Collection([{"name": "Corentin"}, {"name": "Joe"}, {"name": "Marlysson"}])
         result = collection.implode(key="name")
         self.assertEqual(result, "Corentin,Joe,Marlysson")
 
@@ -550,9 +544,7 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
                 return self.code == other.code
 
         currencies = collection.map_into(Currency)
-        self.assertEqual(
-            currencies.all(), [Currency("USD"), Currency("EUR"), Currency("GBP")]
-        )
+        self.assertEqual(currencies.all(), [Currency("USD"), Currency("EUR"), Currency("GBP")])
 
     def test_map(self):
         collection = Collection([1, 2, 3, 4])
@@ -624,8 +616,7 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(
             json_data,
-            '[{"name": "Corentin", "age": 10}, '
-            '{"name": "Joe", "age": 20}, {"name": "Marlysson", "age": 15}]',
+            '[{"name": "Corentin", "age": 10}, {"name": "Joe", "age": 20}, {"name": "Marlysson", "age": 15}]',
         )
 
     def test_contains(self):

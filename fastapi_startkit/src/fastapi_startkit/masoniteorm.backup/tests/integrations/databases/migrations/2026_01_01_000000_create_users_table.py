@@ -1,5 +1,6 @@
 from fastapi_startkit.masoniteorm.migrations import Migration
 
+
 class CreateUsersTable(Migration):
     async def up(self):
         """

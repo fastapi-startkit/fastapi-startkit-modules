@@ -10,6 +10,7 @@ class SQLiteConfig:
     database: str = env("DB_DATABASE", "database.sqlite")
     options: Optional[Dict[str, Any]] = None
 
+
 @dataclass
 class MySQLConfig:
     driver: str = "mysql"
@@ -34,6 +35,6 @@ class PostgresConfig:
     database: str = env("DB_DATABASE", "inertia")
     username: str = env("DB_USERNAME", "postgres")
     password: str = env("DB_PASSWORD", "")
-    charset: str =  env('DB_CHARSET', 'utf8')
+    charset: str = env("DB_CHARSET", "utf8")
     sslmode: str = env("DB_SSLMODE", "prefer")
     options: Optional[Dict[str, Any]] = None

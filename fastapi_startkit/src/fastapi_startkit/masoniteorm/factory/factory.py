@@ -6,14 +6,13 @@ if TYPE_CHECKING:
 
 
 class Factory(ABC):
-    model: 'Model'
+    model: "Model"
 
     @abstractmethod
-    def definition(self)->dict:
-        ...
+    def definition(self) -> dict: ...
 
     @classmethod
-    async def create(cls) -> 'Model':
+    async def create(cls) -> "Model":
         model: Model = cls.model
         instance = cls()
 
