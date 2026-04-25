@@ -1,7 +1,9 @@
-from typing import TYPE_CHECKING
+import dataclasses
+from typing import TYPE_CHECKING, Any
+
+from fastapi_startkit.helpers.string import Str
 
 from fastapi_startkit.helpers.dataclass import Dataclass
-from fastapi_startkit.helpers.string import Str
 
 if TYPE_CHECKING:
     from ..application import Application
@@ -15,7 +17,12 @@ class Provider:
         self.config = config or {}
 
         if self.provider_key is None:
-            self.provider_key = str(Str.of(self.__class__.__name__).trim("ServiceProvider").trim("Provider").slugify())
+            self.provider_key = str(
+                Str.of(self.__class__.__name__)
+                .trim("ServiceProvider")
+                .trim("Provider")
+                .slugify()
+            )
 
     def register(self) -> None:
         pass

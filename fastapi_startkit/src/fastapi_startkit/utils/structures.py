@@ -1,10 +1,12 @@
 """Helpers for multiple data structures"""
 
 import importlib
-
+from importlib.abc import Loader
 from dotty_dict import dotty
 
 from ..exceptions.exceptions import LoaderNotFound
+
+from .str import modularize
 
 
 def load(path, object_name=None, default=None, raise_exception=False):
@@ -19,7 +21,11 @@ def load(path, object_name=None, default=None, raise_exception=False):
         {object} -- The value (or default) read in the module or the module if no object name
     """
     try:
-        name = path.split("/")[-1].replace(".py", "") if "/" in path else path.replace(".py", "")
+        name = (
+            path.split("/")[-1].replace(".py", "")
+            if "/" in path
+            else path.replace(".py", "")
+        )
         spec = importlib.util.spec_from_file_location(name, path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)

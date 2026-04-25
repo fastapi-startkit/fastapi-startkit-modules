@@ -1,5 +1,4 @@
 from fastapi_startkit.masoniteorm.models import registry
-
 from ..collection import Collection
 from .BaseRelationship import BaseRelationship
 
@@ -62,7 +61,9 @@ class HasManyThrough(BaseRelationship):
         if self.attribute in instance._relationships:
             return instance._relationships[self.attribute]
 
-        return self.apply_related_query(self.distant_builder, self.intermediary_builder, instance)
+        return self.apply_related_query(
+            self.distant_builder, self.intermediary_builder, instance
+        )
 
     def apply_related_query(self, distant_builder, intermediary_builder, owner):
         """
@@ -83,7 +84,9 @@ class HasManyThrough(BaseRelationship):
         intermediate_table = intermediary_builder.get_table_name()
 
         return (
-            self.distant_builder.select(f"{distant_table}.*, {intermediate_table}.{self.local_key}")
+            self.distant_builder.select(
+                f"{distant_table}.*, {intermediate_table}.{self.local_key}"
+            )
             .join(
                 f"{intermediate_table}",
                 f"{intermediate_table}.{self.foreign_key}",
@@ -154,7 +157,9 @@ class HasManyThrough(BaseRelationship):
             callback(current_builder)
 
         (
-            self.distant_builder.select(f"{distant_table}.*, {intermediate_table}.{self.local_key}").join(
+            self.distant_builder.select(
+                f"{distant_table}.*, {intermediate_table}.{self.local_key}"
+            ).join(
                 f"{intermediate_table}",
                 f"{intermediate_table}.{self.foreign_key}",
                 "=",

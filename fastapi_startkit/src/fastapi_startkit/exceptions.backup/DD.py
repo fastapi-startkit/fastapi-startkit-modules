@@ -3,6 +3,7 @@ import warnings
 
 from .exceptions import DumpException
 
+
 warnings.warn(
     "DD class will be removed in Masonite 5. Please use Dump facade instead.",
     DeprecationWarning,

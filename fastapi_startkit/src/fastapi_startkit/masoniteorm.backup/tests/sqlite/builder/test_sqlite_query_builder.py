@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 import pytest
+
 from src.masoniteorm.config import load_config
 from src.masoniteorm.connections import ConnectionResolver
 from src.masoniteorm.exceptions import (
@@ -70,7 +71,9 @@ class BaseTestQueryBuilder:
         builder = self.get_builder()
         builder.sum("age")
 
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_sum_aggregate(self):
@@ -84,7 +87,9 @@ class BaseTestQueryBuilder:
         builder = self.get_builder()
         builder.aggregate("SUM", "age", alias="number")
 
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_sum_aggregate_with_alias_in_column_name(self):
@@ -98,51 +103,67 @@ class BaseTestQueryBuilder:
         builder = self.get_builder()
         builder.where("age", "like", "%name%")
 
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_where_not_like(self):
         builder = self.get_builder()
         builder.where("age", "not like", "%name%")
 
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_max(self):
         builder = self.get_builder()
         builder.max("age")
 
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_min(self):
         builder = self.get_builder()
         builder.min("age")
 
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_avg(self):
         builder = self.get_builder()
         builder.avg("age")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_all(self):
         builder = self.get_builder()
         builder.all()
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_get(self):
         builder = self.get_builder()
         builder.get()
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_first(self):
         builder = self.get_builder().first(query=True)
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_last(self):
@@ -166,7 +187,9 @@ class BaseTestQueryBuilder:
     def test_select(self):
         builder = self.get_builder()
         builder.select("name", "email")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_select_multiple(self):
@@ -183,7 +206,9 @@ class BaseTestQueryBuilder:
             .add_select("salary", lambda q: q.count("*").table("salary"))
             .to_sql()
         )
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_add_select_no_table(self):
@@ -199,7 +224,9 @@ class BaseTestQueryBuilder:
             )
             .to_sql()
         )
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_add_select_with_raw(self):
@@ -209,16 +236,24 @@ class BaseTestQueryBuilder:
             .from_("some_table")
             .add_select(
                 "other_test",
-                lambda query: query.max("updated_at").from_("different_table").where("some_id", "=", "3"),
+                lambda query: (
+                    query.max("updated_at")
+                    .from_("different_table")
+                    .where("some_id", "=", "3")
+                ),
             )
         )
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_select_raw(self):
         builder = self.get_builder()
         builder.select_raw("count(email) as email_count")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_create(self):
@@ -227,19 +262,25 @@ class BaseTestQueryBuilder:
             {"name": "Corentin All", "email": "corentin@yopmail.com"},
             query=True,
         )
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_delete(self):
         builder = self.get_builder()
         builder.delete("name", "Joe", query=True)
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_where(self):
         builder = self.get_builder()
         builder.where("name", "Joe")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_where_dictionary(self):
@@ -251,112 +292,152 @@ class BaseTestQueryBuilder:
     def test_where_exists(self):
         builder = self.get_builder()
         builder.where_exists("name")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_limit(self):
         builder = self.get_builder()
         builder.limit(5)
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_offset(self):
         builder = self.get_builder()
         builder.offset(5)
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_offset_with_limit(self):
         builder = self.get_builder()
         builder.limit(2).offset(5)
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_join(self):
         builder = self.get_builder()
         builder.join("profiles", "users.id", "=", "profiles.user_id")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_left_join(self):
         builder = self.get_builder()
         builder.left_join("profiles", "users.id", "=", "profiles.user_id")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_right_join(self):
         builder = self.get_builder()
         builder.right_join("profiles", "users.id", "=", "profiles.user_id")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_update(self):
-        builder = self.get_builder().update({"name": "Joe", "email": "joe@yopmail.com"}, dry=True)
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        builder = self.get_builder().update(
+            {"name": "Joe", "email": "joe@yopmail.com"}, dry=True
+        )
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_increment(self):
         builder = self.get_builder().increment("age", 1, dry=True)
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_decrement(self):
         builder = self.get_builder().decrement("age", 1, dry=True)
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_count(self):
         builder = self.get_builder()
         builder.count("id")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_order_by_asc(self):
         builder = self.get_builder()
         builder.order_by("email", "asc")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_order_by_multiple(self):
         builder = self.get_builder()
         builder.order_by("email, name, active")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_order_by_reference_direction(self):
         builder = self.get_builder()
         builder.order_by("email, name desc")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_order_by_raw(self):
         builder = self.get_builder()
         builder.order_by_raw("col asc")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_order_by_desc(self):
         builder = self.get_builder()
         builder.order_by("email", "desc")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_where_column(self):
         builder = self.get_builder()
         builder.where_column("name", "username")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_where_not_in(self):
         builder = self.get_builder()
         builder.where_not_in("id", [1, 2, 3])
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_between(self):
         builder = self.get_builder()
         builder.between("id", 2, 5)
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_between_persisted(self):
@@ -368,7 +449,9 @@ class BaseTestQueryBuilder:
     def test_not_between(self):
         builder = self.get_builder()
         builder.not_between("id", 2, 5)
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_not_between_persisted(self):
@@ -381,49 +464,65 @@ class BaseTestQueryBuilder:
         builder = self.get_builder()
         builder.where_in("id", [1, 2, 3])
 
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_where_null(self):
         builder = self.get_builder()
         builder.where_null("name")
 
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_where_not_null(self):
         builder = self.get_builder()
         builder.where_not_null("name")
 
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_having(self):
         builder = self.get_builder(table="payments")
-        builder.select("user_id").avg("salary").group_by("user_id").having("salary", ">=", "1000")
+        builder.select("user_id").avg("salary").group_by("user_id").having(
+            "salary", ">=", "1000"
+        )
 
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_group_by(self):
         builder = self.get_builder(table="payments")
         builder.select("user_id").min("salary").group_by("user_id")
 
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_group_by_raw(self):
         builder = self.get_builder(table="payments")
         builder.select("user_id").min("salary").group_by_raw("count(*)")
 
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_group_by_multiple(self):
         builder = self.get_builder(table="payments")
         builder.select("user_id").min("salary").group_by("user_id").group_by("salary")
 
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_group_by_multiple_in_same_group_by(self):
@@ -450,42 +549,59 @@ class BaseTestQueryBuilder:
     def test_where_lt(self):
         builder = self.get_builder()
         builder.where("age", "<", "20")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_where_lte(self):
         builder = self.get_builder()
         builder.where("age", "<=", "20")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_where_gt(self):
         builder = self.get_builder()
         builder.where("age", ">", "20")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_where_gte(self):
         builder = self.get_builder()
         builder.where("age", ">=", "20")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_where_ne(self):
         builder = self.get_builder()
         builder.where("age", "!=", "20")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_or_where(self):
         builder = self.get_builder()
         builder.where("age", "20").or_where("age", "<", 20)
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_can_call_with_schema(self):
         builder = self.get_builder()
-        sql = builder.table("information_schema.columns").select("table_name").where("table_name", "users").to_sql()
+        sql = (
+            builder.table("information_schema.columns")
+            .select("table_name")
+            .where("table_name", "users")
+            .to_sql()
+        )
         self.assertEqual(
             sql,
             """SELECT "information_schema"."columns"."table_name" FROM "information_schema"."columns" WHERE "information_schema"."columns"."table_name" = 'users'""",
@@ -499,13 +615,17 @@ class BaseTestQueryBuilder:
     def test_truncate(self):
         builder = self.get_builder()
         sql = builder.truncate(dry=True)
-        sql_ref = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql_ref = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(sql, sql_ref)
 
     def test_truncate_without_foreign_keys(self):
         builder = self.get_builder()
         sql = builder.truncate(foreign_keys=True)
-        sql_ref = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql_ref = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(sql, sql_ref)
 
 
@@ -732,7 +852,9 @@ class SQLiteQueryBuilderTest(BaseTestQueryBuilder, unittest.TestCase):
         """
         builder.order_by('email', 'asc')
         """
-        return """SELECT * FROM "users" ORDER BY "email" ASC, "name" ASC, "active" ASC"""
+        return (
+            """SELECT * FROM "users" ORDER BY "email" ASC, "name" ASC, "active" ASC"""
+        )
 
     def order_by_raw(self):
         """
@@ -907,13 +1029,17 @@ class SQLiteQueryBuilderTest(BaseTestQueryBuilder, unittest.TestCase):
     def test_latest(self):
         builder = self.get_builder()
         builder.latest("email")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def test_oldest(self):
         builder = self.get_builder()
         builder.oldest("email")
-        sql = getattr(self, inspect.currentframe().f_code.co_name.replace("test_", ""))()
+        sql = getattr(
+            self, inspect.currentframe().f_code.co_name.replace("test_", "")
+        )()
         self.assertEqual(builder.to_sql(), sql)
 
     def oldest(self):

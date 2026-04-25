@@ -52,7 +52,9 @@ class EagerLoadMixin:
                         relation_key=eager,
                     )
 
-    async def _register_relationships_to_model(self, related, related_result, models, relation_key):
+    async def _register_relationships_to_model(
+        self, related, related_result, models, relation_key
+    ):
         if related_result and isinstance(models, Collection):
             map_related = self._map_related(related_result, related)
             for model in models:

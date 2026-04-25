@@ -1,7 +1,8 @@
-from fastapi_startkit.masoniteorm.models import registry
+import inflection
 
 from ..collection import Collection
 from .BaseRelationship import BaseRelationship
+from fastapi_startkit.masoniteorm.models import registry
 
 
 class HasOne(BaseRelationship):
@@ -20,7 +21,9 @@ class HasOne(BaseRelationship):
         return self
 
     def apply_query(self, foreign, owner):
-        return foreign.where(self.foreign_key, owner.__attributes__[self.local_key]).first()
+        return foreign.where(
+            self.foreign_key, owner.__attributes__[self.local_key]
+        ).first()
 
     async def get_related(self, query, relation, eagers=(), callback=None):
         builder = self.get_builder().with_(eagers)
@@ -55,7 +58,9 @@ class HasOne(BaseRelationship):
         return related_builder
 
     def register_related(self, key, model, collection):
-        related = collection.where(self.foreign_key, getattr(model, self.local_key)).first()
+        related = collection.where(
+            self.foreign_key, getattr(model, self.local_key)
+        ).first()
 
         model.add_relation({key: related or None})
 
@@ -75,7 +80,9 @@ class HasOne(BaseRelationship):
         local_key_value = getattr(current_model, self.local_key)
         if not related_record.is_created():
             related_record.fill({self.foreign_key: local_key_value})
-            return await related_record.create(related_record.all_attributes(), cast=True)
+            return await related_record.create(
+                related_record.all_attributes(), cast=True
+            )
 
         return await related_record.update({self.foreign_key: local_key_value})
 

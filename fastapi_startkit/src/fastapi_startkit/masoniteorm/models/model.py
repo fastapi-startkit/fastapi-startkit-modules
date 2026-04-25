@@ -1,17 +1,16 @@
 from __future__ import annotations
+import inflection
 
 from typing import TYPE_CHECKING
 
-import inflection
-
 from fastapi_startkit.carbon import Carbon
 from fastapi_startkit.masoniteorm.collection import Collection
-from fastapi_startkit.masoniteorm.connections.manager import DatabaseManager
-from fastapi_startkit.masoniteorm.models.attribute import Attribute
 from fastapi_startkit.masoniteorm.models.fields import CreatedAtField, UpdatedAtField
 from fastapi_startkit.masoniteorm.models.registry import Registry
-from fastapi_startkit.masoniteorm.models.relationship import Relationship
 from fastapi_startkit.masoniteorm.observers import ObservesEvents
+from fastapi_startkit.masoniteorm.connections.manager import DatabaseManager
+from fastapi_startkit.masoniteorm.models.attribute import Attribute
+from fastapi_startkit.masoniteorm.models.relationship import Relationship
 
 if TYPE_CHECKING:
     from fastapi_startkit.orm.models.builder import QueryBuilder
@@ -35,7 +34,9 @@ class Model(Attribute, Relationship, ObservesEvents):
         fillable = []
         for name, _typ in cls.__annotations__.items():
             attr = getattr(cls, name, None)
-            from fastapi_startkit.masoniteorm.relationships.BaseRelationship import BaseRelationship
+            from fastapi_startkit.masoniteorm.relationships.BaseRelationship import (
+                BaseRelationship,
+            )
 
             if isinstance(attr, BaseRelationship):
                 continue
@@ -152,7 +153,9 @@ class Model(Attribute, Relationship, ObservesEvents):
         return cls().new_query()
 
     @classmethod
-    async def first_or_create(cls, search: dict, attributes: dict | None = None) -> "Model":
+    async def first_or_create(
+        cls, search: dict, attributes: dict | None = None
+    ) -> "Model":
         return await cls.query().first_or_create(search, attributes)
 
     @classmethod
@@ -200,8 +203,6 @@ class Model(Attribute, Relationship, ObservesEvents):
 
         # Store the auto-generated primary key so subsequent saves do an UPDATE
         if inserted_id is not None:
-            if isinstance(inserted_id, dict):
-                inserted_id = inserted_id.get(self.__primary_key__)
             self._dirty_attributes[self.__primary_key__] = inserted_id
 
         self._exists = True

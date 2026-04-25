@@ -1,5 +1,4 @@
 import pendulum
-
 from fastapi_startkit.masoniteorm.expressions.expressions import UpdateQueryExpression
 
 
@@ -26,4 +25,6 @@ class UpdatedAtObserver:
 
     def updating(self, model):
         if model.__timestamps__:
-            model.builder._updates += (UpdateQueryExpression({self.field_name: pendulum.now(self.tz)}),)
+            model.builder._updates += (
+                UpdateQueryExpression({self.field_name: pendulum.now(self.tz)}),
+            )

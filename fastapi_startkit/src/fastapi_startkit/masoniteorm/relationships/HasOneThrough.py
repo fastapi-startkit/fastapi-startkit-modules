@@ -1,7 +1,6 @@
-from fastapi_startkit.masoniteorm.models import registry
-
 from ..collection import Collection
 from .BaseRelationship import BaseRelationship
+from fastapi_startkit.masoniteorm.models import registry
 
 
 class HasOneThrough(BaseRelationship):
@@ -61,7 +60,9 @@ class HasOneThrough(BaseRelationship):
         if self.attribute in instance._relationships:
             return instance._relationships[self.attribute]
 
-        return self.apply_relation_query(self.distant_builder, self.intermediary_builder, instance)
+        return self.apply_relation_query(
+            self.distant_builder, self.intermediary_builder, instance
+        )
 
     def apply_relation_query(self, distant_builder, intermediary_builder, owner):
         """
@@ -83,7 +84,9 @@ class HasOneThrough(BaseRelationship):
         int_table = intermediary_builder.get_table_name()
 
         return (
-            distant_builder.select(f"{dist_table}.*, {int_table}.{self.local_owner_key} as {self.local_key}")
+            distant_builder.select(
+                f"{dist_table}.*, {int_table}.{self.local_owner_key} as {self.local_key}"
+            )
             .join(
                 f"{int_table}",
                 f"{int_table}.{self.foreign_key}",
@@ -157,7 +160,9 @@ class HasOneThrough(BaseRelationship):
             callback(current_builder)
 
         (
-            self.distant_builder.select(f"{dist_table}.*, {int_table}.{self.local_owner_key} as {self.local_key}").join(
+            self.distant_builder.select(
+                f"{dist_table}.*, {int_table}.{self.local_owner_key} as {self.local_key}"
+            ).join(
                 f"{int_table}",
                 f"{int_table}.{self.foreign_key}",
                 "=",

@@ -1,5 +1,4 @@
 import pytest_asyncio
-from fastapi_startkit.masoniteorm.tests.integrations.config.database import DATABASES
 
 from fastapi_startkit.masoniteorm.collection import Collection
 from fastapi_startkit.masoniteorm.connections.sqlite_connection import SQLiteConnection
@@ -7,6 +6,7 @@ from fastapi_startkit.masoniteorm.models import Model
 from fastapi_startkit.masoniteorm.relationships import HasManyThrough
 from fastapi_startkit.masoniteorm.schema import Schema
 from fastapi_startkit.masoniteorm.schema.platforms import SQLitePlatform
+from fastapi_startkit.masoniteorm.tests.integrations.config.database import DATABASES
 
 
 class Enrolment(Model):
@@ -33,7 +33,11 @@ class Course(Model):
     name: str
 
     students: list[Student] = HasManyThrough(
-        ["Student", "Enrolment"], "in_course_id", "active_student_id", "course_id", "student_id"
+        ["Student", "Enrolment"],
+        "in_course_id",
+        "active_student_id",
+        "course_id",
+        "student_id",
     )
 
 
@@ -158,5 +162,7 @@ class TestHasManyThroughRelationship:
         assert students.count() == 2
 
     async def test_has_many_through_has_query(self):
-        courses = await Course.where_has("students", lambda query: query.where("name", "Bob")).get()
+        courses = await Course.where_has(
+            "students", lambda query: query.where("name", "Bob")
+        ).get()
         assert courses.count() == 2

@@ -1,7 +1,9 @@
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass, asdict
 from enum import StrEnum
 
+from fastapi_startkit.carbon import Carbon
 from fastapi_startkit.masoniteorm import Model
+from fastapi_startkit.masoniteorm.models.fields import Field
 
 
 @dataclass
@@ -16,7 +18,11 @@ class Address:
         if isinstance(value, str):
             value = json.loads(value)
 
-        return Address(city=value.get("city"), country=value.get("country"), street=value.get("street"))
+        return Address(
+            city=value.get("city"),
+            country=value.get("country"),
+            street=value.get("street"),
+        )
 
     def set(self, value):
         import json

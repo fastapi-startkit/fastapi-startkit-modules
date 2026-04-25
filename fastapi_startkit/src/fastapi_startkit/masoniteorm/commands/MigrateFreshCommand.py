@@ -1,5 +1,4 @@
 from cleo.helpers import option
-
 from .Command import Command
 
 
@@ -22,7 +21,9 @@ class MigrateFreshCommand(Command):
             default="databases/migrations",
             description="The location of the migration directory",
         ),
-        option("ignore-fk", "i", flag=True, description="Ignore foreign key constraints"),
+        option(
+            "ignore-fk", "i", flag=True, description="Ignore foreign key constraints"
+        ),
         option(
             "seed",
             "s",

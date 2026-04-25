@@ -1,5 +1,4 @@
 from fastapi_startkit.masoniteorm.models import registry
-
 from ..collection import Collection
 from .BaseRelationship import BaseRelationship
 
@@ -84,7 +83,9 @@ class MorphTo(BaseRelationship):
                 relations.merge(
                     await morphed_model.where_in(
                         f"{morphed_model.get_table_name()}.{morphed_model.get_primary_key()}",
-                        Collection(items).pluck(self.morph_id, keep_nulls=False).unique(),
+                        Collection(items)
+                        .pluck(self.morph_id, keep_nulls=False)
+                        .unique(),
                     ).get()
                 )
             return relations
@@ -96,7 +97,9 @@ class MorphTo(BaseRelationship):
     def register_related(self, key, model, collection):
         morphed_model = self.morph_map().get(getattr(model, self.morph_key))
 
-        related = collection.where(morphed_model.get_primary_key(), getattr(model, self.morph_id)).first()
+        related = collection.where(
+            morphed_model.get_primary_key(), getattr(model, self.morph_id)
+        ).first()
 
         model.add_relation({key: related})
 

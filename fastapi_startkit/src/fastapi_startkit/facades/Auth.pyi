@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, List, Tuple
+from typing import TYPE_CHECKING, Any, Tuple, List
 
 if TYPE_CHECKING:
     from ..routes import Route

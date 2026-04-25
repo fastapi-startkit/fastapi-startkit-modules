@@ -1,10 +1,8 @@
 import datetime
 import os
 import pathlib
-
-from cleo.helpers import argument, option
 from inflection import camelize, tableize
-
+from cleo.helpers import argument, option
 from .Command import Command
 
 
@@ -15,8 +13,12 @@ class MakeMigrationCommand(Command):
     arguments = [argument("name", description="The name of the migration")]
 
     options = [
-        option("create", "c", flag=False, default="None", description="The table to create"),
-        option("table", "t", flag=False, default="None", description="The table to alter"),
+        option(
+            "create", "c", flag=False, default="None", description="The table to create"
+        ),
+        option(
+            "table", "t", flag=False, default="None", description="The table to alter"
+        ),
         option(
             "directory",
             "d",
@@ -58,4 +60,6 @@ class MakeMigrationCommand(Command):
         with open(os.path.join(os.getcwd(), migration_directory, file_name), "w") as fp:
             fp.write(output)
 
-        self.info(f"Migration file created: {os.path.join(migration_directory, file_name)}")
+        self.info(
+            f"Migration file created: {os.path.join(migration_directory, file_name)}"
+        )

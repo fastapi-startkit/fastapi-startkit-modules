@@ -7,15 +7,38 @@ class ServeCommand(Command):
     description = "Start the FastAPI server."
 
     options = [
-        option("port", "p", flag=False, default="8000", description="The port to serve the application on"),
-        option("host", None, flag=False, default="127.0.0.1", description="The host to bind to"),
-        option("reload", "r", flag=False, default=True, description="Enable auto-reload on code changes"),
-        option("app", "a", flag=False, default="bootstrap.application:app", description="The application to serve"),
+        option(
+            "port",
+            "p",
+            flag=False,
+            default="8000",
+            description="The port to serve the application on",
+        ),
+        option(
+            "host",
+            None,
+            flag=False,
+            default="127.0.0.1",
+            description="The host to bind to",
+        ),
+        option(
+            "reload",
+            "r",
+            flag=False,
+            default=True,
+            description="Enable auto-reload on code changes",
+        ),
+        option(
+            "app",
+            "a",
+            flag=False,
+            default="bootstrap.application:app",
+            description="The application to serve",
+        ),
     ]
 
     def handle(self):
         import uvicorn
-
         from fastapi_startkit.container import Container
 
         port = int(self.option("port"))
@@ -42,7 +65,9 @@ class ServeCommand(Command):
                 }
             )
 
-            self.line(f"<info>Starting Uvicorn server on {host}:{port} [{app}]...</info>")
+            self.line(
+                f"<info>Starting Uvicorn server on {host}:{port} [{app}]...</info>"
+            )
 
         else:
             self.line(f"<info>Starting Uvicorn server on {host}:{port}...</info>")
@@ -66,6 +91,8 @@ class ServeCommand(Command):
         except (ImportError, ValueError):
             pass
 
-        self.line("<fg=yellow>Unable to detect the application, run the command with --app={app}</>")
+        self.line(
+            "<fg=yellow>Unable to detect the application, run the command with --app={app}</>"
+        )
 
         return False

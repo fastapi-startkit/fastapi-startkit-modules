@@ -6,7 +6,9 @@ class Registry:
     @classmethod
     def register(cls, model: type):
         name = model.__name__
-        morph_name = model.get_morph_class() if hasattr(model, "get_morph_class") else name
+        morph_name = (
+            model.get_morph_class() if hasattr(model, "get_morph_class") else name
+        )
 
         cls._models[name] = model
 

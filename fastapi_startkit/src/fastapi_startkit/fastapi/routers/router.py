@@ -78,25 +78,39 @@ class Router:
             **kwargs,
         )
 
-    def get(self, path: str, endpoint: Callable[..., Any], **kwargs: Unpack[RouteOptions]) -> None:
+    def get(
+        self, path: str, endpoint: Callable[..., Any], **kwargs: Unpack[RouteOptions]
+    ) -> None:
         self._add_route(path, endpoint, ["GET"], **kwargs)
 
-    def post(self, path: str, endpoint: Callable[..., Any], **kwargs: Unpack[RouteOptions]) -> None:
+    def post(
+        self, path: str, endpoint: Callable[..., Any], **kwargs: Unpack[RouteOptions]
+    ) -> None:
         self._add_route(path, endpoint, ["POST"], **kwargs)
 
-    def put(self, path: str, endpoint: Callable[..., Any], **kwargs: Unpack[RouteOptions]) -> None:
+    def put(
+        self, path: str, endpoint: Callable[..., Any], **kwargs: Unpack[RouteOptions]
+    ) -> None:
         self._add_route(path, endpoint, ["PUT"], **kwargs)
 
-    def patch(self, path: str, endpoint: Callable[..., Any], **kwargs: Unpack[RouteOptions]) -> None:
+    def patch(
+        self, path: str, endpoint: Callable[..., Any], **kwargs: Unpack[RouteOptions]
+    ) -> None:
         self._add_route(path, endpoint, ["PATCH"], **kwargs)
 
-    def delete(self, path: str, endpoint: Callable[..., Any], **kwargs: Unpack[RouteOptions]) -> None:
+    def delete(
+        self, path: str, endpoint: Callable[..., Any], **kwargs: Unpack[RouteOptions]
+    ) -> None:
         self._add_route(path, endpoint, ["DELETE"], **kwargs)
 
-    def head(self, path: str, endpoint: Callable[..., Any], **kwargs: Unpack[RouteOptions]) -> None:
+    def head(
+        self, path: str, endpoint: Callable[..., Any], **kwargs: Unpack[RouteOptions]
+    ) -> None:
         self._add_route(path, endpoint, ["HEAD"], **kwargs)
 
-    def options(self, path: str, endpoint: Callable[..., Any], **kwargs: Unpack[RouteOptions]) -> None:
+    def options(
+        self, path: str, endpoint: Callable[..., Any], **kwargs: Unpack[RouteOptions]
+    ) -> None:
         self._add_route(path, endpoint, ["OPTIONS"], **kwargs)
 
     def resource(
@@ -133,22 +147,44 @@ class Router:
             self.get(f"/{name}", fn("index"), name=route_name("index", name))
 
         if include("create") and hasattr(controller, "create"):
-            self.get(f"/{name}/create", fn("create"), name=route_name("create", f"{name}.create"))
+            self.get(
+                f"/{name}/create",
+                fn("create"),
+                name=route_name("create", f"{name}.create"),
+            )
 
         if include("store") and hasattr(controller, "store"):
-            self.post(f"/{name}", fn("store"), name=route_name("store", f"{name}.store"))
+            self.post(
+                f"/{name}", fn("store"), name=route_name("store", f"{name}.store")
+            )
 
         if include("show") and hasattr(controller, "show"):
-            self.get(f"/{name}/{{{param}}}", fn("show"), name=route_name("show", f"{name}.show"))
+            self.get(
+                f"/{name}/{{{param}}}",
+                fn("show"),
+                name=route_name("show", f"{name}.show"),
+            )
 
         if include("edit") and hasattr(controller, "edit"):
-            self.get(f"/{name}/{{{param}}}/edit", fn("edit"), name=route_name("edit", f"{name}.edit"))
+            self.get(
+                f"/{name}/{{{param}}}/edit",
+                fn("edit"),
+                name=route_name("edit", f"{name}.edit"),
+            )
 
         if include("update") and hasattr(controller, "update"):
-            self.put(f"/{name}/{{{param}}}", fn("update"), name=route_name("update", f"{name}.update"))
+            self.put(
+                f"/{name}/{{{param}}}",
+                fn("update"),
+                name=route_name("update", f"{name}.update"),
+            )
 
         if include("destroy") and hasattr(controller, "destroy"):
-            self.delete(f"/{name}/{{{param}}}", fn("destroy"), name=route_name("destroy", f"{name}.destroy"))
+            self.delete(
+                f"/{name}/{{{param}}}",
+                fn("destroy"),
+                name=route_name("destroy", f"{name}.destroy"),
+            )
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.router, name)

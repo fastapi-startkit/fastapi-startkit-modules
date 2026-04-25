@@ -1,10 +1,10 @@
 import pytest
-from fastapi_startkit.orm.connections.factory import ConnectionFactory
-from fastapi_startkit.orm.connections.manager import DatabaseManager
-from fastapi_startkit.orm.models.model import Model
 
 from fastapi_startkit.carbon import Carbon
 from fastapi_startkit.masoniteorm.models.fields import DateTimeField
+from fastapi_startkit.orm.connections.factory import ConnectionFactory
+from fastapi_startkit.orm.connections.manager import DatabaseManager
+from fastapi_startkit.orm.models.model import Model
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
@@ -112,7 +112,10 @@ class TestModelInsert:
         saved = await user.save()
 
         assert saved is True
-        assert user.email_verified_at.format("YYYY-MM-DD HH:mm:ss") == "2026-10-01 12:12:12"
+        assert (
+            user.email_verified_at.format("YYYY-MM-DD HH:mm:ss")
+            == "2026-10-01 12:12:12"
+        )
 
 
 # ---------------------------------------------------------------------------

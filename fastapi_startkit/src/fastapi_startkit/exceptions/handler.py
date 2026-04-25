@@ -1,6 +1,8 @@
-import atexit
 import sys
+import atexit
 from typing import Any, Callable, Dict, List, Optional, Type
+
+from dumpdie import dd
 
 
 class ExceptionHandler:
@@ -70,7 +72,11 @@ class ExceptionHandler:
 
         context = f"{type(exception).__name__}: {exception}"
         if self.app and self.app.is_debug():
-            context += "\n" + "".join(traceback.format_exception(type(exception), exception, exception.__traceback__))
+            context += "\n" + "".join(
+                traceback.format_exception(
+                    type(exception), exception, exception.__traceback__
+                )
+            )
         return context
 
     async def handle(self, exception: Exception, context: Optional[Dict] = None) -> Any:

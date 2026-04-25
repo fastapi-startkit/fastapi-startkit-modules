@@ -1,5 +1,4 @@
 from cleo.helpers import option
-
 from .Command import Command
 
 
@@ -22,7 +21,13 @@ class MigrateRefreshCommand(Command):
             default="default",
             description="The connection you want to run migrations on",
         ),
-        option("schema", None, flag=False, default=None, description="Sets the schema to be migrated"),
+        option(
+            "schema",
+            None,
+            flag=False,
+            default=None,
+            description="Sets the schema to be migrated",
+        ),
         option(
             "directory",
             "d",

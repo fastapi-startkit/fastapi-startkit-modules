@@ -1,16 +1,16 @@
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Generic, List, Optional, Type, TypeVar
+from typing import TYPE_CHECKING, Optional
+from typing import Type, Callable, Any, List, TypeVar, Generic
 
 from fastapi_startkit.providers.app_provider import AppProvider
-
 from .config import AppConfig
 from .configuration.providers import ConfigurationProvider
 from .container import Container
 from .environment.environment import LoadEnvironment
 
 if TYPE_CHECKING:
-    from fastapi import APIRouter, FastAPI
+    from fastapi import FastAPI, APIRouter
     from starlette.middleware.base import BaseHTTPMiddleware
 
 from fastapi_startkit.exceptions import ExceptionHandler
@@ -64,7 +64,9 @@ class Application(Container, Generic[TConfig]):
         self.load_providers()
 
     def configure_exception_handler(self):
-        self.exception_manager: ExceptionHandler = self._exception_handler_class(application=self)
+        self.exception_manager: ExceptionHandler = self._exception_handler_class(
+            application=self
+        )
         self.exception_manager.register()
         self.exception_manager.install()
         self.bind("exception_manager", self.exception_manager)
@@ -75,8 +77,6 @@ class Application(Container, Generic[TConfig]):
             config = {}
             if isinstance(provider_data, tuple):
                 provider_class, config = provider_data
-                if callable(config):
-                    config = config()
             else:
                 provider_class = provider_data
 
@@ -129,8 +129,9 @@ class Application(Container, Generic[TConfig]):
         return self
 
     # Add middleware
-    def add_middleware(self, middleware_class: type[Any], *args: Any, **kwargs: Any) -> None:
-        self._fastapi.add_middleware(middleware_class, *args, **kwargs)
+    def add_middleware(self, middleware_class: Type["BaseHTTPMiddleware"], **options):
+        self._fastapi.add_middleware(middleware_class, **options)
+        return self
 
     # Add event handlers (startup/shutdown)
     def add_event_handler(self, event_type: str, func: Callable[..., Any]):
@@ -143,7 +144,9 @@ class Application(Container, Generic[TConfig]):
         return self
 
     # Add custom exception handlers
-    def add_exception_handler(self, exc_class_or_status_code: Any, handler: Callable[..., Any]):
+    def add_exception_handler(
+        self, exc_class_or_status_code: Any, handler: Callable[..., Any]
+    ):
         self._fastapi.add_exception_handler(exc_class_or_status_code, handler)
         return self
 
@@ -153,7 +156,9 @@ class Application(Container, Generic[TConfig]):
             try:
                 from fastapi import FastAPI
             except ImportError:
-                raise RuntimeError("FastAPI is not installed. Install it with: pip install fastapi")
+                raise RuntimeError(
+                    "FastAPI is not installed. Install it with: pip install fastapi"
+                )
             self._fastapi = FastAPI()
         # Making the type hint work
         assert self._fastapi is not None

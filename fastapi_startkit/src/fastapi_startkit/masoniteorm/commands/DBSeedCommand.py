@@ -8,7 +8,14 @@ class DBSeedCommand(Command):
     name = "db:seed"
     description = "Run seeds."
 
-    arguments = [argument("table", default="None", description="Name of the table to seed", optional=True)]
+    arguments = [
+        argument(
+            "table",
+            default="None",
+            description="Name of the table to seed",
+            optional=True,
+        )
+    ]
 
     options = [
         option(
@@ -66,7 +73,9 @@ class DBSeedCommand(Command):
             seeder_seeded = seeder_file.split(".")[-1]
 
         elif table != "None":
-            seeder_file = f"{underscore(table)}_table_seeder.{camelize(table)}TableSeeder"
+            seeder_file = (
+                f"{underscore(table)}_table_seeder.{camelize(table)}TableSeeder"
+            )
             await seeder.run_specific_seed(seeder_file)
             seeder_seeded = f"{camelize(table)}TableSeeder"
 

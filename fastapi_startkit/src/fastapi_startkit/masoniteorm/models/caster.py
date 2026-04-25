@@ -1,13 +1,11 @@
-import datetime
 import json
-from dataclasses import dataclass, field
+import pendulum
+import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Optional, get_type_hints
-
-import pendulum
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any, get_type_hints, Optional
 from pydantic.fields import FieldInfo
-
 from fastapi_startkit.carbon import Carbon
 
 if TYPE_CHECKING:
@@ -135,7 +133,10 @@ class Caster:
     @classmethod
     def build_casts(cls, model):
         model = model if isinstance(model, type) else model.__class__
-        from fastapi_startkit.masoniteorm.relationships.BaseRelationship import BaseRelationship
+        from .registry import Registry
+        from fastapi_startkit.masoniteorm.relationships.BaseRelationship import (
+            BaseRelationship,
+        )
 
         try:
             annotations = get_type_hints(model)
@@ -147,11 +148,15 @@ class Caster:
                         annotations[name] = hint
 
         annotations = {
-            k: v for k, v in annotations.items() if not isinstance(getattr(model, k, None), BaseRelationship)
+            k: v
+            for k, v in annotations.items()
+            if not isinstance(getattr(model, k, None), BaseRelationship)
         }
 
         # Ignore the builder
-        annotations = {k: v for k, v in annotations.items() if k not in cls.IGNORE_CASTS}
+        annotations = {
+            k: v for k, v in annotations.items() if k not in cls.IGNORE_CASTS
+        }
         from .fields import FieldDescriptor
 
         # 1. Collect all potential fields (annotations + descriptors)
@@ -167,7 +172,11 @@ class Caster:
             # 2. Get Type Hint and FieldInfo
             typ = annotations.get(field_name) or "str"
             descriptor = descriptors.get(field_name, None)
-            field_info = descriptor.field_info if isinstance(descriptor, FieldDescriptor) else None
+            field_info = (
+                descriptor.field_info
+                if isinstance(descriptor, FieldDescriptor)
+                else None
+            )
 
             caster = Caster.normalize_type(typ)
             if caster in Caster.cast_class_map:
@@ -189,7 +198,12 @@ class Caster:
             return "bool"
         if t is dict or t is list:
             return "json"
-        if t is pendulum.DateTime or t is datetime.datetime or t is datetime.date or t is Carbon:
+        if (
+            t is pendulum.DateTime
+            or t is datetime.datetime
+            or t is datetime.date
+            or t is Carbon
+        ):
             return "date"
         if isinstance(t, type):
             if issubclass(t, Enum) or hasattr(t, "get") or hasattr(t, "set"):

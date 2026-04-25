@@ -14,7 +14,9 @@ from fastapi_startkit.masoniteorm.schema.platforms import SQLitePlatform
 class TestCollection(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         # Set config path for Schema.on() to work in tests
-        os.environ["DB_CONFIG_PATH"] = "fastapi_startkit.masoniteorm.tests.integrations.config.database"
+        os.environ["DB_CONFIG_PATH"] = (
+            "fastapi_startkit.masoniteorm.tests.integrations.config.database"
+        )
 
         self.schema = Schema(
             connection="dev",
@@ -39,7 +41,9 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
         User.__connection__ = "dev"
 
         # Seed data
-        await User.create({"name": "Joe", "email": "joe@example.com", "password": "password"})
+        await User.create(
+            {"name": "Joe", "email": "joe@example.com", "password": "password"}
+        )
 
     async def asyncTearDown(self):
         # Drop table while still on 'dev' connection
@@ -269,7 +273,9 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
         collection = Collection([1, 1, 2, 4])
         self.assertEqual(collection.count(), 4)
 
-        collection = Collection([{"name": "Corentin All", "age": 1}, {"name": "Corentin All", "age": 2}])
+        collection = Collection(
+            [{"name": "Corentin All", "age": 1}, {"name": "Corentin All", "age": 2}]
+        )
         self.assertEqual(collection.count(), 2)
 
     def test_chunk(self):
@@ -391,7 +397,9 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
         collection.reject(lambda x: x if x["age"] > 2 else None)
 
         self.assertEqual(
-            Collection([{"name": "Corentin All", "age": 3}, {"name": "Corentin All", "age": 4}]),
+            Collection(
+                [{"name": "Corentin All", "age": 3}, {"name": "Corentin All", "age": 4}]
+            ),
             collection.all(),
         )
 
@@ -532,7 +540,9 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
         result = collection.implode("-")
         self.assertEqual(result, "1-2-3-4")
 
-        collection = Collection([{"name": "Corentin"}, {"name": "Joe"}, {"name": "Marlysson"}])
+        collection = Collection(
+            [{"name": "Corentin"}, {"name": "Joe"}, {"name": "Marlysson"}]
+        )
         result = collection.implode(key="name")
         self.assertEqual(result, "Corentin,Joe,Marlysson")
 
@@ -547,7 +557,9 @@ class TestCollection(unittest.IsolatedAsyncioTestCase):
                 return self.code == other.code
 
         currencies = collection.map_into(Currency)
-        self.assertEqual(currencies.all(), [Currency("USD"), Currency("EUR"), Currency("GBP")])
+        self.assertEqual(
+            currencies.all(), [Currency("USD"), Currency("EUR"), Currency("GBP")]
+        )
 
     def test_map(self):
         collection = Collection([1, 2, 3, 4])

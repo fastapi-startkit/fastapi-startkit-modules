@@ -276,7 +276,9 @@ class Collection:
 
                 if k == value:
                     if key:
-                        attributes[self._data_get(item, key)] = self._data_get(item, value)
+                        attributes[self._data_get(item, key)] = self._data_get(
+                            item, value
+                        )
                     else:
                         attributes.append(v)
 

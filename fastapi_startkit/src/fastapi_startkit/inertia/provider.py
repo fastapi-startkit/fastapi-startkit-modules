@@ -1,7 +1,5 @@
 import json
-
 from fastapi_startkit.providers import Provider
-
 from .inertia import Inertia
 from .middleware import InertiaMiddleware
 
@@ -11,7 +9,7 @@ class InertiaProvider(Provider):
 
     def register(self) -> None:
         """Bind the Inertia class to the container."""
-        self.app.bind("inertia", Inertia())
+        self.app.bind("inertia", Inertia(self.app))
 
     def boot(self) -> None:
         """Configure template globals and middleware."""

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, List
+from typing import Any, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..dumps import Dump as DumpObject

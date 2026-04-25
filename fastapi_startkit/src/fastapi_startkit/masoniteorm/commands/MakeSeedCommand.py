@@ -1,9 +1,7 @@
+from cleo.helpers import argument, option
 import os
 import pathlib
-
-from cleo.helpers import argument, option
 from inflection import camelize, underscore
-
 from .Command import Command
 
 

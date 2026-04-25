@@ -1,4 +1,4 @@
-from .drivers import LogSingleDriver, LogSlackDriver, LogSyslogDriver, LogTerminalDriver
+from .drivers import LogSingleDriver, LogTerminalDriver, LogSlackDriver, LogSyslogDriver
 
 
 class DriverFactory:

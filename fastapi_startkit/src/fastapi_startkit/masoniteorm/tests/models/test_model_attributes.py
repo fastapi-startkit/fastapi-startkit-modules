@@ -1,13 +1,13 @@
-from unittest.mock import MagicMock, patch
-
 import pendulum
 import pytest
+from unittest.mock import MagicMock, patch
+
+from fastapi_startkit.carbon import Carbon
+from fastapi_startkit.masoniteorm.models.fields import DateTimeField
 from fastapi_startkit.orm.connections.factory import ConnectionFactory
 from fastapi_startkit.orm.connections.manager import DatabaseManager
 from fastapi_startkit.orm.models.model import Model
 
-from fastapi_startkit.carbon import Carbon
-from fastapi_startkit.masoniteorm.models.fields import DateTimeField
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
@@ -46,7 +46,9 @@ def UserModel(db):
 
 class TestConnectionFactory:
     def test_build_url_uses_explicit_url(self):
-        url = ConnectionFactory.build_url({"driver": "sqlite", "url": "sqlite+aiosqlite:///test.db"})
+        url = ConnectionFactory.build_url(
+            {"driver": "sqlite", "url": "sqlite+aiosqlite:///test.db"}
+        )
         assert url == "sqlite+aiosqlite:///test.db"
 
     def test_build_url_constructs_from_parts(self):
@@ -146,7 +148,10 @@ class TestDateTimeField:
             email="alex@gmail.com",
             email_verified_at="2026-10-01 12:12:12",
         )
-        assert user.email_verified_at.format("YYYY-MM-DD HH:mm:ss") == "2026-10-01 12:12:12"
+        assert (
+            user.email_verified_at.format("YYYY-MM-DD HH:mm:ss")
+            == "2026-10-01 12:12:12"
+        )
 
     def test_email_verified_at_none_when_not_set(self, UserModel):
         user = UserModel(name="Alex", email="alex@gmail.com")
@@ -189,6 +194,8 @@ class TestModelQuery:
         assert isinstance(builder, QueryBuilder)
 
     def test_query_builder_has_model_set(self, UserModel):
+        from fastapi_startkit.orm.models.builder import QueryBuilder
+
         builder = UserModel.query()
         assert builder._model is not None
         assert isinstance(builder._model, UserModel)

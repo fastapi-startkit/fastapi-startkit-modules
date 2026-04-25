@@ -168,7 +168,9 @@ class JoinClause:
 
     def or_on_value(self, column, *args):
         equality, value = self._extract_operator_value(*args)
-        self.on_clauses += ((OnValueClause(column, equality, value, "value", operator="or")),)
+        self.on_clauses += (
+            (OnValueClause(column, equality, value, "value", operator="or")),
+        )
         return self
 
     def on_null(self, column):
@@ -216,7 +218,9 @@ class JoinClause:
         Returns:
             self
         """
-        self.on_clauses += ((OnValueClause(column, "=", True, "NOT NULL", operator="or")),)
+        self.on_clauses += (
+            (OnValueClause(column, "=", True, "NOT NULL", operator="or")),
+        )
         return self
 
     @deprecated("Using where() in a Join clause has been superceded by on_value()")
@@ -237,7 +241,10 @@ class JoinClause:
             value = args[0]
 
         if operator not in operators:
-            raise ValueError("Invalid comparison operator. The operator can be %s" % ", ".join(operators))
+            raise ValueError(
+                "Invalid comparison operator. The operator can be %s"
+                % ", ".join(operators)
+            )
 
         return operator, value
 

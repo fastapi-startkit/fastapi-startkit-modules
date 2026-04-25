@@ -2,6 +2,7 @@ class Platform:
     foreign_key_actions = {
         "cascade": "CASCADE",
         "set null": "SET NULL",
+        "cascade": "CASCADE",
         "restrict": "RESTRICT",
         "no action": "NO ACTION",
         "default": "SET DEFAULT",
@@ -13,7 +14,9 @@ class Platform:
         sql = []
         for name, column in columns.items():
             if column.length:
-                length = self.create_column_length(column.column_type).format(length=column.length)
+                length = self.create_column_length(column.column_type).format(
+                    length=column.length
+                )
             else:
                 length = ""
 
@@ -76,9 +79,9 @@ class Platform:
         sql = []
         for name, constraint in constraints.items():
             sql.append(
-                getattr(self, f"get_{constraint.constraint_type}_constraint_string")().format(
-                    columns=", ".join(constraint._columns)
-                )
+                getattr(
+                    self, f"get_{constraint.constraint_type}_constraint_string"
+                )().format(columns=", ".join(constraint._columns))
             )
         return sql
 

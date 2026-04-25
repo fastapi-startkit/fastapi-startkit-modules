@@ -1,10 +1,8 @@
 import os
 import pathlib
-
-from cleo.helpers import argument, option
 from inflection import camelize, tableize, underscore
-
 from .Command import Command
+from cleo.helpers import argument, option
 
 
 class MakeModelCommand(Command):
@@ -14,11 +12,28 @@ class MakeModelCommand(Command):
     arguments = [argument("name", description="The name of the model")]
 
     options = [
-        option("migration", "m", description="Optionally create a migration file", flag=True),
+        option(
+            "migration",
+            "m",
+            description="Optionally create a migration file",
+            flag=True,
+        ),
         option("seeder", "s", description="Optionally create a seeder file", flag=True),
-        option("create", "c", description="If the migration file should create a table", flag=True),
-        option("table", "t", description="If the migration file should modify an existing table", flag=True),
-        option("pep", "p", description="Makes the file into pep 8 standards", flag=True),
+        option(
+            "create",
+            "c",
+            description="If the migration file should create a table",
+            flag=True,
+        ),
+        option(
+            "table",
+            "t",
+            description="If the migration file should modify an existing table",
+            flag=True,
+        ),
+        option(
+            "pep", "p", description="Makes the file into pep 8 standards", flag=True
+        ),
         option(
             "directory",
             "d",
@@ -47,7 +62,9 @@ class MakeModelCommand(Command):
 
         model_directory = self.option("directory")
 
-        with open(os.path.join(pathlib.Path(__file__).parent.absolute(), "stubs/model.stub")) as fp:
+        with open(
+            os.path.join(pathlib.Path(__file__).parent.absolute(), "stubs/model.stub")
+        ) as fp:
             output = fp.read()
             output = output.replace("__CLASS__", camelize(name))
 
@@ -59,7 +76,9 @@ class MakeModelCommand(Command):
         full_directory_path = os.path.join(os.getcwd(), model_directory)
 
         if os.path.exists(os.path.join(full_directory_path, file_name)):
-            self.line(f'<error>Model "{name}" Already Exists ({full_directory_path}/{file_name})</error>')
+            self.line(
+                f'<error>Model "{name}" Already Exists ({full_directory_path}/{file_name})</error>'
+            )
             return
 
         os.makedirs(os.path.dirname(os.path.join(full_directory_path)), exist_ok=True)

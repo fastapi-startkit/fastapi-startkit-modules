@@ -1,6 +1,7 @@
 import unittest
 
 from dotenv import load_dotenv
+
 from src.masoniteorm.models import Model
 from src.masoniteorm.relationships import (
     belongs_to_many,
@@ -46,7 +47,9 @@ class MySQLRelationships(unittest.TestCase):
     maxDiff = None
 
     def test_belongs_to_many(self):
-        sql = Permission.where_has("role", lambda query: query.where("slug", "users")).to_sql()
+        sql = Permission.where_has(
+            "role", lambda query: query.where("slug", "users")
+        ).to_sql()
 
         self.assertEqual(
             sql,
@@ -71,7 +74,9 @@ class MySQLRelationships(unittest.TestCase):
 
     def test_belongs_to_many_or_where_has(self):
         sql = (
-            Role.where("name", "role_name").or_where_has("permissions", lambda q: q.where("permission_id", 1)).to_sql()
+            Role.where("name", "role_name")
+            .or_where_has("permissions", lambda q: q.where("permission_id", 1))
+            .to_sql()
         )
 
         self.assertEqual(
@@ -90,7 +95,9 @@ class MySQLRelationships(unittest.TestCase):
     def test_where_doesnt_have(self):
         sql = (
             Role.where("name", "role_name")
-            .where_doesnt_have("permissions", lambda q: q.where("name", "Creates Users"))
+            .where_doesnt_have(
+                "permissions", lambda q: q.where("name", "Creates Users")
+            )
             .to_sql()
         )
 
@@ -102,7 +109,9 @@ class MySQLRelationships(unittest.TestCase):
     def test_or_where_doesnt_have(self):
         sql = (
             Role.where("name", "role_name")
-            .or_where_doesnt_have("permissions", lambda q: q.where("name", "Creates Users"))
+            .or_where_doesnt_have(
+                "permissions", lambda q: q.where("name", "Creates Users")
+            )
             .to_sql()
         )
 
@@ -112,7 +121,9 @@ class MySQLRelationships(unittest.TestCase):
         )
 
     def test_belongs_to_many_where_has(self):
-        sql = Role.where_has("permissions", lambda q: q.where("name", "Creates Users")).to_sql()
+        sql = Role.where_has(
+            "permissions", lambda q: q.where("name", "Creates Users")
+        ).to_sql()
 
         self.assertEqual(
             sql,

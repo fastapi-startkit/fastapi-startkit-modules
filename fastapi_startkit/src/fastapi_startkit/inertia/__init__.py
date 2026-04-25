@@ -1,4 +1,4 @@
-from .inertia import Inertia, InertiaResponse
+from .inertia import Inertia
 from .middleware import InertiaMiddleware
 from .provider import InertiaProvider
 

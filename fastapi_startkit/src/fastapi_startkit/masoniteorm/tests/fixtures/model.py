@@ -1,9 +1,13 @@
-from fastapi_startkit.orm.models.model import Model
-
 from fastapi_startkit.carbon.carbon import Carbon
 from fastapi_startkit.masoniteorm import Field
 from fastapi_startkit.masoniteorm.models.fields import DateTimeField
-from fastapi_startkit.masoniteorm.relationships import BelongsTo, BelongsToMany, HasMany, HasOne
+from fastapi_startkit.masoniteorm.relationships import (
+    HasOne,
+    BelongsTo,
+    HasMany,
+    BelongsToMany,
+)
+from fastapi_startkit.orm.models.model import Model
 
 
 class User(Model):
@@ -41,8 +45,12 @@ class Articles(Model):
 
 
 class Store(Model):
-    products: "Product" = BelongsToMany("Product", "store_id", "product_id", "id", "id", with_timestamps=True)
-    products_table: "Product" = BelongsToMany("Product", "store_id", "product_id", "id", "id", table="product_table")
+    products: "Product" = BelongsToMany(
+        "Product", "store_id", "product_id", "id", "id", with_timestamps=True
+    )
+    products_table: "Product" = BelongsToMany(
+        "Product", "store_id", "product_id", "id", "id", table="product_table"
+    )
     store_products: "Product" = BelongsToMany("Product")
 
 

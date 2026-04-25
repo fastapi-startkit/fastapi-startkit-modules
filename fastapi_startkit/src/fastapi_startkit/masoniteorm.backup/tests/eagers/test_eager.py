@@ -5,7 +5,9 @@ from src.masoniteorm.query.EagerRelation import EagerRelations
 
 class TestEagerRelation(unittest.TestCase):
     def test_can_register_string_eager_load(self):
-        self.assertEqual(EagerRelations().register("profile").get_eagers(), [["profile"]])
+        self.assertEqual(
+            EagerRelations().register("profile").get_eagers(), [["profile"]]
+        )
         self.assertEqual(EagerRelations().register("profile").is_nested, False)
         self.assertEqual(
             EagerRelations().register("profile.user").get_eagers(),
@@ -16,7 +18,9 @@ class TestEagerRelation(unittest.TestCase):
             [{"profile": ["user", "logo"]}],
         )
         self.assertEqual(
-            EagerRelations().register("profile.user", "profile.logo", "profile.bio").get_eagers(),
+            EagerRelations()
+            .register("profile.user", "profile.logo", "profile.bio")
+            .get_eagers(),
             [{"profile": ["user", "logo", "bio"]}],
         )
         self.assertEqual(
@@ -25,7 +29,9 @@ class TestEagerRelation(unittest.TestCase):
         )
 
     def test_can_register_tuple_eager_load(self):
-        self.assertEqual(EagerRelations().register(("profile",)).get_eagers(), [["profile"]])
+        self.assertEqual(
+            EagerRelations().register(("profile",)).get_eagers(), [["profile"]]
+        )
         self.assertEqual(
             EagerRelations().register(("profile", "user")).get_eagers(),
             [["profile", "user"]],
@@ -36,7 +42,9 @@ class TestEagerRelation(unittest.TestCase):
         )
 
     def test_can_register_list_eager_load(self):
-        self.assertEqual(EagerRelations().register(["profile"]).get_eagers(), [["profile"]])
+        self.assertEqual(
+            EagerRelations().register(["profile"]).get_eagers(), [["profile"]]
+        )
         self.assertEqual(
             EagerRelations().register(["profile", "user"]).get_eagers(),
             [["profile", "user"]],
@@ -54,6 +62,8 @@ class TestEagerRelation(unittest.TestCase):
             [["logo"], {"profile": ["name"]}],
         )
         self.assertEqual(
-            EagerRelations().register(["profile.name", "logo", "profile.user"]).get_eagers(),
+            EagerRelations()
+            .register(["profile.name", "logo", "profile.user"])
+            .get_eagers(),
             [["logo"], {"profile": ["name", "user"]}],
         )

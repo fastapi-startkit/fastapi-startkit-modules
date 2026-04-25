@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Type, TypeVar
+from typing import TypeVar, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from fastapi_startkit.config import AppConfig

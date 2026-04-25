@@ -1,7 +1,6 @@
+from .BaseDriver import BaseDriver
 import logging
 import logging.handlers
-
-from .BaseDriver import BaseDriver
 
 
 class LogSyslogDriver(BaseDriver):
@@ -11,7 +10,11 @@ class LogSyslogDriver(BaseDriver):
 
         handler = logging.handlers.SysLogHandler(address=path)
 
-        formatter = logging.Formatter("{} - %(levelname)s - %(message)s".format(self.get_time().to_datetime_string()))
+        formatter = logging.Formatter(
+            "{} - %(levelname)s - %(message)s".format(
+                self.get_time().to_datetime_string()
+            )
+        )
         handler.setFormatter(formatter)
 
         self.log.addHandler(handler)

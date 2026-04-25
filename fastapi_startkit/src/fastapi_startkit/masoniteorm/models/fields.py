@@ -1,9 +1,12 @@
+import pendulum
+from pydantic.fields import FieldInfo
+from pydantic import Field as BaseField
 from typing import Any
 
-from pydantic import Field as BaseField
-from pydantic.fields import FieldInfo
-
-from fastapi_startkit.masoniteorm.models.observer import CreatedAtObserver, UpdatedAtObserver
+from fastapi_startkit.masoniteorm.models.observer import (
+    CreatedAtObserver,
+    UpdatedAtObserver,
+)
 
 
 class FieldDescriptor:

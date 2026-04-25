@@ -1,5 +1,7 @@
+from typing import Any
+
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
 
 from fastapi_startkit.masoniteorm.models.builder import QueryBuilder
 
@@ -10,7 +12,11 @@ class Connection:
         self.conn: AsyncEngine = connection
 
     def query(self) -> "QueryBuilder":
-        return QueryBuilder(connection=self, grammar=self.get_query_grammar(), processor=self.get_post_processor())
+        return QueryBuilder(
+            connection=self,
+            grammar=self.get_query_grammar(),
+            processor=self.get_post_processor(),
+        )
 
     def get_query_grammar(cls):
         pass

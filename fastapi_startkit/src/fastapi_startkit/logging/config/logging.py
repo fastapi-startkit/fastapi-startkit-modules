@@ -1,12 +1,14 @@
 import dataclasses
 
 from fastapi_startkit.environment import env
-from fastapi_startkit.logging.config import DailyChannel, StackChannel, TerminalChannel
+from fastapi_startkit.logging.config import StackChannel, DailyChannel, TerminalChannel
 
 
 @dataclasses.dataclass
 class LoggingConfig:
-    default: str = dataclasses.field(default_factory=lambda: env("LOG_CHANNEL", "stack"))
+    default: str = dataclasses.field(
+        default_factory=lambda: env("LOG_CHANNEL", "stack")
+    )
 
     channels: dict = dataclasses.field(
         default_factory=lambda: {

@@ -1,5 +1,4 @@
 from cleo.helpers import option
-
 from .Command import Command
 
 
@@ -28,7 +27,13 @@ class MigrateRollbackCommand(Command):
             flag=True,
             description="Shows the output of SQL for migrations that would be running",
         ),
-        option("schema", None, flag=False, default=None, description="Sets the schema to be migrated"),
+        option(
+            "schema",
+            None,
+            flag=False,
+            default=None,
+            description="Sets the schema to be migrated",
+        ),
         option(
             "directory",
             "d",
