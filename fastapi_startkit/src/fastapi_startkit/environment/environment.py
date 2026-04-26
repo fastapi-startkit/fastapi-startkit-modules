@@ -2,8 +2,9 @@
 
 import os
 import sys
-from dotenv import load_dotenv
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 
 class LoadEnvironment:
@@ -12,19 +13,16 @@ class LoadEnvironment:
         self._detect_env_from_argv()
 
         if only:
-            self._load(f".env.{only}", override=override)
+            self.load_file(f".env.{only}", override=override)
             return
 
         resolved = self._resolve_environment(environment)
 
-        # 2. Try .env.<resolved> first; fall back to .env when it doesn't exist.
-        if resolved:
-            specific = self.base_path / f".env.{resolved}"
-            if specific.exists():
-                load_dotenv(specific, override=override)
-                return
+        # Always load .env as the base, then overlay .env.<environment> on top.
+        self.load_file(".env", override=override)
 
-        load_dotenv(self.base_path / ".env", override=override)
+        if resolved:
+            self.load_file(f".env.{resolved}", override=override)
 
     def _detect_env_from_argv(self):
         """Parse --env=<value> or --env <value> from sys.argv, set APP_ENV,
@@ -53,8 +51,10 @@ class LoadEnvironment:
 
         return None
 
-    def _load(self, filename, override=False):
+    def load_file(self, filename, override=False):
         path = self.base_path / filename
+        if not path.exists():
+            return
         load_dotenv(path, override=override)
 
 

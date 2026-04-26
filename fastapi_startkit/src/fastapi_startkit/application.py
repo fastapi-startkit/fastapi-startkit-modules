@@ -31,7 +31,7 @@ class Application(Container, Generic[TConfig]):
 
     def __init__(
         self,
-        base_path: str = None,
+        base_path: str | Path = None,
         env=None,
         providers=None,
         config: Type[TConfig] | None = None,
@@ -39,7 +39,9 @@ class Application(Container, Generic[TConfig]):
     ):
         super().__init__()
 
-        self.base_path: str = base_path or os.getcwd()
+        self.base_path: str = (
+            str(base_path) if isinstance(base_path, Path) else base_path or os.getcwd()
+        )
         self.env = env
         self.providers = self.DEFAULT_PROVIDERS + (providers or [])
         self.published_resources = {}
@@ -62,6 +64,10 @@ class Application(Container, Generic[TConfig]):
 
         self._fastapi: Optional["FastAPI"] = None
         self.load_providers()
+
+    def set_environment(self, env: str):
+        self.env = env
+        return self
 
     def configure_exception_handler(self):
         self.exception_manager: ExceptionHandler = self._exception_handler_class(

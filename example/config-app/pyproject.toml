@@ -1,0 +1,21 @@
+[project]
+name = "console-app"
+version = "0.1.0"
+description = "A simple application to demonstrate the console application."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi-startkit",
+]
+
+[tool.uv.sources]
+fastapi-startkit = { path = "../../fastapi_startkit", editable=true }
+
+[dependency-groups]
+dev = [
+    "dumpdie>=1.5.0",
+    "pytest>=8.0.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

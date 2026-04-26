@@ -65,6 +65,6 @@ async def update(request: Request, organization: str):
     return RedirectResponse(url=f"/organizations/{organization}/edit", status_code=303)
 
 async def destroy(organization: str):
-    # org = await Organization.find(organization)
-    # await org.delete()
+    org = await Organization.find(organization)
+    await org.delete()
     return RedirectResponse(url="/organizations", status_code=303)

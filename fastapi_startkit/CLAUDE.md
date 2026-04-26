@@ -50,12 +50,91 @@ Hooks (`on_bind`, `on_make`, `on_resolve`) allow intercepting container operatio
 
 ### Configuration (`configuration/`)
 
-Config files are plain Python files in the app's `config/` directory. Values are loaded into a nested dict and accessed via dotted keys:
+#### 1. Defining config with dataclasses
+
+The recommended approach is to define config as a dataclass, with each field sourced from an environment variable via `env()`:
 
 ```python
-Config.get("app.debug")          # config/app.py → DEBUG
-Config.get("database.default")   # config/database.py → DEFAULT
+from dataclasses import dataclass, field
+from fastapi_startkit.environment import env
+
+@dataclass
+class RedisConfig:
+    host: str = field(default_factory=lambda: env('REDIS_HOST'))
+    port: int = field(default_factory=lambda: env('REDIS_PORT'))
+    db: int   = field(default_factory=lambda: env('REDIS_DB'))
+    options: dict = field(default_factory=lambda: {
+        'decode_responses': True
+    })
 ```
+
+`env()` reads from the currently loaded environment, so calling `RedisConfig()` before and after `app.load_environment()` will produce different values.
+
+#### 2. Accessing config anywhere
+
+Because each field is a `default_factory`, instantiating the dataclass at any point will reflect the current environment:
+
+```python
+RedisConfig().host     # reads REDIS_HOST from the active .env
+RedisConfig().port     # reads REDIS_PORT
+RedisConfig().options  # static default dict
+```
+
+No injection or container lookup is required for simple access.
+
+#### 3. Environment-specific `.env` loading
+
+`app.load_environment()` applies a two-step merge:
+
+1. Loads `.env` as the base.
+2. If an environment is set (e.g. `production`), loads `.env.production` on top, overriding matching keys.
+
+```
+.env              ← always loaded first (base/defaults)
+.env.testing      ← loaded when APP_ENV=testing (or under pytest)
+.env.production   ← loaded when APP_ENV=production
+```
+
+Set the environment in code before loading:
+
+```python
+app.set_environment('testing')
+app.load_environment()
+```
+
+Example — `.env` has `REDIS_HOST=host.default`; `.env.testing` has `REDIS_HOST=host.testing`. After `load_environment()`, `RedisConfig().host` returns `host.testing`.
+
+#### 4. Setting the environment via the CLI (`artisan`)
+
+Prefer passing `--env` on the command line over hardcoding it:
+
+```bash
+uv run artisan --env=production   # loads .env + .env.production
+uv run artisan --env=testing      # loads .env + .env.testing
+uv run artisan                    # loads .env only
+```
+
+The `artisan` entry point at the project root bootstraps the application and delegates to `app.handle_command()`.
+
+#### 5. Registering config in the container (optional)
+
+For runtime overrides or dotted-key access to nested values, register a config instance with the container:
+
+```python
+config = app.make('config')
+config.set('redis', RedisConfig())
+```
+
+Then access it from anywhere via the `Config` facade:
+
+```python
+from fastapi_startkit.facades import Config
+
+Config.get('redis.host')     # 'host.testing'
+Config.get('redis.options')  # {'decode_responses': True}
+```
+
+This is most useful when you need to change config at runtime or share nested config across services. Direct instantiation (`RedisConfig().host`) is simpler for read-only access.
 
 `Configuration.merge_with()` allows packages to inject their own config defaults.
 
