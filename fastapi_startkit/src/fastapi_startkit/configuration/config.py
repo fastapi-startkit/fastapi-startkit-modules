@@ -5,7 +5,8 @@ class Config:
     @staticmethod
     def instance():
         from fastapi_startkit.application import app
-        return app().make('config')
+
+        return app().make("config")
 
     @staticmethod
     def get(path: str, default: Any = None) -> Any:

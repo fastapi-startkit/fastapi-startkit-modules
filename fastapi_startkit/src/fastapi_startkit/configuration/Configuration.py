@@ -56,6 +56,7 @@ class Configuration:
 
     def set(self, path, value):
         from fastapi_startkit.helpers.dataclass import Dataclass
+
         self._config[path] = Dataclass.to_dict(value)
 
     def has(self, path):
