@@ -1,9 +1,10 @@
 from fastapi import APIRouter
 from starlette.responses import JSONResponse
 
-from app.models import Post
 from app.models.user import User
-from app.models.post import Post
+from app.http.schemas.auth import StudentRegistrationRequest, TeacherRegistrationRequest
+from app.http.controllers.auth_controller import AuthController
+
 public = APIRouter()
 
 @public.get("/")
@@ -17,15 +18,13 @@ async def get_users():
         "id": users.id,
         "name": users.name,
         "email": users.email,
-        "created_at": users.created_at.diff_for_humans()
+        "created_at": users.created_at.diff_for_humans() if users else None
     })
 
-@public.get("/posts")
-async def get_posts():
-    # Example of fetching posts with relationships
-    posts = await Post.with_("author", "tags").get()
-    return JSONResponse([{
-        'id': post.id,
-        'author': post.author.name,
-        'tags': [tag.name for tag in post.tags]
-    } for post in posts])
+@public.post("/register/student")
+async def register_student(data: StudentRegistrationRequest):
+    return await AuthController.register_student(data)
+
+@public.post("/register/teacher")
+async def register_teacher(data: TeacherRegistrationRequest):
+    return await AuthController.register_teacher(data)
