@@ -1,3 +1,4 @@
+from fastapi_startkit.fastapi.exceptions import HTTPExceptionHandler
 from fastapi import FastAPI
 
 from fastapi_startkit.fastapi.commands import ServeCommand
@@ -20,10 +21,8 @@ class FastAPIProvider(Provider):
 
     def _register_exception_handlers(self):
         """Wire exception_manager as a catch-all handler for all exceptions."""
-        if not self.app.exception_manager:
-            return
-
         exception_manager = self.app.exception_manager
+        exception_manager.register_handler(Exception, HTTPExceptionHandler())
 
         async def handler(request, exc):
             return await exception_manager.handle(exc, {"request": request})
