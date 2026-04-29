@@ -1,9 +1,7 @@
 from dataclasses import dataclass, asdict
 from enum import StrEnum
 
-from fastapi_startkit.carbon import Carbon
 from fastapi_startkit.masoniteorm import Model
-from fastapi_startkit.masoniteorm.models.fields import Field
 
 
 @dataclass

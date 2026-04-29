@@ -1,4 +1,3 @@
-import os
 from ..config import load_config
 from ..migrations import Migration
 from ..seeds import Seeder

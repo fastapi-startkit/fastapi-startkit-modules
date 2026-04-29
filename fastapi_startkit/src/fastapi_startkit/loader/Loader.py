@@ -2,7 +2,6 @@
 
 import inspect
 import pkgutil
-import os
 
 from ..exceptions import LoaderNotFound
 from ..utils.str import as_filepath

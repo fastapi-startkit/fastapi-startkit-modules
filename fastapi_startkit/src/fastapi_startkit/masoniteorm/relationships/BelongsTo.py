@@ -1,4 +1,3 @@
-from typing import Callable
 
 from ..collection import Collection
 from . import BaseRelationship

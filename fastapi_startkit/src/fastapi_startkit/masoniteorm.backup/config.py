@@ -1,6 +1,5 @@
 import os
 import pydoc
-import sys
 import urllib.parse as urlparse
 
 from .exceptions import ConfigurationNotFound, InvalidUrlConfiguration

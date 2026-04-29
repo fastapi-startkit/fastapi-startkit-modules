@@ -1,5 +1,4 @@
-import dataclasses
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from fastapi_startkit.helpers.string import Str
 

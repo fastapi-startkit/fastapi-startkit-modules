@@ -194,7 +194,6 @@ class TestModelQuery:
         assert isinstance(builder, QueryBuilder)
 
     def test_query_builder_has_model_set(self, UserModel):
-        from fastapi_startkit.orm.models.builder import QueryBuilder
 
         builder = UserModel.query()
         assert builder._model is not None

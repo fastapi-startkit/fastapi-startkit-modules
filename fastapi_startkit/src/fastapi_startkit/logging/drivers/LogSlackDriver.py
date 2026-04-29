@@ -1,4 +1,3 @@
-import os
 from .BaseDriver import BaseDriver
 import requests
 
