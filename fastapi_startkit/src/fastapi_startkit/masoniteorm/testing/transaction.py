@@ -56,9 +56,9 @@ class RefreshDatabase:
 
     @pytest.fixture(autouse=True)
     async def refresh_database(self):
-        get_app = getattr(self, 'get_application', None)
-        if get_app:
-            get_app()
+        """Inits the application, and sets the database manager"""
+        getattr(self, 'get_application', None)()
+
         await RefreshDatabase.migrate_database()
         async for _ in _wrap_in_transaction():
             yield
