@@ -1,5 +1,4 @@
 from fastapi_startkit.fastapi import FastAPIProvider
-from routes.api import public
 
 class FastAPIServiceProvider(FastAPIProvider):
     def boot(self) -> None:
@@ -7,6 +6,7 @@ class FastAPIServiceProvider(FastAPIProvider):
 
         # Register routers
         from routes.student import router as student
+        from routes.api import public
 
         self.app.include_router(student)
         self.app.include_router(public)

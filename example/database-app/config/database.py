@@ -8,7 +8,7 @@ from pydantic.dataclasses import dataclass
 
 @dataclass
 class DatabaseConfig:
-    default: str = "mysql"
+    default: str = field(default_factory=lambda: env("DB_CONNECTION", "mysql"))
 
     connections: dict[str, Dict[str, Any]] = field(default_factory=lambda: {
         "sqlite": SQLiteConfig(

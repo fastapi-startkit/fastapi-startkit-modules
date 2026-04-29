@@ -14,11 +14,17 @@ from fastapi_startkit.logging.providers import LogProvider
 from fastapi_startkit.masoniteorm.providers import DatabaseProvider
 
 
+class _FallbackHandler:
+    async def render(self, request, exc):
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+
+
 class AppExceptionHandler(ExceptionHandler):
     def register(self):
-        pass
+        self.register_handler(Exception, _FallbackHandler())
 
-print("Creating app instance...")
+
 app: Application[AppConfig] = Application(
     base_path=str(Path().cwd()),
     config=AppConfig,
