@@ -1,9 +1,9 @@
 import os
+from fastapi_startkit.providers.app_provider import AppProvider
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 from typing import Type, Callable, Any, List, TypeVar, Generic
 
-from fastapi_startkit.providers.app_provider import AppProvider
 from .config import AppConfig
 from .configuration.providers import ConfigurationProvider
 from .container import Container
@@ -30,12 +30,12 @@ class Application(Container, Generic[TConfig]):
     ]
 
     def __init__(
-        self,
-        base_path: str | Path = None,
-        env=None,
-        providers=None,
-        config: Type[TConfig] | None = None,
-        exception_handler: Type[ExceptionHandler] | None = None,
+            self,
+            base_path: str | Path = None,
+            env=None,
+            providers=None,
+            config: Type[TConfig] | None = None,
+            exception_handler: Type[ExceptionHandler] | None = None,
     ):
         super().__init__()
 
@@ -83,6 +83,9 @@ class Application(Container, Generic[TConfig]):
             config = {}
             if isinstance(provider_data, tuple):
                 provider_class, config = provider_data
+
+                if callable(config):
+                    config = config()
             else:
                 provider_class = provider_data
 
@@ -151,7 +154,7 @@ class Application(Container, Generic[TConfig]):
 
     # Add custom exception handlers
     def add_exception_handler(
-        self, exc_class_or_status_code: Any, handler: Callable[..., Any]
+            self, exc_class_or_status_code: Any, handler: Callable[..., Any]
     ):
         self._fastapi.add_exception_handler(exc_class_or_status_code, handler)
         return self
@@ -178,9 +181,9 @@ class Application(Container, Generic[TConfig]):
 
     def is_debug(self) -> bool:
         return (
-            hasattr(self, "_config_instance")
-            and self._config_instance is not None
-            and getattr(self._config_instance, "debug", False)
+                hasattr(self, "_config_instance")
+                and self._config_instance is not None
+                and getattr(self._config_instance, "debug", False)
         )
 
     def configure_config(self):

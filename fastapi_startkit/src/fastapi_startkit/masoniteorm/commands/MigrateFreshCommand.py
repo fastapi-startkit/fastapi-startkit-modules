@@ -22,7 +22,7 @@ class MigrateFreshCommand(Command):
             description="The location of the migration directory",
         ),
         option(
-            "ignore-fk", "i", flag=True, description="Ignore foreign key constraints"
+            "no-fk", None, flag=True, description="Re-enable foreign key constraints during drop"
         ),
         option(
             "seed",
@@ -54,7 +54,7 @@ class MigrateFreshCommand(Command):
             migration_directory=self.option("directory"),
         )
 
-        await migration.fresh(ignore_fk=self.option("ignore-fk"))
+        await migration.fresh(ignore_fk=not self.option("no-fk"))
 
         if self.option("seed") == "null":
             self.call(

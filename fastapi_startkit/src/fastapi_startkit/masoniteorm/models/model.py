@@ -177,7 +177,7 @@ class Model(Attribute, Relationship, ObservesEvents):
                 self.set_attribute(key, value)
         return self
 
-    async def save(self, options: dict | None = None) -> bool:
+    async def save(self, options: dict | None = None):
         query = self.new_query()
 
         self.observe_events(self, "saving")

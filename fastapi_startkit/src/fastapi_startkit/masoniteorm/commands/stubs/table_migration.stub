@@ -1,19 +1,19 @@
 """__MIGRATION_NAME__ Migration."""
 
-from masoniteorm.migrations import Migration
+from fastapi_startkit.masoniteorm.migrations import Migration
 
 
 class __MIGRATION_NAME__(Migration):
-    def up(self):
+    async def up(self):
         """
         Run the migrations.
         """
-        with self.schema.table("__TABLE_NAME__") as table:
+        async with await self.schema.table("__TABLE_NAME__") as table:
             pass
 
-    def down(self):
+    async def down(self):
         """
         Revert the migrations.
         """
-        with self.schema.table("__TABLE_NAME__") as table:
+        async with await self.schema.table("__TABLE_NAME__") as table:
             pass

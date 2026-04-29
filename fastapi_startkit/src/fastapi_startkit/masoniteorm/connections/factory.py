@@ -8,6 +8,7 @@ from fastapi_startkit.masoniteorm.connections.sqlite_connection import SQliteCon
 from fastapi_startkit.masoniteorm.connections.postgres_connection import (
     PostgresConnection,
 )
+from fastapi_startkit.masoniteorm.connections.mysql_connection import MySQLConnection
 
 
 class ConnectionFactory:
@@ -48,5 +49,7 @@ class ConnectionFactory:
                 return SQliteConnection(engine, config)
             case "postgres":
                 return PostgresConnection(engine, config)
+            case "mysql":
+                return MySQLConnection(engine, config)
 
         raise ValueError(f"Unsupported driver: {driver}")

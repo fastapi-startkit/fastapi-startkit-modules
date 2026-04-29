@@ -92,6 +92,16 @@ class Schema:
         )
         await self._connection.run(sql, ())
 
+    async def disable_foreign_key_constraints(self) -> None:
+        connection = self.get_connection()
+        sql = connection.get_default_platform()().disable_foreign_key_constraints()
+        await connection.statement(sql, ())
+
+    async def enable_foreign_key_constraints(self) -> None:
+        connection = self.get_connection()
+        sql = connection.get_default_platform()().enable_foreign_key_constraints()
+        await connection.statement(sql, ())
+
     async def get_all_tables(self):
         """Gets all tables in the database."""
         connection = self.get_connection()

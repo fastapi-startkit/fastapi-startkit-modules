@@ -1,8 +1,9 @@
 import datetime
 import os
 import pathlib
-from inflection import camelize, tableize
+from inflection import tableize
 from cleo.helpers import argument, option
+from fastapi_startkit.helpers.string import Str
 from .Command import Command
 
 
@@ -29,7 +30,7 @@ class MakeMigrationCommand(Command):
     ]
 
     def handle(self):
-        name = self.argument("name")
+        name = self.argument("name").replace("-", "_")
         now = datetime.datetime.today()
 
         if self.option("create") != "None":
@@ -52,7 +53,9 @@ class MakeMigrationCommand(Command):
             )
         ) as fp:
             output = fp.read()
-            output = output.replace("__MIGRATION_NAME__", camelize(name))
+            camel = Str.camel_case(name)
+            class_name = camel[0].upper() + camel[1:]
+            output = output.replace("__MIGRATION_NAME__", class_name)
             output = output.replace("__TABLE_NAME__", table)
 
         file_name = f"{now.strftime('%Y_%m_%d_%H%M%S')}_{name}.py"
