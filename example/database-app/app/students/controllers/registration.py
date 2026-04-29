@@ -25,7 +25,3 @@ async def register(request: StudentRegistrationRequest):
     await profile.save()
 
     return {"message": "Student registered successfully", "user_id": user.id}
-
-
-def login():
-    pass

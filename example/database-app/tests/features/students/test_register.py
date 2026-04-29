@@ -1,5 +1,6 @@
 from app.models.user import User
-from tests.test_case import TestCase, RefreshDatabase
+from fastapi_startkit.masoniteorm.testing import RefreshDatabase
+from tests.test_case import TestCase
 
 
 class TestRegister(TestCase, RefreshDatabase):
