@@ -1,4 +1,3 @@
-from dumpdie import dd
 from pathlib import Path
 
 from fastapi_startkit.masoniteorm.commands import (

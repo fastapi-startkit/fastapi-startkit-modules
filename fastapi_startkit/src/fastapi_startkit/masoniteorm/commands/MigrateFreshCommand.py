@@ -22,7 +22,10 @@ class MigrateFreshCommand(Command):
             description="The location of the migration directory",
         ),
         option(
-            "no-fk", None, flag=True, description="Re-enable foreign key constraints during drop"
+            "no-fk",
+            None,
+            flag=True,
+            description="Re-enable foreign key constraints during drop",
         ),
         option(
             "seed",

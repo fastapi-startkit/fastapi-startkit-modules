@@ -1,6 +1,5 @@
 import os
 
-from dumpdie import dd
 
 from fastapi_startkit.providers import Provider
 from ..config.vite import ViteConfig

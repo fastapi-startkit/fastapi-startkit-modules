@@ -1,4 +1,3 @@
-from dumpdie import dd
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -14,7 +13,7 @@ class DatabaseManager:
     def connection(self, name: str | None):
         name = self.get_default_connection_name(name)
         assert name is not None
-        config = self.config.get('connections', {}).get(name)
+        config = self.config.get("connections", {}).get(name)
 
         if config is None:
             raise ValueError(f"Connection '{name}' not found in configuration")

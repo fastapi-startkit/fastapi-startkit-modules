@@ -50,6 +50,13 @@ dev = [
 ]
 
 
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["F401"]
+fixable = ["F401"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 

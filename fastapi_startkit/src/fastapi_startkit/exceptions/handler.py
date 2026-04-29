@@ -2,7 +2,6 @@ import sys
 import atexit
 from typing import Any, Callable, Dict, List, Optional, Type
 
-from dumpdie import dd
 
 
 class ExceptionHandler:

@@ -2,6 +2,7 @@ class HTTPExceptionHandler:
     """
     The base exception handler for FastAPI applications.
     """
+
     async def render(self, request, exc):
         import traceback
         from fastapi.responses import JSONResponse
