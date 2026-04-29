@@ -1,7 +1,6 @@
-from typing import Any
 
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from fastapi_startkit.masoniteorm.models.builder import QueryBuilder
 

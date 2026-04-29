@@ -1,0 +1,2 @@
+#!/bin/sh
+cd fastapi_startkit && uvx ruff check --fix src/

@@ -1,9 +1,9 @@
 import os
+from fastapi_startkit.providers.app_provider import AppProvider
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 from typing import Type, Callable, Any, List, TypeVar, Generic
 
-from fastapi_startkit.providers.app_provider import AppProvider
 from .config import AppConfig
 from .configuration.providers import ConfigurationProvider
 from .container import Container
@@ -83,6 +83,9 @@ class Application(Container, Generic[TConfig]):
             config = {}
             if isinstance(provider_data, tuple):
                 provider_class, config = provider_data
+
+                if callable(config):
+                    config = config()
             else:
                 provider_class = provider_data
 

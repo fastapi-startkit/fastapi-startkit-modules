@@ -1,4 +1,4 @@
-from cleo.helpers import argument, option
+from cleo.helpers import option
 import os
 import re
 import shlex

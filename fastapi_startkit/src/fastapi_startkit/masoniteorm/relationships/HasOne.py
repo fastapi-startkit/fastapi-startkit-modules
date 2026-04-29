@@ -1,4 +1,3 @@
-import inflection
 
 from ..collection import Collection
 from .BaseRelationship import BaseRelationship

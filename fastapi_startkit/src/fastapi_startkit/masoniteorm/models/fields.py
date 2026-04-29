@@ -1,4 +1,3 @@
-import pendulum
 from pydantic.fields import FieldInfo
 from pydantic import Field as BaseField
 from typing import Any

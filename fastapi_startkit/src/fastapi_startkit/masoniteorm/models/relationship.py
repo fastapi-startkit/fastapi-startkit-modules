@@ -1,4 +1,3 @@
-from fastapi_startkit.masoniteorm.query.EagerRelation import EagerRelations
 
 
 class Relationship:

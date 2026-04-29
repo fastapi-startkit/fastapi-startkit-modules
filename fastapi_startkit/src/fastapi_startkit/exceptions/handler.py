@@ -2,7 +2,6 @@ import sys
 import atexit
 from typing import Any, Callable, Dict, List, Optional, Type
 
-from dumpdie import dd
 
 
 class ExceptionHandler:
@@ -62,10 +61,13 @@ class ExceptionHandler:
         self.report_exception(exception)
 
     def report_exception(self, exception: Exception):
+        context = self._build_context(exception)
         if self.app and self.app.has("logger"):
             from fastapi_startkit.logging.logger import Logger
 
-            Logger.error(self._build_context(exception))
+            Logger.error(context)
+        else:
+            print(context, file=sys.stderr)
 
     def _build_context(self, exception: Exception) -> str:
         import traceback

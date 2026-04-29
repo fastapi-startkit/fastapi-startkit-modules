@@ -1,6 +1,5 @@
 from unittest.mock import MagicMock, patch
 from fastapi_startkits.configuration import Configuration
-from fastapi_startkits.loader import Loader
 
 
 class TestConfiguration:

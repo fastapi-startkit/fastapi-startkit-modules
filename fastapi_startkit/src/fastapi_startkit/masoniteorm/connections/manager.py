@@ -13,7 +13,11 @@ class DatabaseManager:
     def connection(self, name: str | None):
         name = self.get_default_connection_name(name)
         assert name is not None
-        config = self.config[name]
+        config = self.config.get("connections", {}).get(name)
+
+        if config is None:
+            raise ValueError(f"Connection '{name}' not found in configuration")
+
         if name not in self.connections:
             self.connections[name] = self.factory.make(config, name)
 

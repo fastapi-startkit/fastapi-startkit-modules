@@ -1,6 +1,5 @@
 import inspect
 
-import inflection
 from typing import TYPE_CHECKING
 
 from fastapi_startkit.masoniteorm.expressions.expressions import (

@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from fastapi_startkit.providers import Provider

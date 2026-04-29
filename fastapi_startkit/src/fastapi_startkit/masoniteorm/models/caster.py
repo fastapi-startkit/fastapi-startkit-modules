@@ -133,7 +133,6 @@ class Caster:
     @classmethod
     def build_casts(cls, model):
         model = model if isinstance(model, type) else model.__class__
-        from .registry import Registry
         from fastapi_startkit.masoniteorm.relationships.BaseRelationship import (
             BaseRelationship,
         )

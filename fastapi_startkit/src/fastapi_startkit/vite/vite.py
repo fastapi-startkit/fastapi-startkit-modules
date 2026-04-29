@@ -5,7 +5,6 @@ import re
 import secrets
 from typing import Callable, Optional
 
-from dumpdie import dd
 
 from .exceptions import ViteException, ViteManifestNotFoundException
 
