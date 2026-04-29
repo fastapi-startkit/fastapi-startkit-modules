@@ -1,31 +1,21 @@
 from dataclasses import field
+from typing import Dict, Any
 
+from fastapi_startkit.environment import env
+from fastapi_startkit.masoniteorm import MySQLConfig, SQLiteConfig
 from pydantic.dataclasses import dataclass
 
-from fastapi_startkit.environment.environment import env
-
-
-@dataclass
-class DatabaseConnection:
-    driver: str | None = None
-    host: str | None = None
-    database: str | None = None
-    username: str | None = None
-    password: str | None = None
-    port: int | None = None
-    prefix: str | None = None
-    options: dict = field(default_factory=dict)
 
 @dataclass
 class DatabaseConfig:
-    default: str = "postgres"
+    default: str = field(default_factory=lambda: env("DB_CONNECTION", "mysql"))
 
-    connections: dict[str, DatabaseConnection] = field(default_factory=lambda: {
-        "sqlite": DatabaseConnection(
+    connections: dict[str, Dict[str, Any]] = field(default_factory=lambda: {
+        "sqlite": SQLiteConfig(
             driver="sqlite",
             database=env("DB_DATABASE", "database.sqlite"),
         ),
-        "mysql": DatabaseConnection(
+        "mysql": MySQLConfig(
             driver="mysql",
             host=env("DB_HOST", "127.0.0.1"),
             database=env("DB_DATABASE", "laravel"),
@@ -37,5 +27,3 @@ class DatabaseConfig:
             }
         ),
     })
-
-    migration_path: str =field(default_factory=lambda: env("MIGRATION_PATH", "database/migrations"))

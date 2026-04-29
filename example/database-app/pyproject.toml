@@ -5,7 +5,9 @@ description = "FastAPI application example using fastapi-startkit with PostgreSQ
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi-startkit[postgres,fastapi]",
+    "aiomysql>=0.3.2",
+    "cryptography>=47.0.0",
+    "fastapi-startkit[database,fastapi,postgres]",
 ]
 
 [tool.uv.sources]
@@ -14,4 +16,7 @@ fastapi-startkit = { path = "../../fastapi_startkit", editable = true }
 [dependency-groups]
 dev = [
     "dumpdie>=1.5.0",
+    "httpx>=0.28.1",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.3.0",
 ]

@@ -1,31 +1,9 @@
-from fastapi import APIRouter
-from starlette.responses import JSONResponse
+from fastapi_startkit.fastapi import Router
 
-from app.models import Post
-from app.models.user import User
-from app.models.post import Post
-public = APIRouter()
+from app.students.controllers import auth_controller as student_auth
+from app.http.controllers.auth_controller import AuthController
 
-@public.get("/")
-async def index():
-    return {"message": "Welcome to the Database App Example!"}
+public = Router()
 
-@public.get("/users")
-async def get_users():
-    users = await User.first()
-    return JSONResponse({
-        "id": users.id,
-        "name": users.name,
-        "email": users.email,
-        "created_at": users.created_at.diff_for_humans()
-    })
-
-@public.get("/posts")
-async def get_posts():
-    # Example of fetching posts with relationships
-    posts = await Post.with_("author", "tags").get()
-    return JSONResponse([{
-        'id': post.id,
-        'author': post.author.name,
-        'tags': [tag.name for tag in post.tags]
-    } for post in posts])
+public.post("/register/student", student_auth.register)
+public.post("/register/teacher", AuthController.register_teacher)
