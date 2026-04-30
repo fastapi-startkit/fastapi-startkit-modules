@@ -1,9 +1,11 @@
-from app.models.user import User
+from fastapi_startkit.fastapi.testing import HttpTestCase
 from fastapi_startkit.masoniteorm.testing import RefreshDatabase
+
+from app.models.user import User
 from tests.test_case import TestCase
 
 
-class TestRegister(TestCase, RefreshDatabase):
+class TestRegister(TestCase, HttpTestCase, RefreshDatabase):
     async def test_user_can_register(self):
         response = await self.post("/students/register", json={
             "name": "John Doe",
@@ -41,7 +43,7 @@ class TestRegister(TestCase, RefreshDatabase):
         })
         assert response.status_code == 422
 
-        # name too short
+        # name too shorts
         response = await self.post("/students/register", json={
             "name": "J",
             "email": "john@example.com",

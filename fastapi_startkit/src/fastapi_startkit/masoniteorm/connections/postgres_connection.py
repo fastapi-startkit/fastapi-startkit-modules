@@ -26,7 +26,7 @@ class PostgresConnection(Connection):
 
         from sqlalchemy import text
 
-        async with self.conn.connect() as conn:
+        async with self.engine.connect() as conn:
             result = await conn.execute(text(query), params)
             await conn.commit()
 

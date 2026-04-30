@@ -1,30 +1,64 @@
 name: Test
 
 on:
-  push:
-    branches: ["**"]
-  pull_request:
-    branches: ["**"]
+    push:
+        branches: [ "**" ]
+    pull_request:
+        branches: [ "**" ]
 
 jobs:
-  pytest:
-    name: Pytest
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    tests:
+        name: Pytest
+        runs-on: ubuntu-latest
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        env:
+            DB_HOST: 127.0.0.1
+            DB_PORT: 3306
+            DB_DATABASE: database_app_test
+            DB_USERNAME: app
+            DB_PASSWORD: secret
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+        steps:
+            -   uses: actions/checkout@v4
 
-      - name: Install dependencies
-        working-directory: example/config-app
-        run: uv sync
+            -   name: Install uv
+                uses: astral-sh/setup-uv@v5
 
-      - name: Run tests
-        working-directory: example/config-app
-        run: uv run pytest tests/ -v
+            -   name: Set up Python
+                uses: actions/setup-python@v5
+                with:
+                    python-version: "3.13"
+
+            -   name: Start MySQL
+                run: docker compose -f docker-compose.test.yml up -d --wait
+
+            # ── fastapi_startkit package ──────────────────────────────────────────
+            -   name: Install dependencies (fastapi_startkit)
+                working-directory: fastapi_startkit
+                run: uv sync --group dev
+
+            -   name: Run tests (fastapi_startkit)
+                working-directory: fastapi_startkit
+                run: uv run pytest tests/ -v
+
+            # ── example/config-app ────────────────────────────────────────────────
+            -   name: Install dependencies (config-app)
+                working-directory: example/config-app
+                run: uv sync
+
+            -   name: Run tests (config-app)
+                working-directory: example/config-app
+                run: uv run pytest tests/ -v
+
+            # ── example/database-app ──────────────────────────────────────────────
+            -   name: Install dependencies (database-app)
+                working-directory: example/database-app
+                run: uv sync
+
+            -   name: Run tests (database-app)
+                working-directory: example/database-app
+                run: uv run pytest tests/ -v
+
+            -   name: Stop MySQL
+                if: always()
+                run: docker compose -f docker-compose.test.yml down

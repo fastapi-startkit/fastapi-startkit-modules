@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "aiomysql>=0.3.2",
+    "aiosqlite>=0.22.1",
     "cryptography>=47.0.0",
     "fastapi-startkit[database,fastapi,postgres]",
 ]

@@ -1,28 +1,22 @@
-from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from abc import ABC
 
-import pytest
-
+from fastapi_startkit.testing import TestCase
 from httpx import AsyncClient, ASGITransport
 
-if TYPE_CHECKING:
-    from fastapi_startkit import Application
 
-
-class HttpTestCase(ABC):
+class HttpTestCase(TestCase, ABC):
     client: AsyncClient
 
-    @pytest.fixture(autouse=True)
-    async def setup_client(self):
-        async with AsyncClient(
-                transport=ASGITransport(app=self.get_application().fastapi), base_url="http://test"
-        ) as client:
-            self.client = client
-            yield
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        self._client_ctx = AsyncClient(
+            transport=ASGITransport(app=self.get_application().fastapi), base_url="http://test"
+        )
+        self.client = await self._client_ctx.__aenter__()
 
-    @abstractmethod
-    def get_application(self)->'Application':
-        ...
+    async def asyncTearDown(self):
+        await self._client_ctx.__aexit__(None, None, None)
+        await super().asyncTearDown()
 
     async def get(self, url, **kwargs):
         return await self.client.get(url, **kwargs)

@@ -2,29 +2,44 @@
 
 import os
 import sys
-from pathlib import Path
-
 from dotenv import load_dotenv
 
 
-class LoadEnvironment:
-    def __init__(self, environment=None, override=True, only=None, base_path=None):
-        self.base_path = Path(base_path) if base_path else Path(".")
-        self._detect_env_from_argv()
+class Environment:
+    @staticmethod
+    def resolve_environment(base_path=None, env: str | None = None):
+        Environment.resolve_environment_from_argument()
 
-        if only:
-            self.load_file(f".env.{only}", override=override)
+        if "PYTEST_CURRENT_TEST" in os.environ:
+            return "testing"
+
+        if os.environ.get("APP_ENV"):
+            return os.environ["APP_ENV"]
+
+        if env:
+            return env
+
+        path = base_path / ".env"
+        if not path.exists():
+            raise ValueError("Unable to determine environment.")
+
+        load_dotenv(path)
+
+        env = os.environ.get("APP_ENV")
+        if not env:
+            raise ValueError("APP_ENV not set after loading .env")
+
+        return env
+
+    @staticmethod
+    def load(env: str, override=True, only=None, base_path=None):
+        path = base_path / f".env.{env}"
+        if not path.exists():
             return
+        load_dotenv(path, override=override)
 
-        resolved = self._resolve_environment(environment)
-
-        # Always load .env as the base, then overlay .env.<environment> on top.
-        self.load_file(".env", override=override)
-
-        if resolved:
-            self.load_file(f".env.{resolved}", override=override)
-
-    def _detect_env_from_argv(self):
+    @staticmethod
+    def resolve_environment_from_argument():
         """Parse --env=<value> or --env <value> from sys.argv, set APP_ENV,
         and remove the tokens so downstream CLI parsers (e.g. cleo) never see them."""
         args = sys.argv[1:]
@@ -38,24 +53,6 @@ class LoadEnvironment:
                 sys.argv.pop(i + 2)  # value first (higher index)
                 sys.argv.pop(i + 1)  # then the flag
                 break
-
-    def _resolve_environment(self, fallback):
-        if "PYTEST_CURRENT_TEST" in os.environ:
-            return "testing"
-
-        if os.environ.get("APP_ENV"):
-            return os.environ["APP_ENV"]
-
-        if fallback:
-            return fallback
-
-        return None
-
-    def load_file(self, filename, override=False):
-        path = self.base_path / filename
-        if not path.exists():
-            return
-        load_dotenv(path, override=override)
 
 
 def env(value, default="", cast=True):

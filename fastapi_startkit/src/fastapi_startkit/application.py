@@ -7,7 +7,7 @@ from typing import Type, Callable, Any, List, TypeVar, Generic
 from .config import AppConfig
 from .configuration.providers import ConfigurationProvider
 from .container import Container
-from .environment.environment import LoadEnvironment
+from .environment.environment import Environment
 
 if TYPE_CHECKING:
     from fastapi import FastAPI, APIRouter
@@ -39,9 +39,7 @@ class Application(Container, Generic[TConfig]):
     ):
         super().__init__()
 
-        self.base_path: str = (
-            str(base_path) if isinstance(base_path, Path) else base_path or os.getcwd()
-        )
+        self.base_path: Path = Path(base_path) if base_path else Path(os.getcwd())
         self.env = env
         self.providers = self.DEFAULT_PROVIDERS + (providers or [])
         self.published_resources = {}
@@ -57,7 +55,7 @@ class Application(Container, Generic[TConfig]):
         self.configure_exception_handler()
 
         # Boot application
-        self.load_environment()
+        self.resolve_environment()
         self.configure_config()
         self.configure_paths()
         self.register_providers()
@@ -106,7 +104,7 @@ class Application(Container, Generic[TConfig]):
         return self
 
     def use_base_path(self, path: str):
-        return str(Path(self.base_path) / path)
+        return self.base_path / path
 
     def get(self, path: str, **kwargs) -> Callable:
         return self.fastapi.get(path, **kwargs)
@@ -176,8 +174,9 @@ class Application(Container, Generic[TConfig]):
     def __call__(self, *args, **kwargs):
         return self.fastapi
 
-    def load_environment(self):
-        LoadEnvironment(environment=self.env, base_path=self.base_path)
+    def resolve_environment(self):
+        self.env = Environment.resolve_environment(base_path=self.base_path, env=self.env)
+        Environment.load(self.env, base_path=self.base_path)
 
     def is_debug(self) -> bool:
         return (
@@ -185,6 +184,9 @@ class Application(Container, Generic[TConfig]):
             and self._config_instance is not None
             and getattr(self._config_instance, "debug", False)
         )
+
+    def is_testing(self) -> bool:
+        return self.env == "testing"
 
     def configure_config(self):
         if self._config is not None:
@@ -197,7 +199,7 @@ class Application(Container, Generic[TConfig]):
         return self._config_instance
 
     def configure_paths(self):
-        self.bind("config.location", os.path.join(self.base_path, "config"))
+        self.bind("config.location", self.base_path / "config")
 
     def use_config_path(self, path: str = None):
         self.bind("config.location", path)

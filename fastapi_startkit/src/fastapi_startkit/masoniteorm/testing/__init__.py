@@ -1,6 +1,6 @@
-from fastapi_startkit.masoniteorm.testing.transaction import DatabaseTransaction, RefreshDatabase
+from fastapi_startkit.masoniteorm.testing.transaction import RefreshDatabase, DatabaseTransaction
 
-__all__= [
+__all__ = [
+    'RefreshDatabase',
     'DatabaseTransaction',
-    'RefreshDatabase'
 ]

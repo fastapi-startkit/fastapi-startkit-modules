@@ -10,7 +10,7 @@ class DatabaseManager:
         self.config = config
         self.connections = {}
 
-    def connection(self, name: str | None):
+    def connection(self, name: str | None = None):
         name = self.get_default_connection_name(name)
         assert name is not None
         config = self.config.get("connections", {}).get(name)
@@ -38,3 +38,8 @@ class DatabaseManager:
         from fastapi_startkit.masoniteorm.schema import Schema
 
         return Schema(self)
+
+    def clear(self):
+        for conn in self.connections.values():
+            conn.engine.dispose()
+        self.connections.clear()
