@@ -1,6 +1,7 @@
 from typing import Any
 
 from sqlalchemy import StaticPool
+from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
 
 from fastapi_startkit.masoniteorm.connections.connection import Connection
@@ -36,7 +37,10 @@ class ConnectionFactory:
     def create_engine(cls, cfg: dict) -> AsyncEngine:
         url = cls.build_url(cfg)
         kwargs: dict[str, Any] = {"echo": True}
-        if cfg["driver"] == "sqlite":
+        from fastapi_startkit.application import app
+        if app().is_testing():
+            kwargs["poolclass"] = NullPool
+        elif cfg["driver"] == "sqlite":
             kwargs["connect_args"] = {"check_same_thread": False}
             kwargs["poolclass"] = StaticPool
         return create_async_engine(url, **kwargs)
