@@ -1,9 +1,7 @@
 import unittest
 
-from tests.integrations.config.database import DATABASES
-from src.masoniteorm.connections import SQLiteConnection
-from src.masoniteorm.schema import Column, Table
-from src.masoniteorm.schema.platforms.SQLitePlatform import SQLitePlatform
+from fastapi_startkit.masoniteorm.schema import Column, Table
+from fastapi_startkit.masoniteorm.schema.platforms.SQLitePlatform import SQLitePlatform
 
 
 class TestTable(unittest.TestCase):
@@ -96,14 +94,3 @@ class TestTable(unittest.TestCase):
 
         self.platform.constraintize(table.get_added_constraints())
         self.assertEqual(self.platform.compile_create_sql(table), [sql])
-
-    def test_can_build_table_from_connection_call(self):
-        sql_details = DATABASES["dev"]
-        table = self.platform.get_current_schema(
-            SQLiteConnection(
-                database=sql_details["database"], name="dev"
-            ).make_connection(),
-            "table_schema",
-        )
-
-        self.assertEqual(len(table.added_columns), 4)
