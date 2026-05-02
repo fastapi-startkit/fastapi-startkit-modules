@@ -44,6 +44,8 @@ class HasOneThrough(BaseRelationship):
         return self
 
     def __get__(self, instance, owner):
+        self.set_keys(self.attribute)
+
         if instance is None or not instance.is_loaded():
             return self
 

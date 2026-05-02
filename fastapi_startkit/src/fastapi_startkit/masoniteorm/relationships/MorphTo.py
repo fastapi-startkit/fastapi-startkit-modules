@@ -1,8 +1,7 @@
-import inflection
-
+from dumpdie import dd
 from fastapi_startkit.masoniteorm.models import registry
-from ..collection import Collection
 from .BaseRelationship import BaseRelationship
+from ..collection import Collection
 
 
 class MorphTo(BaseRelationship):
@@ -16,69 +15,47 @@ class MorphTo(BaseRelationship):
         self.attribute = name
 
     def get_builder(self):
-        return None
+        return self._related_builder
 
-    def set_keys(self, owner, attribute):
+    def set_keys(self):
         self.morph_id = self.morph_id or "record_id"
         self.morph_key = self.morph_key or "record_type"
         return self
 
     def __get__(self, instance, owner):
-        """This method is called when the decorated method is accessed.
+        self.set_keys()
 
-        Arguments:
-            instance {object|None} -- The instance we called.
-                If we didn't call the attribute and only accessed it then this will be None.
-
-            owner {object} -- The current model that the property was accessed on.
-
-        Returns:
-            object -- Either returns a builder or a hydrated model.
-        """
         if instance is None or not instance.is_loaded():
             return self
 
-        if self.attribute in instance._relationships:
-            return instance._relationships[self.attribute]
+        self._related_builder = instance.get_builder()
 
-        return self.apply_query(instance)
+        if instance.relationship_loaded(self.attribute):
+            return instance.get_relationship(self.attribute)
 
-    def apply_query(self, instance):
-        """Apply the query and return a coroutine that resolves to the related model.
+        return self.apply_query(
+            self._related_builder,
+            instance
+        )
 
-        Arguments:
-            instance {object} -- The current model object.
+    def __getattr__(self, attribute):
+        relationship = registry.Registry.resolve(self.fn)()
+        return getattr(relationship._related_builder, attribute)
 
-        Returns:
-            coroutine -- Resolves to the related model instance.
-        """
-        morph_key_val = instance.__attributes__[self.morph_key]
-        model = self.morph_map().get(morph_key_val)
+    def apply_query(self, builder, instance):
+        model = self.morph_map().get(instance.__attributes__[self.morph_key])
         record = instance.__attributes__[self.morph_id]
 
         return model.where(model.__primary_key__, record).first()
 
     async def get_related(self, query, relation, eagers=None, callback=None):
-        """Gets the relation needed between the relation and the related builder. If the relation is a collection
-        then will need to pluck out all the keys from the collection and fetch from the related builder. If
-        relation is just a Model then we can just call the model based on the value of the related
-        builders primary key.
-
-        Args:
-            relation (Model|Collection):
-
-        Returns:
-            Model|Collection
-        """
         if isinstance(relation, Collection):
             relations = Collection()
             for group, items in relation.group_by(self.morph_key).items():
                 morphed_model = self.morph_map().get(group)
-                table_name = morphed_model.__table__ or inflection.tableize(morphed_model.__name__)
-                pk = morphed_model.__primary_key__
                 relations.merge(
-                    await morphed_model.query().where_in(
-                        f"{table_name}.{pk}",
+                    await morphed_model.where_in(
+                        f"{morphed_model.__table__}.{morphed_model.__primary_key__}",
                         Collection(items)
                         .pluck(self.morph_id, keep_nulls=False)
                         .unique(),
@@ -86,7 +63,7 @@ class MorphTo(BaseRelationship):
                 )
             return relations
         else:
-            model = self.morph_map().get(getattr(relation, self.morph_key))
+            model = await self.morph_map().get(getattr(relation, self.morph_key))
             if model:
                 return await model.find(getattr(relation, self.morph_id))
 

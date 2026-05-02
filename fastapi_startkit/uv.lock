@@ -446,7 +446,6 @@ name = "fastapi-startkit"
 version = "0.13.6"
 source = { editable = "." }
 dependencies = [
-    { name = "aiosqlite" },
     { name = "cleo" },
     { name = "dotenv" },
     { name = "dotty-dict" },
@@ -489,7 +488,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiomysql", marker = "extra == 'mysql'", specifier = ">=0.2.0" },
-    { name = "aiosqlite", specifier = ">=0.22.1" },
     { name = "aiosqlite", marker = "extra == 'sqlite'", specifier = ">=0.22.1" },
     { name = "asyncpg", marker = "extra == 'postgres'", specifier = ">=0.29.0" },
     { name = "cleo", specifier = ">=2.1.0,<3.0.0" },
