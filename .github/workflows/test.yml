@@ -1,8 +1,6 @@
 name: Test
 
 on:
-    push:
-        branches: [ "**" ]
     pull_request:
         branches: [ "**" ]
 
@@ -30,12 +28,12 @@ jobs:
                     python-version: "3.13"
 
             -   name: Start MySQL
-                run: docker compose -f docker-compose.test.yml up -d --wait
+                run: docker compose -f docker-compose.yml up -d --wait
 
             # ── fastapi_startkit package ──────────────────────────────────────────
             -   name: Install dependencies (fastapi_startkit)
                 working-directory: fastapi_startkit
-                run: uv sync --group dev
+                run: uv sync --group dev --extra database --extra sqlite
 
             -   name: Run tests (fastapi_startkit)
                 working-directory: fastapi_startkit
@@ -61,4 +59,4 @@ jobs:
 
             -   name: Stop MySQL
                 if: always()
-                run: docker compose -f docker-compose.test.yml down
+                run: docker compose -f docker-compose.yml down

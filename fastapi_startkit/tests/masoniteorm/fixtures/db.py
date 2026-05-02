@@ -1,14 +1,16 @@
-from fastapi_startkit.orm.connections.factory import ConnectionFactory
-from fastapi_startkit.orm.connections.manager import DatabaseManager
-from fastapi_startkit.orm.models.model import Model
+from fastapi_startkit.masoniteorm.connections.factory import ConnectionFactory
+from fastapi_startkit.masoniteorm.connections.manager import DatabaseManager
+from fastapi_startkit.masoniteorm.models.model import Model
 
 DB = DatabaseManager(
     ConnectionFactory(),
     {
         "default": "sqlite",
-        "sqlite": {
-            "driver": "sqlite",
-            "url": "sqlite+aiosqlite:///masonite.sqlite3",
+        "connections": {
+            "sqlite": {
+                "driver": "sqlite",
+                "url": "sqlite+aiosqlite:///masonite.sqlite3",
+            },
         },
     },
 )

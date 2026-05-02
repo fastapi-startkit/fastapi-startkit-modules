@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock, patch
-from fastapi_startkits.configuration import Configuration
+from fastapi_startkit.configuration import Configuration
 
 
 class TestConfiguration:

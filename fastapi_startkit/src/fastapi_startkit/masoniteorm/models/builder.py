@@ -73,7 +73,7 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         return self
 
     async def find(self, primary_key: str | int, columns=None):
-        return await self.where(self._model.primary_key, primary_key).first(columns)
+        return await self.where(self._model.__primary_key__, primary_key).first(columns)
 
     async def first(self, columns=None):
         if not columns:
@@ -194,4 +194,11 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
             )
         else:
             self._wheres += ((QueryExpression(column, operator, value, "value")),)
+        return self
+
+    def or_where(self, column, *args) -> "QueryBuilder":
+        operator, value = self._extract_operator_value(*args)
+        self._wheres += (
+            (QueryExpression(column, operator, value, "value", keyword="or")),
+        )
         return self

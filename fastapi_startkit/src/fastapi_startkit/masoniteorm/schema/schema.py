@@ -92,6 +92,21 @@ class Schema:
         )
         await self._connection.run(sql, ())
 
+    async def truncate(self, table: str, foreign_keys: bool = False) -> None:
+        connection = self.get_connection()
+        sql = self.platform().compile_truncate(table, foreign_keys=foreign_keys)
+        if isinstance(sql, list):
+            for q in sql:
+                await connection.statement(q, ())
+        else:
+            await connection.statement(sql, ())
+
+    async def has_column(self, table: str, column: str) -> bool:
+        connection = self.get_connection()
+        sql = self.platform().compile_column_exists(table, column)
+        result = await connection.select(sql, ())
+        return bool(result)
+
     async def disable_foreign_key_constraints(self) -> None:
         connection = self.get_connection()
         sql = connection.get_default_platform()().disable_foreign_key_constraints()

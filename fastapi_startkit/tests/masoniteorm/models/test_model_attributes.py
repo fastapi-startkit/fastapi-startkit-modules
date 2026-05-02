@@ -4,9 +4,9 @@ from unittest.mock import MagicMock, patch
 
 from fastapi_startkit.carbon import Carbon
 from fastapi_startkit.masoniteorm.models.fields import DateTimeField
-from fastapi_startkit.orm.connections.factory import ConnectionFactory
-from fastapi_startkit.orm.connections.manager import DatabaseManager
-from fastapi_startkit.orm.models.model import Model
+from fastapi_startkit.masoniteorm.connections.factory import ConnectionFactory
+from fastapi_startkit.masoniteorm.connections.manager import DatabaseManager
+from fastapi_startkit.masoniteorm.models.model import Model
 
 
 # ---------------------------------------------------------------------------
@@ -15,9 +15,11 @@ from fastapi_startkit.orm.models.model import Model
 
 SQLITE_CONFIG = {
     "default": "sqlite",
-    "sqlite": {
-        "driver": "sqlite",
-        "url": "sqlite+aiosqlite:///:memory:",
+    "connections": {
+        "sqlite": {
+            "driver": "sqlite",
+            "url": "sqlite+aiosqlite:///:memory:",
+        },
     },
 }
 
@@ -66,8 +68,8 @@ class TestConnectionFactory:
 
     def test_make_returns_sqlite_connection(self):
         factory = ConnectionFactory()
-        conn = factory.make(SQLITE_CONFIG["sqlite"], "sqlite")
-        from fastapi_startkit.orm.connections.sqlite_connection import SQliteConnection
+        conn = factory.make(SQLITE_CONFIG["connections"]["sqlite"], "sqlite")
+        from fastapi_startkit.masoniteorm.connections.sqlite_connection import SQliteConnection
 
         assert isinstance(conn, SQliteConnection)
 
@@ -88,13 +90,15 @@ class TestDatabaseManager:
         # the "Unsupported driver" branch in ConnectionFactory.make().
         factory = ConnectionFactory()
         bad_config = {
-            "default": "mysql",
-            "mysql": {"driver": "mysql", "host": "localhost", "database": "db"},
+            "default": "mssql",
+            "connections": {
+                "mssql": {"driver": "mssql", "host": "localhost", "database": "db"},
+            },
         }
         dm = DatabaseManager(factory, bad_config)
         with patch.object(ConnectionFactory, "create_engine", return_value=MagicMock()):
             with pytest.raises(ValueError, match="Unsupported driver"):
-                dm.connection("mysql")
+                dm.connection("mssql")
 
 
 # ---------------------------------------------------------------------------
@@ -188,7 +192,7 @@ class TestTimestampFields:
 
 class TestModelQuery:
     def test_query_returns_query_builder(self, UserModel):
-        from fastapi_startkit.orm.models.builder import QueryBuilder
+        from fastapi_startkit.masoniteorm.models.builder import QueryBuilder
 
         builder = UserModel.query()
         assert isinstance(builder, QueryBuilder)
