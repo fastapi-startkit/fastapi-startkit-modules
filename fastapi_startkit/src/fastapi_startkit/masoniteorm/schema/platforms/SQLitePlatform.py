@@ -211,23 +211,21 @@ class SQLitePlatform(Platform):
             or diff.changed_columns
             or diff.added_foreign_keys
         ):
-            original_columns = diff.from_table.added_columns
+            original_columns = dict(diff.from_table.added_columns)
             # pop off the dropped columns. No need for them here
             for column in diff.dropped_columns:
-                original_columns.pop(column)
+                original_columns.pop(column, None)
 
             sql.append(
                 "CREATE TEMPORARY TABLE __temp__{table} AS SELECT {original_column_names} FROM {table}".format(
                     table=diff.name,
-                    original_column_names=", ".join(
-                        diff.from_table.added_columns.keys()
-                    ),
+                    original_column_names=", ".join(original_columns.keys()),
                 )
             )
 
             sql.append("DROP TABLE {table}".format(table=self.wrap_table(diff.name)))
 
-            columns = diff.from_table.added_columns
+            columns = dict(original_columns)
 
             columns.update(diff.renamed_columns)
             columns.update(diff.changed_columns)
@@ -264,9 +262,7 @@ class SQLitePlatform(Platform):
                     quoted_table=self.wrap_table(diff.name),
                     table=diff.name,
                     new_columns=", ".join(self.columnize_names(columns)),
-                    original_column_names=", ".join(
-                        diff.from_table.added_columns.keys()
-                    ),
+                    original_column_names=", ".join(columns.keys()),
                 )
             )
             sql.append("DROP TABLE __temp__{table}".format(table=diff.name))
