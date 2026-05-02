@@ -3,6 +3,7 @@ import inspect
 from typing import TYPE_CHECKING
 
 from fastapi_startkit.masoniteorm.expressions.expressions import (
+    JoinClause,
     QueryExpression,
     SelectExpression,
     UpdateQueryExpression,
@@ -27,6 +28,7 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         self._table = ""
         self._limit = False
         self._wheres = []
+        self._joins = ()
 
         self._sql = ""
         self._bindings = ()
@@ -73,7 +75,7 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         return self
 
     async def find(self, primary_key: str | int, columns=None):
-        return await self.where(self._model.primary_key, primary_key).first(columns)
+        return await self.where(self._model.__primary_key__, primary_key).first(columns)
 
     async def first(self, columns=None):
         if not columns:
@@ -116,6 +118,7 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
             table=self._table,
             limit=self._limit,
             wheres=self._wheres,
+            joins=self._joins,
         )
 
     def to_qmark(self) -> str:
@@ -194,4 +197,52 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
             )
         else:
             self._wheres += ((QueryExpression(column, operator, value, "value")),)
+        return self
+
+    def or_where(self, column, *args) -> "QueryBuilder":
+        operator, value = self._extract_operator_value(*args)
+        self._wheres += (
+            (QueryExpression(column, operator, value, "value", keyword="or")),
+        )
+        return self
+
+    def join(self, table: str, column1: str, equality: str, column2: str, clause: str = "join") -> "QueryBuilder":
+        join_clause = JoinClause(table, clause=clause)
+        join_clause.on(column1, equality, column2)
+        self._joins += (join_clause,)
+        return self
+
+    def where_column(self, column1: str, column2: str) -> "QueryBuilder":
+        self._wheres += (QueryExpression(column1, "=", column2, "value_equals"),)
+        return self
+
+    def when(self, condition, callback) -> "QueryBuilder":
+        if condition:
+            callback(self)
+        return self
+
+    def where_exists(self, builder: "QueryBuilder") -> "QueryBuilder":
+        self._wheres += (QueryExpression(None, "EXISTS", SubSelectExpression(builder)),)
+        return self
+
+    def or_where_exists(self, builder: "QueryBuilder") -> "QueryBuilder":
+        self._wheres += (
+            QueryExpression(None, "EXISTS", SubSelectExpression(builder), keyword="or"),
+        )
+        return self
+
+    def where_has(self, relation: str, callback=None) -> "QueryBuilder":
+        related = getattr(self._model.__class__, relation)
+        if callback:
+            related.query_where_exists(self, callback, method="where_exists")
+        else:
+            related.query_has(self, method="where_exists")
+        return self
+
+    def or_where_has(self, relation: str, callback=None) -> "QueryBuilder":
+        related = getattr(self._model.__class__, relation)
+        if callback:
+            related.query_where_exists(self, callback, method="or_where_exists")
+        else:
+            related.query_has(self, method="or_where_exists")
         return self

@@ -4,9 +4,10 @@ schema = DB.get_schema_builder()
 
 
 async def wipe():
-    tables = await schema.on("default").get_all_tables()
-    for table in tables:
-        await schema.on("default").drop_table_if_exists(table)
+    for connection in ("default", "dev"):
+        tables = await schema.on(connection).get_all_tables()
+        for table in tables:
+            await schema.on(connection).drop_table_if_exists(table)
 
 
 async def migrate():
@@ -60,3 +61,17 @@ async def migrate():
         table.integer("store_id")
         table.integer("product_id")
         table.timestamps()
+
+    async with await schema.on("dev").create_table_if_not_exists("countries") as table:
+        table.integer("country_id").primary()
+        table.string("name")
+
+    async with await schema.on("dev").create_table_if_not_exists("ports") as table:
+        table.integer("port_id").primary()
+        table.string("name")
+        table.integer("port_country_id")
+
+    async with await schema.on("dev").create_table_if_not_exists("incoming_shipments") as table:
+        table.integer("shipment_id").primary()
+        table.string("name")
+        table.integer("from_port_id")

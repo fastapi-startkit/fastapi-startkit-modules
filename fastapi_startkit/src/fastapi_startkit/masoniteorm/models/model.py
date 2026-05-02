@@ -50,7 +50,7 @@ class Model(Attribute, Relationship, ObservesEvents):
 
     def __init__(self, attributes: dict = None, **kwargs):
         super().__init__(attributes, **kwargs)
-        self.connection = "default"
+        self.connection = getattr(self.__class__, "__connection__", "default")
         self._global_scopes = {}
         self.__with__ = {}
         self._exists = False
@@ -81,6 +81,14 @@ class Model(Attribute, Relationship, ObservesEvents):
     @classmethod
     def with_(cls, *eagers) -> "QueryBuilder":
         return cls.query().with_(*eagers)
+
+    @classmethod
+    def where_has(cls, relation: str, callback=None) -> "QueryBuilder":
+        return cls.query().where_has(relation, callback)
+
+    @classmethod
+    def or_where_has(cls, relation: str, callback=None) -> "QueryBuilder":
+        return cls.query().or_where_has(relation, callback)
 
     @classmethod
     async def find(cls, primary_key: str | int, columns=None):

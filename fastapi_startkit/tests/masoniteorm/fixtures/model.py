@@ -1,13 +1,13 @@
 from fastapi_startkit.carbon.carbon import Carbon
-from fastapi_startkit.masoniteorm import Field
-from fastapi_startkit.masoniteorm.models.fields import DateTimeField
+from fastapi_startkit.masoniteorm.models.fields import Field, DateTimeField
 from fastapi_startkit.masoniteorm.relationships import (
     HasOne,
     BelongsTo,
     HasMany,
     BelongsToMany,
+    HasOneThrough,
 )
-from fastapi_startkit.orm.models.model import Model
+from fastapi_startkit.masoniteorm.models.model import Model
 
 
 class User(Model):
@@ -56,3 +56,26 @@ class Store(Model):
 
 class Product(Model):
     __table__ = "products"
+
+
+class Port(Model):
+    __table__ = "ports"
+    __connection__ = "dev"
+
+
+class Country(Model):
+    __table__ = "countries"
+    __connection__ = "dev"
+
+
+class IncomingShipment(Model):
+    __table__ = "incoming_shipments"
+    __connection__ = "dev"
+
+    from_country: "Country" = HasOneThrough(
+        ["Country", "Port"],
+        "from_port_id",  # FK on IncomingShipment → Port
+        "port_country_id",  # FK on Port → Country
+        "port_id",  # PK on Port
+        "country_id",  # PK on Country
+    )
