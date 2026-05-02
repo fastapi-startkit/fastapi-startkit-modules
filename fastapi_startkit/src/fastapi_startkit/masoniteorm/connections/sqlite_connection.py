@@ -16,7 +16,3 @@ class SQliteConnection(Connection):
     @classmethod
     def get_post_processor(cls):
         return SQLitePostProcessor
-
-
-# Alias for consistent naming
-SQLiteConnection = SQliteConnection
