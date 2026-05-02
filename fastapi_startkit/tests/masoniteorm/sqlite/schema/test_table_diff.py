@@ -1,8 +1,8 @@
 import unittest
 
-from src.masoniteorm.schema import Table
-from src.masoniteorm.schema.platforms.SQLitePlatform import SQLitePlatform
-from src.masoniteorm.schema.TableDiff import TableDiff
+from fastapi_startkit.masoniteorm.schema import Table
+from fastapi_startkit.masoniteorm.schema.platforms.SQLitePlatform import SQLitePlatform
+from fastapi_startkit.masoniteorm.schema.TableDiff import TableDiff
 
 
 class TestTableDiff(unittest.TestCase):
