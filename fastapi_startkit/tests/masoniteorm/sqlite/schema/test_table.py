@@ -94,7 +94,3 @@ class TestTable(unittest.TestCase):
 
         self.platform.constraintize(table.get_added_constraints())
         self.assertEqual(self.platform.compile_create_sql(table), [sql])
-
-    @unittest.skip("Legacy sync SQLiteConnection.make_connection() API no longer exists")
-    def test_can_build_table_from_connection_call(self):
-        pass
