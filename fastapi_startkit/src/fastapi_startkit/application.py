@@ -67,6 +67,12 @@ class Application(Container, Generic[TConfig]):
         self.env = env
         return self
 
+    def load_environment(self):
+        """Reload environment variables for the current self.env."""
+        Environment.load_base(base_path=self.base_path)
+        Environment.load(self.env, base_path=self.base_path)
+        return self
+
     def configure_exception_handler(self):
         self.exception_manager: ExceptionHandler = self._exception_handler_class(
             application=self
@@ -176,6 +182,7 @@ class Application(Container, Generic[TConfig]):
 
     def resolve_environment(self):
         self.env = Environment.resolve_environment(base_path=self.base_path, env=self.env)
+        Environment.load_base(base_path=self.base_path)
         Environment.load(self.env, base_path=self.base_path)
 
     def is_debug(self) -> bool:

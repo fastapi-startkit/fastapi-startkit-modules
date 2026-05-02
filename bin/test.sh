@@ -21,7 +21,7 @@ echo ""
 echo "============================================================"
 echo " Running: fastapi_startkit package tests"
 echo "============================================================"
-(cd "$ROOT/fastapi_startkit" && uv run pytest)
+(cd "$ROOT/fastapi_startkit" && uv run pytest tests)
 
 echo ""
 echo "============================================================"

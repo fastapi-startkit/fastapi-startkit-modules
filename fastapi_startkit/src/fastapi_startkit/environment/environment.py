@@ -13,23 +13,31 @@ class Environment:
         if "PYTEST_CURRENT_TEST" in os.environ:
             return "testing"
 
-        if os.environ.get("APP_ENV"):
-            return os.environ["APP_ENV"]
-
+        # Explicit env parameter takes priority over os.environ APP_ENV
         if env:
             return env
+
+        if os.environ.get("APP_ENV"):
+            return os.environ["APP_ENV"]
 
         path = base_path / ".env"
         if not path.exists():
             raise ValueError("Unable to determine environment.")
 
-        load_dotenv(path)
+        load_dotenv(path, override=True)
 
         env = os.environ.get("APP_ENV")
         if not env:
             raise ValueError("APP_ENV not set after loading .env")
 
         return env
+
+    @staticmethod
+    def load_base(base_path=None):
+        """Load the base .env file, resetting vars to their default values."""
+        path = base_path / ".env"
+        if path.exists():
+            load_dotenv(path, override=True)
 
     @staticmethod
     def load(env: str, override=True, only=None, base_path=None):
