@@ -1,5 +1,3 @@
-import unittest
-
 from fastapi_startkit.masoniteorm.collection import Collection
 from fastapi_startkit.masoniteorm.models.model import Model
 
@@ -8,8 +6,6 @@ from ..sqlite.test_case import TestCase
 
 
 class TestCollection(TestCase):
-    # ── async tests that require the database ────────────────────────────────
-
     async def test_serialize_with_model_appends(self):
         users = (await User.all()).serialize()
         self.assertTrue(isinstance(users, list))
@@ -20,8 +16,6 @@ class TestCollection(TestCase):
         serialized = users.serialize()
         self.assertTrue(isinstance(serialized, list))
         self.assertTrue(len(serialized) > 0)
-
-    # ── pure Collection unit tests (no DB required) ──────────────────────────
 
     def test_take(self):
         collection = Collection([1, 2, 3, 4])
