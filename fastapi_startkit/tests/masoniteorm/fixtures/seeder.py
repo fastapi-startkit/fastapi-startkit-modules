@@ -20,6 +20,8 @@ async def seeder():
     await Like.create({"likeable_type": "article", "likeable_id": article.id})
     await Like.create({"likeable_type": "product", "likeable_id": product.id})
 
+    await User.query().create({"email": "guest@guest.com", "name": "Jane", "is_admin": False})
+
     await Country.query().insert(
         [
             {"country_id": 10, "name": "Australia"},

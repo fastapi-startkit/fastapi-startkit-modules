@@ -5,7 +5,6 @@ from .BaseRelationship import BaseRelationship
 
 class HasManyThrough(BaseRelationship):
     """HasManyThrough Relationship Class."""
-
     def __init__(
         self,
         fn=list[str],

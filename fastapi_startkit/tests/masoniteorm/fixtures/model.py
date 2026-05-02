@@ -23,10 +23,10 @@ class User(Model):
     articles: "Articles" = HasMany("Articles", "id", "user_id")
     logos: "Logo" = HasManyThrough(
         ["Logo", "Articles"],
-        "user_id",     # FK on Articles pointing to User
-        "article_id",  # FK on Logo pointing to Articles
-        "id",          # PK on User
-        "id",          # PK on Logo
+        "user_id",    # FK on Articles → User  (intermediate.local_key, used in WHERE)
+        "id",         # PK on Articles         (intermediate.foreign_key, join left side)
+        "id",         # PK on User             (owner.local_owner_key, WHERE value)
+        "article_id", # FK on Logo → Articles  (distant.other_owner_key, join right side)
     )
 
     def get_is_admin(self) -> bool:
