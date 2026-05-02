@@ -40,7 +40,7 @@ class SqliteTestQueryBuilderModel(TestCase):
 
         mock_select.assert_called_once()
         sql, bindings = mock_select.call_args[0]
-        self.assertEqual(sql, 'SELECT * FROM "users" WHERE "users"."id" = ?')
+        self.assertEqual(sql, 'SELECT * FROM "users" WHERE "users"."id" = ? LIMIT 1')
         self.assertIn(1, bindings)
 
     async def test_can_set_and_retrieve_attribute(self):
@@ -61,36 +61,12 @@ class SqliteTestQueryBuilderModel(TestCase):
         self.assertEqual(sql, 'UPDATE "users" SET "name" = ? WHERE "id" = ?')
         self.assertEqual(bindings, ["new_name", 1])
 
-    @unittest.skip("find() not yet implemented")
-    async def test_can_find_list(self):
-        pass
-
-    @unittest.skip("find_or() not yet implemented")
-    async def test_find_or_if_record_not_found(self):
-        pass
-
-    @unittest.skip("find_or() not yet implemented")
-    async def test_find_or_if_record_found(self):
-        pass
-
     @unittest.skip("__selects__ not yet implemented")
     async def test_model_can_use_selects(self):
         pass
 
     @unittest.skip("all() not yet implemented")
     async def test_model_can_use_selects_from_methods(self):
-        pass
-
-    @unittest.skip("force= parameter not yet implemented")
-    async def test_can_force_update_on_method(self):
-        pass
-
-    @unittest.skip("__force_update__ not yet implemented")
-    async def test_can_force_update_on_model(self):
-        pass
-
-    @unittest.skip("force_update() not yet implemented")
-    async def test_force_update(self):
         pass
 
     @unittest.skip("between() not yet implemented")

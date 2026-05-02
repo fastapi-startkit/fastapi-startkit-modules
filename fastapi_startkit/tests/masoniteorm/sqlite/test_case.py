@@ -14,10 +14,12 @@ class TestCase(RefreshDatabase, IsolatedAsyncioTestCase):
         await self.migrate_database()
 
     async def asyncTearDown(self):
+        DB.clear()
         await wipe()
 
     @staticmethod
     async def migrate_database():
+        DB.clear()
         await wipe()
         await migrate()
         await seeder()
