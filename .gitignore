@@ -6,6 +6,7 @@
 **/*.sqlite3
 **/*.log
 **/.env
+!example/**/.env
 **/*.sqlite
 **/*.vite
 fastapi_startkit/dist
