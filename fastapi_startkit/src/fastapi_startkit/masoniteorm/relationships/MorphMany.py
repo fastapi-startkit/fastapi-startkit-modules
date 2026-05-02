@@ -1,17 +1,13 @@
-from ..collection import Collection
+from fastapi_startkit.masoniteorm.models import registry
 from .BaseRelationship import BaseRelationship
+from ..collection import Collection
 
 
 class MorphMany(BaseRelationship):
     def __init__(self, fn, morph_key="record_type", morph_id="record_id"):
-        if isinstance(fn, str):
-            self.fn = None
-            self.morph_key = fn
-            self.morph_id = morph_key
-        else:
-            self.fn = fn
-            self.morph_id = morph_id
-            self.morph_key = morph_key
+        self.fn = fn
+        self.morph_id = morph_id
+        self.morph_key = morph_key
 
     def get_builder(self):
         return self._related_builder
@@ -22,17 +18,6 @@ class MorphMany(BaseRelationship):
         return self
 
     def __get__(self, instance, owner):
-        """This method is called when the decorated method is accessed.
-
-        Arguments:
-            instance {object|None} -- The instance we called.
-                If we didn't call the attribute and only accessed it then this will be None.
-
-            owner {object} -- The current model that the property was accessed on.
-
-        Returns:
-            object -- Either returns a builder or a hydrated model.
-        """
         attribute = self.fn.__name__
         self._related_builder = instance.builder
         self.polymorphic_builder = self.fn(self)()
@@ -133,7 +118,7 @@ class MorphMany(BaseRelationship):
         model.add_relation({key: related})
 
     def morph_map(self):
-        return load_config().DB._morph_map
+        return registry.Registry.get_morph_map()
 
     def get_record_key_lookup(self, relation):
         record_type = None

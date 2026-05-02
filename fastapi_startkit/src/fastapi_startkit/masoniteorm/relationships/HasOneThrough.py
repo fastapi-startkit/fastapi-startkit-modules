@@ -14,22 +14,29 @@ class HasOneThrough(BaseRelationship):
         local_owner_key=None,
         other_owner_key=None,
     ):
-        self.fn = lambda x: [registry.Registry.resolve(class_str) for class_str in fn]
+        self.fn = fn
 
         self.local_key = local_foreign_key
         self.foreign_key = other_foreign_key
         self.local_owner_key = local_owner_key or "id"
         self.other_owner_key = other_owner_key or "id"
-        self.attribute = fn[0].lower()
+        self.distant_builder = None
+        self.intermediary_builder = None
 
     def __set_name__(self, owner, name):
         self.attribute = name
 
-    def __getattr__(self, attribute):
-        relationship = self.fn(self)[1]()
-        return getattr(relationship.get_builder(), attribute)
+    def get_distance_builder(self):
+        """Return a fresh distant builder (never cached — builders are stateful)."""
+        model = registry.Registry.resolve(self.fn[0])
+        return model().get_builder()
 
-    def set_keys(self, distant_builder, intermediary_builder, attribute):
+    def get_intermediary_builder(self):
+        """Return a fresh intermediary builder (never cached — builders are stateful)."""
+        model = registry.Registry.resolve(self.fn[1])
+        return model().get_builder()
+
+    def set_keys(self, attribute):
         self.local_key = self.local_key or "id"
         self.foreign_key = self.foreign_key or f"{attribute}_id"
         self.local_owner_key = self.local_owner_key or "id"
@@ -37,49 +44,21 @@ class HasOneThrough(BaseRelationship):
         return self
 
     def __get__(self, instance, owner):
-        """
-        This method is called when the decorated method is accessed.
-
-        Arguments
-            instance (object|None): The instance we called.
-                If we didn't call the attribute and only accessed it then this will be None.
-            owner (object): The current model that the property was accessed on.
-
-        Returns
-            QueryBuilder|Model: Either returns a builder or a hydrated model.
-        """
-        relationship1 = self.fn(self)[0]()
-        relationship2 = self.fn(self)[1]()
-        self.distant_builder = relationship1.get_builder()
-        self.intermediary_builder = relationship2.get_builder()
-        self.set_keys(self.distant_builder, self.intermediary_builder, self.attribute)
+        self.set_keys(self.attribute)
 
         if instance is None or not instance.is_loaded():
             return self
 
-        if self.attribute in instance._relationships:
-            return instance._relationships[self.attribute]
+        if instance.relationship_loaded(self.attribute):
+            return instance.get_relationship(self.attribute)
 
         return self.apply_relation_query(
-            self.distant_builder, self.intermediary_builder, instance
+            distant_builder=self.get_distance_builder(),
+            intermediary_builder=self.get_intermediary_builder(),
+            owner=instance,
         )
 
     def apply_relation_query(self, distant_builder, intermediary_builder, owner):
-        """
-        Apply the query and return a dict of data for the distant model to be hydrated with.
-
-        Method is used when accessing a relationship on a model if its not
-        already eager loaded
-
-        Arguments
-            distant_builder (QueryBuilder): QueryBuilder attached to the distant table
-            intermediate_builder (QueryBuilder): QueryBuilder attached to the intermediate (linking) table
-            owner (Any): the model this relationship is starting from
-
-        Returns
-            dict: A dictionary of data which will be hydrated.
-        """
-
         dist_table = distant_builder.get_table_name()
         int_table = intermediary_builder.get_table_name()
 
@@ -101,10 +80,12 @@ class HasOneThrough(BaseRelationship):
         )
 
     def relate(self, related_model):
-        dist_table = self.distant_builder.get_table_name()
-        int_table = self.intermediary_builder.get_table_name()
+        distant = self.get_distance_builder()
+        intermediary = self.get_intermediary_builder()
+        dist_table = distant.get_table_name()
+        int_table = intermediary.get_table_name()
 
-        return self.distant_builder.join(
+        return distant.join(
             f"{int_table}",
             f"{int_table}.{self.foreign_key}",
             "=",
@@ -115,11 +96,10 @@ class HasOneThrough(BaseRelationship):
         )
 
     def get_builder(self):
-        return self.distant_builder
+        return self.get_distance_builder()
 
     def make_builder(self, eagers=None):
         builder = self.get_builder().with_(eagers)
-
         return builder
 
     def register_related(self, key, model, collection):
@@ -134,7 +114,6 @@ class HasOneThrough(BaseRelationship):
         Returns
             None
         """
-
         related = collection.get(getattr(model, self.local_key), None)
         model.add_relation({key: related[0] if related else None})
 
@@ -152,41 +131,42 @@ class HasOneThrough(BaseRelationship):
         Returns
              dict: the dict to hydrate the distant model with
         """
-
-        dist_table = self.distant_builder.get_table_name()
-        int_table = self.intermediary_builder.get_table_name()
+        distant_builder = self.get_distance_builder()
+        intermediary_builder = self.get_intermediary_builder()
+        dist_table = distant_builder.get_table_name()
+        int_table = intermediary_builder.get_table_name()
 
         if callback:
             callback(current_builder)
 
-        (
-            self.distant_builder.select(
-                f"{dist_table}.*, {int_table}.{self.local_owner_key} as {self.local_key}"
-            ).join(
-                f"{int_table}",
-                f"{int_table}.{self.foreign_key}",
-                "=",
-                f"{dist_table}.{self.other_owner_key}",
-            )
+        distant_builder.select(
+            f"{dist_table}.*, {int_table}.{self.local_owner_key} as {self.local_key}"
+        ).join(
+            f"{int_table}",
+            f"{int_table}.{self.foreign_key}",
+            "=",
+            f"{dist_table}.{self.other_owner_key}",
         )
 
         if isinstance(relation, Collection):
-            return await self.distant_builder.where_in(
+            return await distant_builder.where_in(
                 f"{int_table}.{self.local_owner_key}",
                 Collection(relation._get_value(self.local_key)).unique(),
             ).get()
         else:
-            return await self.distant_builder.where(
+            return await distant_builder.where(
                 f"{int_table}.{self.local_owner_key}",
                 getattr(relation, self.local_key),
             ).first()
 
     def query_has(self, current_builder, method="where_exists"):
-        dist_table = self.distant_builder.get_table_name()
-        int_table = self.intermediary_builder.get_table_name()
+        distant_builder = self.get_distance_builder()
+        intermediary_builder = self.get_intermediary_builder()
+        dist_table = distant_builder.get_table_name()
+        int_table = intermediary_builder.get_table_name()
 
         getattr(current_builder, method)(
-            self.distant_builder.join(
+            distant_builder.join(
                 f"{int_table}",
                 f"{int_table}.{self.foreign_key}",
                 "=",
@@ -197,14 +177,16 @@ class HasOneThrough(BaseRelationship):
             )
         )
 
-        return self.distant_builder
+        return distant_builder
 
     def query_where_exists(self, current_builder, callback, method="where_exists"):
-        dist_table = self.distant_builder.get_table_name()
-        int_table = self.intermediary_builder.get_table_name()
+        distant_builder = self.get_distance_builder()
+        intermediary_builder = self.get_intermediary_builder()
+        dist_table = distant_builder.get_table_name()
+        int_table = intermediary_builder.get_table_name()
 
         getattr(current_builder, method)(
-            self.distant_builder.join(
+            distant_builder.join(
                 f"{int_table}",
                 f"{int_table}.{self.foreign_key}",
                 "=",
@@ -218,8 +200,10 @@ class HasOneThrough(BaseRelationship):
         )
 
     def get_with_count_query(self, current_builder, callback):
-        dist_table = self.distant_builder.get_table_name()
-        int_table = self.intermediary_builder.get_table_name()
+        distant_builder = self.get_distance_builder()
+        intermediary_builder = self.get_intermediary_builder()
+        dist_table = distant_builder.get_table_name()
+        int_table = intermediary_builder.get_table_name()
 
         if not current_builder._columns:
             current_builder.select("*")
@@ -243,7 +227,7 @@ class HasOneThrough(BaseRelationship):
                     callback,
                     lambda q: q.where_in(
                         self.foreign_key,
-                        callback(self.distant_builder.select(self.other_owner_key)),
+                        callback(distant_builder.select(self.other_owner_key)),
                     ),
                 )
             ),
