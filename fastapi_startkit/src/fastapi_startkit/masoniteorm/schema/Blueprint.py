@@ -754,7 +754,7 @@ class Blueprint:
         elif self._action == "create_table_if_not_exists":
             return self.platform().compile_create_sql(self.table, if_not_exists=True)
         else:
-            if not self._dry:
+            if not self._dry and self.table.from_table is None:
                 # get current table schema
                 table = self.platform().get_current_schema(
                     self.connection, self.table.name, schema=self.schema

@@ -11,6 +11,10 @@ DB = DatabaseManager(
                 "driver": "sqlite",
                 "url": "sqlite+aiosqlite:///masonite.sqlite3",
             },
+            "dev": {
+                "driver": "sqlite",
+                "url": "sqlite+aiosqlite:///masonite_dev.sqlite3",
+            },
         },
     },
 )
