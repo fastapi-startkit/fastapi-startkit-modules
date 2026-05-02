@@ -244,5 +244,9 @@ class Model(Attribute, Relationship, ObservesEvents):
     def where(cls, column, *args):
         return cls().query().where(column, *args)
 
+    @classmethod
+    def where_in(cls, column, values):
+        return cls().query().where_in(column, values)
+
     def get_table_name(self):
         return self.__table__ or inflection.tableize(self.__class__.__name__)

@@ -62,6 +62,12 @@ async def migrate():
         table.integer("product_id")
         table.timestamps()
 
+    async with await schema.create_table_if_not_exists("likes") as table:
+        table.id()
+        table.string("likeable_type")
+        table.integer("likeable_id")
+        table.timestamps()
+
     async with await schema.on("dev").create_table_if_not_exists("countries") as table:
         table.integer("country_id").primary()
         table.string("name")

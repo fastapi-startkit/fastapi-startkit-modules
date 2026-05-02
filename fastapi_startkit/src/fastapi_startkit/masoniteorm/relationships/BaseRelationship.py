@@ -2,9 +2,13 @@ from fastapi_startkit.masoniteorm.models import registry
 
 
 class BaseRelationship:
-    def __init__(self, fn: str, local_key=None, foreign_key=None):
-        # Keeping it as lamda function just in case for the backward compatibility
-        self.fn = lambda: registry.Registry.resolve(fn)
+    def __init__(self, fn: str | list[str], local_key=None, foreign_key=None):
+        if not isinstance(fn, str):
+            raise TypeError(
+                f"Relationship {self.__class__.__name__} expects a string as the first argument"
+            )
+        fn_str: str = fn  # For type checking
+        self.fn = lambda: registry.Registry.resolve(fn_str)
 
         self.local_key = local_key
         self.foreign_key = foreign_key

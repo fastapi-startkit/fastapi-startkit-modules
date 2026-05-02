@@ -14,10 +14,10 @@ class LoggingConfig:
             channels=['daily', 'terminal']
         ),
         'daily': DailyChannel(
-            level=env('LOG_DAILY_LEVEL', 'info'),
+            level=env('LOG_DAILY_LEVEL', 'debug'),
             path=env('LOG_DAILY_PATH', 'storage/logs'),
         ),
         'terminal': TerminalChannel(
-            level=env('LOG_TERMINAL_LEVEL', 'info'),
+            level=env('LOG_TERMINAL_LEVEL', 'debug'),
         ),
     })
