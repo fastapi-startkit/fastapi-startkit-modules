@@ -1,19 +1,16 @@
 import pytest_asyncio
 
 from fastapi_startkit.masoniteorm.collection import Collection
-from fastapi_startkit.masoniteorm.connections.sqlite_connection import SQLiteConnection
 from fastapi_startkit.masoniteorm.models import Model
 from fastapi_startkit.masoniteorm.relationships import HasManyThrough
 from fastapi_startkit.masoniteorm.schema import Schema
-from fastapi_startkit.masoniteorm.schema.platforms import SQLitePlatform
-from fastapi_startkit.masoniteorm.tests.integrations.config.database import DATABASES
+from ...fixtures.db import DB
 
 
 class Enrolment(Model):
     __table__ = "enrolment"
     __connection__ = "dev"
 
-    active_student_id = int
     in_course_id: int
 
 
@@ -32,7 +29,7 @@ class Course(Model):
     course_id: int
     name: str
 
-    students: list[Student] = HasManyThrough(
+    students: "Student" = HasManyThrough(
         ["Student", "Enrolment"],
         "in_course_id",
         "active_student_id",
@@ -44,15 +41,8 @@ class Course(Model):
 class TestHasManyThroughRelationship:
     @pytest_asyncio.fixture(autouse=True)
     async def setup(self):
-        # Reset shared engine cache so each test class gets a fresh in-memory DB.
-        SQLiteConnection._shared_engines.clear()
-
-        self.schema = Schema(
-            connection="dev",
-            connection_details=DATABASES,
-            platform=SQLitePlatform,
-            config_path="fastapi_startkit/masoniteorm/tests/integrations/config/database",
-        ).on("dev")
+        DB.clear()
+        self.schema = Schema(DB).on("dev")
 
         async with await self.schema.create_table_if_not_exists("student") as table:
             table.integer("student_id").primary()
@@ -67,55 +57,34 @@ class TestHasManyThroughRelationship:
             table.integer("active_student_id")
             table.integer("in_course_id")
 
-        if not await Course.count():
-            await (
-                Course()
-                .get_builder()
-                .bulk_create(
-                    [
-                        {"course_id": 10, "name": "Math 101"},
-                        {"course_id": 20, "name": "History 101"},
-                        {"course_id": 30, "name": "Math 302"},
-                        {"course_id": 40, "name": "Biology 302"},
-                    ]
-                )
-            )
+        await Course.query().insert([
+            {"course_id": 10, "name": "Math 101"},
+            {"course_id": 20, "name": "History 101"},
+            {"course_id": 30, "name": "Math 302"},
+            {"course_id": 40, "name": "Biology 302"},
+        ])
 
-        if not await Student.count():
-            await (
-                Student()
-                .get_builder()
-                .bulk_create(
-                    [
-                        {"student_id": 100, "name": "Bob"},
-                        {"student_id": 200, "name": "Alice"},
-                        {"student_id": 300, "name": "Steve"},
-                        {"student_id": 400, "name": "Megan"},
-                    ]
-                )
-            )
+        await Student.query().insert([
+            {"student_id": 100, "name": "Bob"},
+            {"student_id": 200, "name": "Alice"},
+            {"student_id": 300, "name": "Steve"},
+            {"student_id": 400, "name": "Megan"},
+        ])
 
-        if not await Enrolment.count():
-            await (
-                Enrolment()
-                .get_builder()
-                .bulk_create(
-                    [
-                        {"active_student_id": 100, "in_course_id": 30},
-                        {"active_student_id": 200, "in_course_id": 10},
-                        {"active_student_id": 100, "in_course_id": 10},
-                        {"active_student_id": 400, "in_course_id": 20},
-                    ]
-                )
-            )
+        await Enrolment.query().insert([
+            {"active_student_id": 100, "in_course_id": 30},
+            {"active_student_id": 200, "in_course_id": 10},
+            {"active_student_id": 100, "in_course_id": 10},
+            {"active_student_id": 400, "in_course_id": 20},
+        ])
 
         yield
 
-        # Teardown: drop tables and clear engine cache so tests stay isolated.
+        # Teardown: drop tables and clear connections so tests stay isolated.
         await self.schema.drop_table_if_exists("enrolment")
         await self.schema.drop_table_if_exists("student")
         await self.schema.drop_table_if_exists("course")
-        SQLiteConnection._shared_engines.clear()
+        DB.clear()
 
     async def test_has_many_through_can_eager_load(self):
         courses = await Course.where("name", "Math 101").with_("students").get()

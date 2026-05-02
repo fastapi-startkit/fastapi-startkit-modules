@@ -1,4 +1,4 @@
-from .model import User, Profile, Articles, Logo, Country, Port, IncomingShipment
+from .model import User, Profile, Articles, Logo, Country, Port, IncomingShipment, Like, Product
 
 
 async def seeder():
@@ -16,6 +16,9 @@ async def seeder():
     await Logo.create(
         {"article_id": article.id, "published_date": "2020-01-01 00:00:00"}
     )
+    product = await Product.create({"name": "Widget"})
+    await Like.create({"likeable_type": "article", "likeable_id": article.id})
+    await Like.create({"likeable_type": "product", "likeable_id": product.id})
 
     await Country.query().insert(
         [

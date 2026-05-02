@@ -4,8 +4,10 @@ from fastapi_startkit.masoniteorm.relationships import (
     HasOne,
     BelongsTo,
     HasMany,
+    HasManyThrough,
     BelongsToMany,
     HasOneThrough,
+    MorphTo,
 )
 from fastapi_startkit.masoniteorm.models.model import Model
 
@@ -19,6 +21,13 @@ class User(Model):
 
     profile: "Profile" = HasOne("Profile", "user_id", "id")
     articles: "Articles" = HasMany("Articles", "id", "user_id")
+    logos: "Logo" = HasManyThrough(
+        ["Logo", "Articles"],
+        "user_id",     # FK on Articles pointing to User
+        "article_id",  # FK on Logo pointing to Articles
+        "id",          # PK on User
+        "id",          # PK on Logo
+    )
 
     def get_is_admin(self) -> bool:
         return self.is_admin
@@ -42,6 +51,7 @@ class Articles(Model):
     published_date: Carbon = Field(json_schema_extra={"format": "YYYY-MM-DD HH:mm:ss"})
 
     logo: "Logo" = BelongsTo("Logo", "id", "article_id")
+    likes: "Like" = HasMany("Like", "id", "likeable_id")
 
 
 class Store(Model):
@@ -56,6 +66,14 @@ class Store(Model):
 
 class Product(Model):
     __table__ = "products"
+
+    likes: "Like" = HasMany("Like", "id", "likeable_id")
+
+
+class Like(Model):
+    __table__ = "likes"
+
+    record: "Model" = MorphTo("Like", "likeable_type", "likeable_id")
 
 
 class Port(Model):
@@ -79,3 +97,5 @@ class IncomingShipment(Model):
         "port_id",  # PK on Port
         "country_id",  # PK on Country
     )
+
+
