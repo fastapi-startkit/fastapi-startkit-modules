@@ -1,6 +1,6 @@
-from fastapi_startkit.orm.tests.fixtures.model import Profile
-from fastapi_startkit.orm.tests.fixtures.model import User
-from fastapi_startkit.orm.tests.sqlite.test_case import TestCase
+from ...fixtures.model import Profile
+from ...fixtures.model import User
+from ..test_case import TestCase
 
 
 class TestRelationships(TestCase):

@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import AsyncMock
 
-from fastapi_startkit.orm.tests.fixtures.db import DB
-from fastapi_startkit.orm.tests.fixtures.model import User
-from fastapi_startkit.orm.tests.sqlite.test_case import TestCase
+from ...fixtures.db import DB
+from ...fixtures.model import User
+from ..test_case import TestCase
 
 
 class SqliteTestQueryBuilderModel(TestCase):
