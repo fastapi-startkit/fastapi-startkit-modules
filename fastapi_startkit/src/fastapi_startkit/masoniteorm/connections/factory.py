@@ -57,3 +57,10 @@ class ConnectionFactory:
                 return MySQLConnection(engine, config)
 
         raise ValueError(f"Unsupported driver: {driver}")
+
+    def set_connection_details(self, details: dict) -> "ConnectionFactory":
+        self._connection_details = details
+        return self
+
+    def get_connection_details(self) -> dict:
+        return getattr(self, "_connection_details", {})

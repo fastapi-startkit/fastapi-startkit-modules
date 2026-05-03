@@ -9,6 +9,11 @@ from fastapi_startkit.masoniteorm.expressions.expressions import (
     UpdateQueryExpression,
     SubSelectExpression,
     SubGroupExpression,
+    OrderByExpression,
+    GroupByExpression,
+    HavingExpression,
+    AggregateExpression,
+    BetweenExpression,
 )
 from fastapi_startkit.masoniteorm.query.EagerLoadMixin import EagerLoadMixin
 from fastapi_startkit.masoniteorm.query.support import SupportMixin
@@ -27,8 +32,14 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         self._columns = []
         self._table = ""
         self._limit = False
+        self._offset = False
         self._wheres = []
         self._joins = ()
+        self._aggregates = ()
+        self._order_by = ()
+        self._group_by = ()
+        self._having = ()
+        self._distinct = False
 
         self._sql = ""
         self._bindings = ()
@@ -117,8 +128,14 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
             columns=self._columns,
             table=self._table,
             limit=self._limit,
+            offset=self._offset,
             wheres=self._wheres,
             joins=self._joins,
+            aggregates=self._aggregates,
+            order_by=self._order_by,
+            group_by=self._group_by,
+            having=self._having,
+            distinct=self._distinct,
         )
 
     def to_qmark(self) -> str:
@@ -127,6 +144,105 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         sql = grammar.compile(self._action, qmark=True).to_sql()
         self._bindings = grammar._bindings
         return sql
+
+    def to_sql(self) -> str:
+        self.run_scopes()
+        return self.get_grammar().compile(self._action).to_sql()
+
+    def offset(self, offset: int) -> "QueryBuilder":
+        self._offset = offset
+        return self
+
+    def order_by(self, column: str, direction: str = "asc") -> "QueryBuilder":
+        direction = direction.upper()
+        for col in column.split(","):
+            col = col.strip()
+            self._order_by += (OrderByExpression(col, direction),)
+        return self
+
+    def order_by_raw(self, expression: str) -> "QueryBuilder":
+        self._order_by += (OrderByExpression(expression, raw=True),)
+        return self
+
+    def latest(self, column: str = "created_at") -> "QueryBuilder":
+        return self.order_by(column, "desc")
+
+    def oldest(self, column: str = "created_at") -> "QueryBuilder":
+        return self.order_by(column, "asc")
+
+    def group_by(self, column: str) -> "QueryBuilder":
+        for col in column.split(","):
+            col = col.strip()
+            self._group_by += (GroupByExpression(col),)
+        return self
+
+    def group_by_raw(self, expression: str) -> "QueryBuilder":
+        self._group_by += (GroupByExpression(expression, raw=True),)
+        return self
+
+    def having(self, column: str, equality: str, value) -> "QueryBuilder":
+        self._having += (HavingExpression(column, equality, value),)
+        return self
+
+    def where_null(self, column: str) -> "QueryBuilder":
+        self._wheres += (QueryExpression(column, "=", None, "NULL"),)
+        return self
+
+    def where_not_null(self, column: str) -> "QueryBuilder":
+        self._wheres += (QueryExpression(column, "=", None, "NOT NULL"),)
+        return self
+
+    def where_not_in(self, column: str, values) -> "QueryBuilder":
+        values = list(values) if not isinstance(values, list) else values
+        self._wheres.append(QueryExpression(column, "NOT IN", values))
+        return self
+
+    def between(self, column: str, low, high) -> "QueryBuilder":
+        self._wheres += (BetweenExpression(column, low, high, "BETWEEN"),)
+        return self
+
+    def not_between(self, column: str, low, high) -> "QueryBuilder":
+        self._wheres += (BetweenExpression(column, low, high, "NOT BETWEEN"),)
+        return self
+
+    def left_join(self, table: str, column1: str, equality: str, column2: str) -> "QueryBuilder":
+        return self.join(table, column1, equality, column2, clause="left")
+
+    def right_join(self, table: str, column1: str, equality: str, column2: str) -> "QueryBuilder":
+        # SQLite doesn't support RIGHT JOIN — use left join as fallback
+        return self.join(table, column1, equality, column2, clause="right")
+
+    def distinct(self) -> "QueryBuilder":
+        self._distinct = True
+        return self
+
+    def aggregate(self, aggregate_type: str, column: str, alias: str = None) -> "QueryBuilder":
+        if alias:
+            column = f"{column} as {alias}"
+        self._aggregates += (AggregateExpression(aggregate_type, column),)
+        return self
+
+    def count(self, column: str = "*") -> "QueryBuilder":
+        return self.aggregate("COUNT", column)
+
+    def sum(self, column: str) -> "QueryBuilder":
+        return self.aggregate("SUM", column)
+
+    def max(self, column: str) -> "QueryBuilder":
+        return self.aggregate("MAX", column)
+
+    def min(self, column: str) -> "QueryBuilder":
+        return self.aggregate("MIN", column)
+
+    def avg(self, column: str) -> "QueryBuilder":
+        return self.aggregate("AVG", column)
+
+    async def delete(self, column=None, value=None):
+        if column is not None:
+            self.where(column, value)
+        self.set_action("delete")
+        sql = self.to_qmark()
+        return await self.connection.delete(sql, self.get_bindings())
 
     async def create(self, attributes: dict):
         model = self._model.new_model_instance(attributes)

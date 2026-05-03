@@ -64,6 +64,14 @@ class Model(Attribute, Relationship, ObservesEvents):
     def is_loaded(self) -> bool:
         return self._exists
 
+    def is_created(self) -> bool:
+        """Returns True if this model has been persisted to the database."""
+        return self._exists
+
+    def all_attributes(self) -> dict:
+        """Returns all model attributes (original + dirty)."""
+        return self.get_attributes()
+
     def get_builder(self):
         return self.new_query()
 
