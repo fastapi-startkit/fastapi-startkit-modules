@@ -1,19 +1,19 @@
 from pathlib import Path
 
-from config.database import DatabaseConfig
-from providers.fastapi_provider import FastAPIProvider
-from starlette.middleware.trustedhost import TrustedHostMiddleware
-
-from starlette.middleware.sessions import SessionMiddleware
-
-from authentication.middlewares.auth import AuthMiddleware, NotAuthenticated
 from fastapi_startkit import Application
 from fastapi_startkit.exceptions import ExceptionHandler as BaseHandler
 from fastapi_startkit.inertia import InertiaProvider
 from fastapi_startkit.logging import LogProvider
 from fastapi_startkit.masoniteorm import DatabaseProvider
 from fastapi_startkit.vite import ViteProvider
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.responses import RedirectResponse
+
+from authentication.middlewares.auth import AuthMiddleware, NotAuthenticated
+from config.database import DatabaseConfig
+from providers.fastapi_provider import FastAPIProvider
+
 
 class ExceptionHandler(BaseHandler):
     def register(self):
@@ -24,7 +24,7 @@ class ExceptionHandler(BaseHandler):
 
 
 app: Application = Application(
-    base_path=str(Path.cwd()),
+    base_path=Path(__file__).resolve().parent.parent,
     providers=[
         LogProvider,
         (DatabaseProvider, DatabaseConfig),
@@ -34,7 +34,6 @@ app: Application = Application(
     ],
     exception_handler=ExceptionHandler,
 )
-
 
 app.add_middleware(AuthMiddleware)
 app.add_middleware(SessionMiddleware, secret_key="...")

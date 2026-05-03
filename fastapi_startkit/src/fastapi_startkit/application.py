@@ -1,4 +1,6 @@
 import os
+
+from dumpdie import dd
 from fastapi_startkit.providers.app_provider import AppProvider
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
@@ -44,7 +46,7 @@ class Application(Container, Generic[TConfig]):
         self.providers = self.DEFAULT_PROVIDERS + (providers or [])
         self.published_resources = {}
         self.commands = []
-        self._config = config
+        self._config = config or AppConfig
         self._config_instance: Optional[TConfig] = None
         self._exception_handler_class = exception_handler or ExceptionHandler
         self.exception_manager: ExceptionHandler
