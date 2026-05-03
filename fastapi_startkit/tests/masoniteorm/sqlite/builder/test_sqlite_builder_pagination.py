@@ -1,20 +1,40 @@
 from ...fixtures.model import User
 from ..test_case import TestCase
-from fastapi_startkit.masoniteorm.collection import Collection
 
 
 class TestQueryBuilderPagination(TestCase):
-    async def test_limit_and_offset(self):
-        all_users = await User.get()
-        assert all_users.count() > 0
+    async def test_paginate(self):
+        paginator = await User.query().paginate(1)
 
-    async def test_limit(self):
-        users = await User.query().limit(1).get()
-        assert users.count() == 1
+        self.assertTrue(paginator.count)
+        self.assertTrue(paginator.serialize()["data"])
+        self.assertTrue(paginator.serialize()["meta"])
+        self.assertTrue(paginator.result)
+        self.assertTrue(paginator.current_page)
+        self.assertTrue(paginator.per_page)
+        self.assertTrue(paginator.count)
+        self.assertTrue(paginator.last_page)
+        self.assertTrue(paginator.next_page)
+        self.assertIsNone(paginator.previous_page)
+        self.assertTrue(paginator.total)
+        for user in paginator:
+            self.assertIsInstance(user, User)
 
-    async def test_offset_skips_records(self):
-        all_users = await User.query().get()
-        total = all_users.count()
-        if total > 1:
-            page2 = await User.query().limit(total).offset(1).get()
-            assert page2.count() == total - 1
+    async def test_simple_paginate(self):
+        paginator = await User.query().simple_paginate(10, 1)
+
+        self.assertIsInstance(paginator.to_json(), str)
+
+        self.assertTrue(paginator.count)
+        self.assertTrue(paginator.serialize()["data"])
+        self.assertTrue(paginator.serialize()["meta"])
+        self.assertTrue(paginator.result)
+        self.assertTrue(paginator.current_page)
+        self.assertTrue(paginator.per_page)
+        self.assertTrue(paginator.count)
+        self.assertIsNone(paginator.next_page)
+        self.assertIsNone(paginator.previous_page)
+        for user in paginator:
+            self.assertIsInstance(user, User)
+
+        self.assertIsInstance(paginator.to_json(), str)

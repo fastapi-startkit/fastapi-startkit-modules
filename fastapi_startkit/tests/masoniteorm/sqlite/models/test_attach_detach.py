@@ -14,6 +14,8 @@ class BottleLid(Model):
     __table__ = "bottle_lids"
     __timestamps__ = False
 
+    colour: str
+    bottle_id: int | None
     bottle: "Bottle" = BelongsTo("Bottle", "id", "bottle_id")
 
 
@@ -43,7 +45,7 @@ class TestAttachDetach(TestCase):
 
         # Reload lid and verify foreign key was set
         refreshed = await BottleLid.where("id", lid.id).first()
-        assert refreshed.bottle_id == bottle.id
+        assert int(refreshed.bottle_id) == bottle.id
 
     async def test_has_one_detach(self):
         bottle = await Bottle.create({"label": "milk"})

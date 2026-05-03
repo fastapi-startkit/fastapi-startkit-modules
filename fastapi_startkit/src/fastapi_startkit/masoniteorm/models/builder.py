@@ -282,6 +282,30 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         bindings = list(grammar._bindings)
         return await self.connection.update(sql, bindings)
 
+    async def paginate(self, per_page: int = 15, page: int = 1):
+        from fastapi_startkit.masoniteorm.pagination import LengthAwarePaginator
+
+        # Build a count query using a fresh builder with the same wheres/table/model
+        count_builder = self.connection.query().set_model(self._model)
+        count_builder._wheres = list(self._wheres)
+        count_builder._joins = self._joins
+        count_builder._global_scopes = self._global_scopes
+        count_builder.count()
+        count_result = await self.connection.select(count_builder.to_qmark(), count_builder.get_bindings())
+        total = list(count_result[0].values())[0] if count_result else 0
+
+        offset = (page - 1) * per_page
+        results = await self.limit(per_page).offset(offset).get()
+        return LengthAwarePaginator(results, per_page, page, int(total))
+
+    async def simple_paginate(self, per_page: int = 15, page: int = 1):
+        from fastapi_startkit.masoniteorm.pagination import SimplePaginator
+
+        offset = (page - 1) * per_page
+        # Fetch one extra record to detect if there is a next page
+        results = await self.limit(per_page + 1).offset(offset).get()
+        return SimplePaginator(results, per_page, page)
+
     def new(self):
         return self.connection.query()
 

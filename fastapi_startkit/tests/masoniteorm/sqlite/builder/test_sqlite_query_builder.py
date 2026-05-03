@@ -1,86 +1,89 @@
-import unittest
-
+from ..test_case import TestCase
 from ...fixtures.model import User
-from ...fixtures.db import DB
 
 
-class TestSQLiteQueryBuilder(unittest.TestCase):
-    def test_where_generates_sql(self):
+class TestSQLiteQueryBuilder(TestCase):
+    async def test_where(self):
         sql = User.query().where("name", "Joe").to_sql()
-        self.assertIn("WHERE", sql)
-        self.assertIn("name", sql)
+        self.assertEqual(sql, 'SELECT * FROM "users" WHERE "users"."name" = \'Joe\'')
 
-    def test_where_with_operator(self):
+    async def test_where_with_operator(self):
         sql = User.query().where("age", ">", 20).to_sql()
-        self.assertIn(">", sql)
+        self.assertEqual(sql, 'SELECT * FROM "users" WHERE "users"."age" > \'20\'')
 
-    def test_select_columns(self):
+    async def test_select_columns(self):
         sql = User.query().select("name", "email").to_sql()
-        self.assertIn("name", sql)
-        self.assertIn("email", sql)
+        self.assertEqual(sql, 'SELECT "users"."name", "users"."email" FROM "users"')
 
-    def test_limit(self):
+    async def test_limit(self):
         sql = User.query().limit(5).to_sql()
-        self.assertIn("LIMIT 5", sql)
+        self.assertEqual(sql, 'SELECT * FROM "users" LIMIT 5')
 
-    def test_offset(self):
+    async def test_offset(self):
         sql = User.query().limit(10).offset(5).to_sql()
-        self.assertIn("OFFSET 5", sql)
+        self.assertEqual(sql, 'SELECT * FROM "users" LIMIT 10 OFFSET 5')
 
-    def test_order_by_asc(self):
+    async def test_order_by_asc(self):
         sql = User.query().order_by("email", "asc").to_sql()
-        self.assertIn("ORDER BY", sql)
-        self.assertIn("ASC", sql)
+        self.assertEqual(sql, 'SELECT * FROM "users" ORDER BY "email" ASC')
 
-    def test_order_by_desc(self):
+    async def test_order_by_desc(self):
         sql = User.query().order_by("email", "desc").to_sql()
-        self.assertIn("DESC", sql)
+        self.assertEqual(sql, 'SELECT * FROM "users" ORDER BY "email" DESC')
 
-    def test_where_null(self):
+    async def test_where_null(self):
         sql = User.query().where_null("name").to_sql()
-        self.assertIn("IS NULL", sql)
+        self.assertEqual(sql, 'SELECT * FROM "users" WHERE "users"."name" IS NULL')
 
-    def test_where_not_null(self):
+    async def test_where_not_null(self):
         sql = User.query().where_not_null("name").to_sql()
-        self.assertIn("IS NOT NULL", sql)
+        self.assertEqual(sql, 'SELECT * FROM "users" WHERE "users"."name" IS NOT NULL')
 
-    def test_where_in(self):
+    async def test_where_in(self):
         sql = User.query().where_in("id", [1, 2, 3]).to_sql()
-        self.assertIn("IN", sql)
+        self.assertEqual(sql, "SELECT * FROM \"users\" WHERE \"users\".\"id\" IN ('1','2','3')")
 
-    def test_where_not_in(self):
+    async def test_where_not_in(self):
         sql = User.query().where_not_in("id", [1, 2, 3]).to_sql()
-        self.assertIn("NOT IN", sql)
+        self.assertEqual(sql, "SELECT * FROM \"users\" WHERE \"users\".\"id\" NOT IN ('1','2','3')")
 
-    def test_between(self):
+    async def test_between(self):
         sql = User.query().between("id", 2, 5).to_sql()
-        self.assertIn("BETWEEN", sql)
+        self.assertEqual(sql, "SELECT * FROM \"users\" WHERE \"users\".\"id\" BETWEEN '2' AND '5'")
 
-    def test_not_between(self):
+    async def test_not_between(self):
         sql = User.query().not_between("id", 2, 5).to_sql()
-        self.assertIn("NOT BETWEEN", sql)
+        self.assertEqual(sql, "SELECT * FROM \"users\" WHERE \"users\".\"id\" NOT BETWEEN '2' AND '5'")
 
-    def test_join(self):
+    async def test_join(self):
         sql = User.query().join("profiles", "users.id", "=", "profiles.user_id").to_sql()
-        self.assertIn("JOIN", sql)
-        self.assertIn("profiles", sql)
+        self.assertEqual(
+            sql,
+            'SELECT * FROM "users" INNER JOIN "profiles" ON "users"."id" = "profiles"."user_id"',
+        )
 
-    def test_left_join(self):
+    async def test_left_join(self):
         sql = User.query().left_join("profiles", "users.id", "=", "profiles.user_id").to_sql()
-        self.assertIn("LEFT JOIN", sql)
+        self.assertEqual(
+            sql,
+            'SELECT * FROM "users" LEFT JOIN "profiles" ON "users"."id" = "profiles"."user_id"',
+        )
 
-    def test_or_where(self):
+    async def test_or_where(self):
         sql = User.query().where("age", "20").or_where("age", "<", 20).to_sql()
-        self.assertIn("OR", sql)
+        self.assertEqual(
+            sql,
+            "SELECT * FROM \"users\" WHERE \"users\".\"age\" = '20' OR \"users\".\"age\" < '20'",
+        )
 
-    def test_where_column(self):
+    async def test_where_column(self):
         sql = User.query().where_column("name", "username").to_sql()
-        self.assertIn("name", sql)
+        self.assertEqual(sql, 'SELECT * FROM "users" WHERE name = username')
 
-    def test_when_true(self):
+    async def test_when_true_applies_condition(self):
         sql = User.query().when(True, lambda q: q.where("is_admin", 1)).to_sql()
-        self.assertIn("is_admin", sql)
+        self.assertEqual(sql, "SELECT * FROM \"users\" WHERE \"users\".\"is_admin\" = '1'")
 
-    def test_when_false(self):
+    async def test_when_false_skips_condition(self):
         sql = User.query().when(False, lambda q: q.where("is_admin", 1)).to_sql()
-        self.assertNotIn("is_admin", sql)
+        self.assertEqual(sql, 'SELECT * FROM "users"')
