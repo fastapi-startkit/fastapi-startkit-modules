@@ -3,13 +3,16 @@ from .BasePaginator import BasePaginator
 
 class SimplePaginator(BasePaginator):
     def __init__(self, result, per_page, current_page, url=None):
-        self.result = result
         self.current_page = current_page
         self.per_page = per_page
-        self.count = len(self.result)
-        self.next_page = (int(self.current_page) + 1) if self.has_more_pages() else None
+        # Detect next page from the extra record fetched by the builder
+        has_more = len(result) > per_page
+        self.next_page = (int(self.current_page) + 1) if has_more else None
         self.previous_page = (int(self.current_page) - 1) or None
         self.url = url
+        # Trim to per_page after detecting more pages
+        self.result = result[:per_page]
+        self.count = len(self.result)
 
     def serialize(self, *args, **kwargs):
         return {
@@ -23,4 +26,4 @@ class SimplePaginator(BasePaginator):
         }
 
     def has_more_pages(self):
-        return len(self.result) > self.per_page
+        return self.next_page is not None

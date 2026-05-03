@@ -45,6 +45,30 @@ class HasMany(BaseRelationship):
 
         return await related_record.update({self.foreign_key: local_key_value})
 
+    def query_has(self, current_query_builder, method="where_exists"):
+        related_builder = self.get_builder()
+
+        getattr(current_query_builder, method)(
+            related_builder.where_column(
+                f"{related_builder.get_table_name()}.{self.foreign_key}",
+                f"{current_query_builder.get_table_name()}.{self.local_key}",
+            )
+        )
+
+        return related_builder
+
+    def query_where_exists(self, builder, callback, method="where_exists"):
+        query = self.get_builder()
+        getattr(builder, method)(
+            callback(
+                query.where_column(
+                    f"{query.get_table_name()}.{self.foreign_key}",
+                    f"{builder.get_table_name()}.{self.local_key}",
+                )
+            )
+        )
+        return query
+
     async def get_related(self, query, relation, eagers=None, callback=None):
         eagers = eagers or []
         builder = self.get_builder().with_(eagers)

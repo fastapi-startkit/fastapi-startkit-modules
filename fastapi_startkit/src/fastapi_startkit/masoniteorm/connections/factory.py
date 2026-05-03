@@ -57,3 +57,4 @@ class ConnectionFactory:
                 return MySQLConnection(engine, config)
 
         raise ValueError(f"Unsupported driver: {driver}")
+
