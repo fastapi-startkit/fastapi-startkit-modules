@@ -1,4 +1,7 @@
+from unittest.mock import AsyncMock
+
 from ..test_case import TestCase
+from ...fixtures.db import DB
 from ...fixtures.model import User
 
 
@@ -87,3 +90,47 @@ class TestSQLiteQueryBuilder(TestCase):
     async def test_when_false_skips_condition(self):
         sql = User.query().when(False, lambda q: q.where("is_admin", 1)).to_sql()
         self.assertEqual(sql, 'SELECT * FROM "users"')
+
+    async def test_update_sql_and_bindings(self):
+        mock_update = AsyncMock(return_value=1)
+        DB.connection("sqlite").update = mock_update
+
+        await User.query().where("id", 1).update({"name": "Joe", "email": "joe@test.com"})
+
+        mock_update.assert_called_once()
+        sql, bindings = mock_update.call_args[0]
+        self.assertEqual(sql, 'UPDATE "users" SET "name" = ?, "email" = ? WHERE "id" = ?')
+        self.assertEqual(list(bindings), ["Joe", "joe@test.com", 1])
+
+    async def test_delete_by_column(self):
+        mock_delete = AsyncMock(return_value=1)
+        DB.connection("sqlite").delete = mock_delete
+
+        await User.query().where("id", 1).delete()
+
+        mock_delete.assert_called_once()
+        sql, bindings = mock_delete.call_args[0]
+        self.assertEqual(sql, 'DELETE FROM "users" WHERE "id" = ?')
+        self.assertEqual(list(bindings), [1])
+
+    async def test_delete_where_in(self):
+        mock_delete = AsyncMock(return_value=3)
+        DB.connection("sqlite").delete = mock_delete
+
+        await User.query().where_in("id", [1, 2, 3]).delete()
+
+        mock_delete.assert_called_once()
+        sql, bindings = mock_delete.call_args[0]
+        self.assertEqual(sql, 'DELETE FROM "users" WHERE "id" IN (?, ?, ?)')
+        self.assertEqual(list(bindings), [1, 2, 3])
+
+    async def test_delete_with_multiple_wheres(self):
+        mock_delete = AsyncMock(return_value=1)
+        DB.connection("sqlite").delete = mock_delete
+
+        await User.query().where("age", 20).where("profile", 1).delete()
+
+        mock_delete.assert_called_once()
+        sql, bindings = mock_delete.call_args[0]
+        self.assertEqual(sql, 'DELETE FROM "users" WHERE "age" = ? AND "profile" = ?')
+        self.assertEqual(list(bindings), [20, 1])

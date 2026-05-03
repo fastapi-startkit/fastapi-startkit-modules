@@ -1,3 +1,6 @@
+from unittest.mock import AsyncMock
+
+from ...fixtures.db import DB
 from ...fixtures.model import User
 from ..test_case import TestCase
 
@@ -13,3 +16,25 @@ class TestQueryBuilderInsert(TestCase):
         user = await User.where("email", "bulk@test.com").first()
         assert user is not None
         assert user.name == "Bulk User"
+
+    async def test_bulk_insert_sql_single(self):
+        mock_insert = AsyncMock(return_value=1)
+        DB.connection("sqlite").insert = mock_insert
+
+        await User.query().insert({"name": "Joe"})
+
+        mock_insert.assert_called_once()
+        sql, bindings = mock_insert.call_args[0]
+        self.assertEqual(sql, 'INSERT INTO "users" ("name") VALUES (?)')
+        self.assertEqual(list(bindings), ["Joe"])
+
+    async def test_bulk_insert_sql_multiple(self):
+        mock_insert = AsyncMock(return_value=3)
+        DB.connection("sqlite").insert = mock_insert
+
+        await User.query().insert([{"name": "Joe"}, {"name": "Bill"}, {"name": "John"}])
+
+        mock_insert.assert_called_once()
+        sql, bindings = mock_insert.call_args[0]
+        self.assertEqual(sql, 'INSERT INTO "users" ("name") VALUES (?), (?), (?)')
+        self.assertEqual(list(bindings), ["Joe", "Bill", "John"])
