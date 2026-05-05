@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from starlette.templating import Jinja2Templates
 
-from fastapi_startkit.fastapi.providers import FastAPIProvider as BaseFastAPIProvider
+from fastapi_startkit.fastapi import FastAPIProvider as BaseFastAPIProvider
 
 
 class FastAPIProvider(BaseFastAPIProvider):
