@@ -1,6 +1,5 @@
 import os
 
-from dumpdie import dd
 from fastapi_startkit.providers.app_provider import AppProvider
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional

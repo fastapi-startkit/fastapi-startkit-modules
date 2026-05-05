@@ -22,15 +22,11 @@ const Edit = () => {
         password: user.password || "",
         owner: user.owner ? "1" : "0" || "0",
         photo: "",
-
-        // NOTE: When working with Laravel PUT/PATCH requests and FormData
-        // you SHOULD send POST request and fake the PUT request like this.
-        _method: "put",
     })
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
-    
+
         put(route("users.update", user.id))
     }
 
