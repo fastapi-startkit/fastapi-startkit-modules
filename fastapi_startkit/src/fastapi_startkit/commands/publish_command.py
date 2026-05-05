@@ -42,9 +42,7 @@ class PublishCommand(Command):
                 if Str.slugify(name) == target
             }
             if not resources:
-                self.line(
-                    f"<error>No provider found matching '{provider_arg}'.</error>"
-                )
+                self.line(f"<error>No provider found matching '{provider_arg}'.</error>")
                 return
         else:
             resources = application.published_resources
@@ -59,9 +57,7 @@ class PublishCommand(Command):
                         default=False,
                     )
                     if not overwrite:
-                        self.line(
-                            f"  [{provider_key}] Skipped <comment>{destination}</comment>"
-                        )
+                        self.line(f"  [{provider_key}] Skipped <comment>{destination}</comment>")
                         continue
 
                 os.makedirs(os.path.dirname(dest_path), exist_ok=True)

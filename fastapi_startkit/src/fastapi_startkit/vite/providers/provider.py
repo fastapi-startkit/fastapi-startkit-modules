@@ -41,6 +41,17 @@ class ViteProvider(Provider):
         )
         self.publishes({source: "config/vite.py"})
 
+        stubs_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../stubs"))
+
+        self.publishes(
+            {
+                os.path.join(stubs_path, "vite.config.js"): "vite.config.js",
+                os.path.join(stubs_path, "package.json"): "package.json",
+                os.path.join(stubs_path, "resources/js/app.js"): "resources/js/app.js",
+                os.path.join(stubs_path, "resources/css/app.css"): "resources/css/app.css",
+            }
+        )
+
     def mount_static_file_if_require(self, config: ViteConfig):
         if config.mount_static:
             build_path = os.path.join(config.public_path, config.build_directory)
