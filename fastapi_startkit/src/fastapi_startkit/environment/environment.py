@@ -26,7 +26,11 @@ class Environment:
 
         load_dotenv(path, override=True)
 
-        return os.environ.get("APP_ENV", "local")
+        env = os.environ.get("APP_ENV")
+        if not env:
+            raise ValueError("APP_ENV not set after loading .env")
+
+        return env
 
     @staticmethod
     def load_base(base_path=None):
