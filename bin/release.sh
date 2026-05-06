@@ -41,11 +41,12 @@ if [ -d "$PACKAGE_DIR" ]; then
 
     echo "🚀 Creating GitHub release..."
 
-    PREV_TAG=$(git tag --sort=-version:refname | grep -E '^v[0-9]' | sed -n '2p')
+    PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
     if [ -n "$PREV_TAG" ]; then
-        git log "$PREV_TAG..v$VERSION" --pretty=format:"- %s" > CHANGELOG.tmp
+        git log "$PREV_TAG..HEAD" --pretty=format:"- %s" > CHANGELOG.tmp
     else
-        git log "v$VERSION" --pretty=format:"- %s" > CHANGELOG.tmp
+        git log --pretty=format:"- %s" > CHANGELOG.tmp
     fi
 
     gh release create "v$VERSION" \
