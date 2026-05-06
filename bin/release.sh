@@ -18,6 +18,7 @@ if [ -d "$PACKAGE_DIR" ]; then
     # Bump version
     echo "   Bumping version..."
     uv version --bump "$BUMP_TYPE"
+    VERSION=$(uv version --short)
 
     # Build
     echo "   Building..."
@@ -27,10 +28,27 @@ if [ -d "$PACKAGE_DIR" ]; then
     echo "   Publishing..."
     uv run twine upload dist/* --verbose
 
-    # Return to root
+    echo "📌 Committing version bump..."
+    git add pyproject.toml
+    git commit -m "chore: release v$VERSION"
+
+    echo "🏷️ Creating git tag..."
+    git tag "v$VERSION"
+
+    echo "⬆️ Pushing commits + tags..."
+    git push origin main
+    git push origin "v$VERSION"
+
+    echo "🚀 Creating GitHub release..."
+
+    gh release create "v$VERSION" \
+        --title "v$VERSION" \
+        --notes-file CHANGELOG.tmp
+
+    rm CHANGELOG.tmp
+
     cd - > /dev/null
-    echo "✅ $PACKAGE_DIR processed."
-    echo "----------------------------------------"
+    echo "✅ Release complete: v$VERSION"
 else
     echo "⚠️  Package directory $PACKAGE_DIR not found."
     exit 1
