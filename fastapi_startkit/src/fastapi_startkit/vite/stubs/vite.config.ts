@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         fastapi({
-            input: "resources/js/app.js",
+            input: "resources/js/app.ts",
             refresh: true,
         }),
         tailwindcss()

@@ -45,10 +45,12 @@ class ViteProvider(Provider):
 
         self.publishes(
             {
-                os.path.join(stubs_path, "vite.config.js"): "vite.config.js",
+                os.path.join(stubs_path, "vite.config.ts"): "vite.config.ts",
                 os.path.join(stubs_path, "package.json"): "package.json",
-                os.path.join(stubs_path, "resources/js/app.js"): "resources/js/app.js",
+                os.path.join(stubs_path, "tsconfig.json"): "tsconfig.json",
+                os.path.join(stubs_path, "resources/js/app.ts"): "resources/js/app.ts",
                 os.path.join(stubs_path, "resources/css/app.css"): "resources/css/app.css",
+                os.path.join(stubs_path, "templates/index.html"): "templates/index.html",
             }
         )
 
