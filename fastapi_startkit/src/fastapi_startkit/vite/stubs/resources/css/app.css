@@ -1,4 +1,1 @@
-/* resources/css/app.css */
-body {
-    background-color: #f3f4f6;
-}
+@import "tailwindcss";

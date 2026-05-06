@@ -20,7 +20,7 @@ class Vite:
 
     Typical usage in a Jinja2 template::
 
-        {{ vite('resources/js/app.js') }}
+        {{ vite('resources/js/app.ts') }}
         {{ vite_asset('resources/images/logo.png') }}
         {{ vite_react_refresh() }}
     """

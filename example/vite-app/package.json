@@ -1,17 +1,16 @@
 {
-    "name": "vite-example",
     "private": true,
-    "version": "0.1.0",
+    "type": "module",
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "preview": "vite preview"
+        "types:check": "tsc --noEmit"
     },
     "devDependencies": {
+        "fastapi-vite-plugin": "^0.0.3",
+        "@tailwindcss/vite": "^4.0.0",
+        "tailwindcss": "^4.0.0",
+        "typescript": "^5.0.0",
         "vite": "^8.0.0"
-    },
-    "dependencies": {
-        "@tailwindcss/vite": "^4.2.4",
-        "fastapi-vite-plugin": "^0.0.3"
     }
 }
