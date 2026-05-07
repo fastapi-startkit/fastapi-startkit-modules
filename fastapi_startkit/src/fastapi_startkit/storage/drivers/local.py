@@ -18,7 +18,8 @@ class LocalDriver:
         return self
 
     def get_path(self, path):
-        file_path = os.path.join(self.options.get("path"), path)
+        root = self.options.get("root") or self.options.get("path")
+        file_path = os.path.join(root, path)
         self.make_file_path_if_not_exists(file_path)
         return file_path
 
@@ -121,3 +122,10 @@ class LocalDriver:
             files.append(File(self.get(f), f))
 
         return files
+
+    def download(self, file_path, name=None, force=False):
+        from fastapi.responses import FileResponse
+        return FileResponse(
+            self.get_path(file_path),
+            filename=name or os.path.basename(file_path)
+        )

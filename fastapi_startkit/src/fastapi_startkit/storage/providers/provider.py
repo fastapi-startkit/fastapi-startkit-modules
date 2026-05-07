@@ -1,7 +1,9 @@
+from pathlib import Path
 from ...providers import Provider
-from ..Storage import Storage
+from ..storage import StorageManager
 from ...configuration import config
-from ..drivers import LocalDriver, AmazonS3Driver
+from ..drivers import LocalDriver, S3Driver
+from ..config import StorageConfig
 
 
 class StorageProvider(Provider):
@@ -9,12 +11,21 @@ class StorageProvider(Provider):
         self.application = application
 
     def register(self):
-        storage = Storage(self.application).set_configuration(
-            config("filesystem.disks")
+        config_data = self.resolve_config(StorageConfig)
+        self.merge_config_from(config_data, "filesystem")
+        
+        storage = StorageManager(self.application).set_configuration(
+            config("filesystem")
         )
-        storage.add_driver("file", LocalDriver(self.application))
-        storage.add_driver("s3", AmazonS3Driver(self.application))
+        storage.add_driver("local", LocalDriver(self.application))
+        storage.add_driver("s3", S3Driver(self.application))
         self.application.bind("storage", storage)
 
     def boot(self):
-        pass
+        self.publishes(
+            {
+                Path(__file__)
+                .resolve()
+                .parent.parent.joinpath("config.py"): "config/filesystem.py"
+            }
+        )

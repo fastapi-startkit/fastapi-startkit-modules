@@ -26,12 +26,34 @@ class S3Driver:
 
         if not self.connection:
             self.connection = boto3.Session(
-                aws_access_key_id=self.options.get("client"),
+                aws_access_key_id=self.options.get("key") or self.options.get("client"),
                 aws_secret_access_key=self.options.get("secret"),
                 region_name=self.options.get("region"),
             )
 
         return self.connection
+
+    def get_client(self):
+        import botocore.config
+        config = botocore.config.Config(
+            s3={'addressing_style': 'path' if self.options.get("use_path_style_endpoint") else 'auto'}
+        )
+        return self.get_connection().client(
+            "s3",
+            endpoint_url=self.options.get("endpoint"),
+            config=config
+        )
+
+    def get_resource(self):
+        import botocore.config
+        config = botocore.config.Config(
+            s3={'addressing_style': 'path' if self.options.get("use_path_style_endpoint") else 'auto'}
+        )
+        return self.get_connection().resource(
+            "s3",
+            endpoint_url=self.options.get("endpoint"),
+            config=config
+        )
 
     def get_bucket(self):
         return self.options.get("bucket")
@@ -41,7 +63,7 @@ class S3Driver:
         return f"{alias}{extension}"
 
     def put(self, file_path, content):
-        self.get_connection().resource("s3").Bucket(self.get_bucket()).put_object(
+        self.get_resource().Bucket(self.get_bucket()).put_object(
             Key=file_path, Body=content
         )
         return content
@@ -52,7 +74,7 @@ class S3Driver:
         if hasattr(content, "get_content"):
             content = content.get_content()
 
-        self.get_connection().resource("s3").Bucket(self.get_bucket()).put_object(
+        self.get_resource().Bucket(self.get_bucket()).put_object(
             Key=os.path.join(file_path, file_name), Body=content
         )
         return os.path.join(file_path, file_name)
@@ -60,8 +82,7 @@ class S3Driver:
     def get(self, file_path):
         try:
             return (
-                self.get_connection()
-                .resource("s3")
+                self.get_resource()
                 .Bucket(self.get_bucket())
                 .Object(file_path)
                 .get()
@@ -74,14 +95,15 @@ class S3Driver:
 
     def missing_file_exceptions(self):
         import boto3
+        import botocore
 
-        return (boto3.exceptions.botocore.errorfactory.ClientError,)
+        return (botocore.exceptions.ClientError,)
 
     def exists(self, file_path):
         try:
-            self.get_connection().resource("s3").Bucket(self.get_bucket()).Object(
+            self.get_resource().Bucket(self.get_bucket()).Object(
                 file_path
-            ).get().get("Body").read()
+            ).load()
             return True
         except self.missing_file_exceptions():
             return False
@@ -91,8 +113,7 @@ class S3Driver:
 
     def stream(self, file_path):
         return FileStream(
-            self.get_connection()
-            .resource("s3")
+            self.get_resource()
             .Bucket(self.get_bucket())
             .Object(file_path)
             .get()
@@ -103,7 +124,7 @@ class S3Driver:
 
     def copy(self, from_file_path, to_file_path):
         copy_source = {"Bucket": self.get_bucket(), "Key": from_file_path}
-        self.get_connection().resource("s3").meta.client.copy(
+        self.get_resource().meta.client.copy(
             copy_source, self.get_bucket(), to_file_path
         )
 
@@ -124,15 +145,14 @@ class S3Driver:
 
     def delete(self, file_path):
         return (
-            self.get_connection()
-            .resource("s3")
+            self.get_resource()
             .Object(self.get_bucket(), file_path)
             .delete()
         )
 
     def store(self, file, name=None):
         full_path = name or file.hash_path_name()
-        self.get_connection().resource("s3").Bucket(self.get_bucket()).put_object(
+        self.get_resource().Bucket(self.get_bucket()).put_object(
             Key=full_path, Body=file.stream()
         )
         return full_path
@@ -148,7 +168,7 @@ class S3Driver:
         return False
 
     def get_files(self, directory=None):
-        bucket = self.get_connection().resource("s3").Bucket(self.get_bucket())
+        bucket = self.get_resource().Bucket(self.get_bucket())
 
         if directory:
             objects = bucket.objects.all().filter(Prefix=directory)
@@ -161,3 +181,15 @@ class S3Driver:
                 files.append(File(my_bucket_object, my_bucket_object.key))
 
         return files
+
+    def download(self, file_path, name=None, force=False):
+        url = self.get_client().generate_presigned_url(
+            "get_object",
+            Params={"Bucket": self.get_bucket(), "Key": file_path},
+            ExpiresIn=3600,
+        )
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url)
+
+    def url(self, file_path):
+        return f"{self.options.get('url')}/{file_path}"
