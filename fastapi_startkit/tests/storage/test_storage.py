@@ -91,3 +91,19 @@ class TestStorage(unittest.TestCase):
             response = driver.download("test.txt")
             self.assertIsInstance(response, RedirectResponse)
             self.assertEqual(str(response.url), "https://s3.url")
+
+    def test_storage_fake(self):
+        with patch("fastapi_startkit.application.app") as mock_app_getter:
+            mock_app_getter.return_value = self.mock_app
+            self.mock_app.make.return_value = self.storage_manager
+            
+            # Fake the 's3' disk
+            Storage.fake('s3')
+            
+            # The driver for 's3' should now be a LocalDriver (the fake)
+            from fastapi_startkit.storage.drivers.local import LocalDriver
+            driver = self.storage_manager.get_driver('s3')
+            self.assertIsInstance(driver, LocalDriver)
+            
+            # Verify it uses a temporary directory
+            self.assertTrue(driver.options['root'].startswith('/tmp/storage_fake_s3_'))

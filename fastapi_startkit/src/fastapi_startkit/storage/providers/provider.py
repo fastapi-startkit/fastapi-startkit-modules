@@ -12,11 +12,9 @@ class StorageProvider(Provider):
 
     def register(self):
         config_data = self.resolve_config(StorageConfig)
-        self.merge_config_from(config_data, "filesystem")
+        self.merge_config_from(config_data, "storage")
         
-        storage = StorageManager(self.application).set_configuration(
-            config("filesystem")
-        )
+        storage = StorageManager(self.application, config("storage"))
         storage.add_driver("local", LocalDriver(self.application))
         storage.add_driver("s3", S3Driver(self.application))
         self.application.bind("storage", storage)
@@ -26,6 +24,6 @@ class StorageProvider(Provider):
             {
                 Path(__file__)
                 .resolve()
-                .parent.parent.joinpath("config.py"): "config/filesystem.py"
+                .parent.parent.joinpath("config.py"): "config/storage.py"
             }
         )

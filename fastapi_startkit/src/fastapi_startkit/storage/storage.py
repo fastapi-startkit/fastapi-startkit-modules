@@ -43,6 +43,24 @@ class StorageManager:
         driver = self.get_driver(name)
         return driver.set_options(store_config)
 
+    def fake(self, name: str = "default") -> Any:
+        """Replace the given disk with a fake local disk for testing."""
+        if name == "default":
+            name = self.store_config.get("default", "local")
+
+        from .drivers import LocalDriver
+        import tempfile
+
+        # Use a temporary directory for the fake storage
+        temp_dir = tempfile.mkdtemp(prefix=f"storage_fake_{name}_")
+        
+        fake_driver = LocalDriver(self.application)
+        fake_driver.set_options({"root": temp_dir})
+        
+        # Replace the driver in the manager
+        self.drivers[name] = fake_driver
+        return fake_driver
+
     def put(self, *args, **kwargs):
         return self.disk().put(*args, **kwargs)
 
@@ -101,6 +119,10 @@ class Storage:
     @classmethod
     def disk(cls, name="default"):
         return cls.init().disk(name)
+
+    @classmethod
+    def fake(cls, name="default"):
+        return cls.init().fake(name)
 
     @classmethod
     def put(cls, *args, **kwargs):

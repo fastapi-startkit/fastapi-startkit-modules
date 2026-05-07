@@ -1,6 +1,6 @@
 import dataclasses
 from fastapi_startkit.environment import env
-from fastapi_startkit.helpers.app import storage_path, public_path
+from fastapi_startkit.helpers.app import storage_path
 
 @dataclasses.dataclass
 class StorageConfig:

@@ -94,7 +94,6 @@ class S3Driver:
             pass
 
     def missing_file_exceptions(self):
-        import boto3
         import botocore
 
         return (botocore.exceptions.ClientError,)
