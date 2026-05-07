@@ -76,28 +76,38 @@ class TestInertiaMiddleware(unittest.IsolatedAsyncioTestCase):
 
     @patch("fastapi_startkit.application.app")
     def test_middleware_resolves_validation_errors_from_session(self, mock_app_getter):
-        # We need a session-enabled app for this
+        # We need a fresh app and session-enabled middleware
+        from fastapi import Request
         from starlette.middleware.sessions import SessionMiddleware
-        self.app.add_middleware(SessionMiddleware, secret_key="secret")
         
-        client = TestClient(self.app)
+        app = FastAPI()
+        app.add_middleware(InertiaMiddleware)
+        app.add_middleware(SessionMiddleware, secret_key="secret")
         
+        @app.get("/set-errors")
+        def set_errors(request: Request):
+            request.session["errors"] = {"email": "Required"}
+            return "ok"
+        
+        @app.get("/check-errors")
+        def check_errors(request: Request):
+            # Middleware should have shared the errors from the session
+            # We access the singleton via the facade
+            return Inertia.instance().shared_props.get("errors", {})
+
         # Mock container for version check (avoiding 409)
         mock_container = MagicMock()
         mock_app_getter.return_value = mock_container
         mock_container.has.return_value = False
         
-        # Set errors in session via a helper route
-        @self.app.get("/set-errors")
-        def set_errors(request):
-            request.session["errors"] = {"email": "Required"}
-            return "ok"
+        client = TestClient(app)
         
-        @self.app.get("/check-errors")
-        def check_errors():
-            # Middleware should have shared the errors
-            return Inertia.instance().shared_props["errors"]
+        # Reset Inertia singleton for this specific test
+        Inertia._instance = None
 
+        # 1. First request sets the errors in session
         client.get("/set-errors")
+        
+        # 2. Second request should have errors shared by middleware
         response = client.get("/check-errors")
         self.assertEqual(response.json(), {"email": "Required"})
