@@ -8,7 +8,7 @@ import React from "react"
 
 export default function LoginPage() {
     const { data, setData, errors, post, processing } = useForm({
-        email: "johndoe@example.com",
+        email: "",
         password: "secret",
         remember: true,
     })

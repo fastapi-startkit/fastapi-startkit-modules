@@ -13,3 +13,17 @@ services:
             interval: 5s
             timeout: 5s
             retries: 10
+
+    postgres:
+        image: postgres:16
+        environment:
+            POSTGRES_DB: database_app_test
+            POSTGRES_USER: app
+            POSTGRES_PASSWORD: secret
+        ports:
+            - "5432:5432"
+        healthcheck:
+            test: [ "CMD", "pg_isready", "-U", "app", "-d", "database_app_test" ]
+            interval: 5s
+            timeout: 5s
+            retries: 10

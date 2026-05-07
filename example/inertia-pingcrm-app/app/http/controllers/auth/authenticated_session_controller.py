@@ -1,24 +1,28 @@
 from fastapi import Request
 from fastapi.responses import RedirectResponse
 from fastapi_startkit.inertia import Inertia
+
+from app.http.requests.auth import LoginRequest
 from app.models.User import User
+
 
 async def create():
     return Inertia.render('Auth/Login', {})
 
-async def store(request: Request):
-    form = await request.json()
-    email = form.get("email")
-    password = form.get("password")
+
+async def store(request: LoginRequest):
+    email = request.email
+    password = request.password
 
     user = await User.where("email", email).first()
-    if user and user.password == password:
-        request.session["user_id"] = user.id
-        return RedirectResponse(url="/", status_code=303)
+    # if user and user.password == password:
+    #     request.session["user_id"] = user.id
+    #     return RedirectResponse(url="/", status_code=303)
 
     return Inertia.render('Auth/Login', {
         'errors': {'email': 'These credentials do not match our records.'}
     })
+
 
 async def destroy(request: Request):
     request.session.clear()
