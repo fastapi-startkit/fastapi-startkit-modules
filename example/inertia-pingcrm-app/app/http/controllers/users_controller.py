@@ -1,7 +1,30 @@
-from fastapi import Request
+import uuid
+from pathlib import Path
+from typing import Optional
+
+from fastapi import Request, UploadFile, File, Form
 from fastapi.responses import RedirectResponse
 from fastapi_startkit.inertia import Inertia
 from app.models.User import User
+
+UPLOAD_DIR = Path("public") / "img"
+
+
+async def _save_photo(photo: Optional[UploadFile]) -> Optional[str]:
+    """Save an UploadFile to disk and return its public URL path, or None."""
+    if photo is None or not photo.filename:
+        return None
+    if not photo.content_type or not photo.content_type.startswith("image/"):
+        return None
+
+    ext = Path(photo.filename).suffix.lower() or ".jpg"
+    filename = f"{uuid.uuid4().hex}{ext}"
+
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    dest = UPLOAD_DIR / filename
+    dest.write_bytes(await photo.read())
+
+    return f"/img/{filename}"
 
 
 async def index():
@@ -32,9 +55,28 @@ async def create():
     return Inertia.render('Users/Create', {})
 
 
-async def store(request: Request):
-    form = await request.json()
-    await User.create(form)
+async def store(
+    request: Request,
+    first_name: str = Form(...),
+    last_name: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(default=''),
+    owner: str = Form(default='0'),
+    photo: Optional[UploadFile] = File(default=None),
+):
+    photo_path = await _save_photo(photo)
+
+    user_data = {
+        'first_name': first_name,
+        'last_name': last_name,
+        'email': email,
+        'password': password,
+        'owner': owner == '1',
+    }
+    if photo_path:
+        user_data['photo_path'] = photo_path
+
+    await User.create(user_data)
     return RedirectResponse(url="/users", status_code=303)
 
 
@@ -54,10 +96,32 @@ async def edit(user: str):
     })
 
 
-async def update(request: Request, user: str):
+async def update(
+    request: Request,
+    user: str,
+    first_name: str = Form(...),
+    last_name: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(default=''),
+    owner: str = Form(default='0'),
+    photo: Optional[UploadFile] = File(default=None),
+):
     u = await User.find(user)
-    form = await request.json()
-    await u.update(form)
+
+    photo_path = await _save_photo(photo)
+
+    update_data = {
+        'first_name': first_name,
+        'last_name': last_name,
+        'email': email,
+        'owner': owner == '1',
+    }
+    if password:
+        update_data['password'] = password
+    if photo_path:
+        update_data['photo_path'] = photo_path
+
+    await u.update(update_data)
     return RedirectResponse(url=f"/users/{user}/edit", status_code=303)
 
 

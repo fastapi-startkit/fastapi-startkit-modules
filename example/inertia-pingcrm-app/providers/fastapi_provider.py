@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from authentication.middlewares.auth import AuthMiddleware, NotAuthenticated
 from fastapi import FastAPI, Request
@@ -20,6 +21,11 @@ class FastAPIProvider(BaseFastAPIProvider):
         templates_dir = Path(self.app.base_path) / "templates"
         templates = Jinja2Templates(directory=str(templates_dir))
         self.app.bind("templates", templates)
+
+        # Serve uploaded profile photos at /img/<filename>
+        img_dir = Path(self.app.base_path) / "public" / "img"
+        img_dir.mkdir(parents=True, exist_ok=True)
+        fastapi.mount("/img", StaticFiles(directory=str(img_dir)), name="img")
 
     def boot(self) -> None:
         super().boot()

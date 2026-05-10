@@ -13,12 +13,13 @@ const Create = () => {
         email: "",
         password: "",
         owner: "0",
-        photo: "",
+        photo: null as File | null,
     })
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
-        post(route("users.store"))
+        // forceFormData ensures Inertia sends multipart/form-data when a photo is attached.
+        post(route("users.store"), { forceFormData: true })
     }
 
     return (
@@ -106,8 +107,7 @@ const Create = () => {
                                 name="photo"
                                 accept="image/*"
                                 error={errors.photo}
-                                value={data.photo}
-                                onChange={photo => setData("photo", photo as unknown as string)}
+                                onChange={file => setData("photo", file)}
                             />
                         </FieldGroup>
                     </div>

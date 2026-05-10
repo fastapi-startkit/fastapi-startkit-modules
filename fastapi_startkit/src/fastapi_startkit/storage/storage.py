@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..foundation import Application
+    from fastapi_startkit import Application
 
 
 class StorageManager:
@@ -23,7 +23,7 @@ class StorageManager:
     def get_driver(self, name: str = None) -> Any:
         if name is None:
             name = self.store_config.get("default")
-        
+
         driver_name = self.get_config_options(name).get("driver")
         return self.drivers[driver_name]
 
@@ -53,10 +53,10 @@ class StorageManager:
 
         # Use a temporary directory for the fake storage
         temp_dir = tempfile.mkdtemp(prefix=f"storage_fake_{name}_")
-        
+
         fake_driver = LocalDriver(self.application)
         fake_driver.set_options({"root": temp_dir})
-        
+
         # Replace the driver in the manager
         self.drivers[name] = fake_driver
         return fake_driver

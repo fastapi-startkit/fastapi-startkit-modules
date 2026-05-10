@@ -32,6 +32,7 @@ class PostgresConnection(Connection):
 
             row = result.fetchone()
             if row:
-                return dict(zip(result.keys(), row))
+                # Return only the scalar PK value so perform_insert can store it directly.
+                return row[0]
 
         return None

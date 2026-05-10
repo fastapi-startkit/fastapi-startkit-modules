@@ -1,6 +1,5 @@
 from app.http.controllers import contacts_controller
 from app.http.controllers import dashboard_controller
-from app.http.controllers import images_controller
 from app.http.controllers import organizations_controller
 from app.http.controllers import reports_controller
 from app.http.controllers import users_controller
@@ -15,7 +14,7 @@ guest = Router()
 guest.get("/login", authenticated_session_controller.create)
 guest.post("/login", authenticated_session_controller.store)
 guest.delete("/logout", authenticated_session_controller.destroy)
-guest.get("/img/{path:path}", images_controller.show)
+# Note: /img/* is served by StaticFiles mounted in fastapi_provider.py
 
 # Protected routes — auth_required dependency applied to every route
 auth = Router(dependencies=[Depends(auth)])
