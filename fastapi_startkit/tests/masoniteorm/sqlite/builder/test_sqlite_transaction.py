@@ -1,5 +1,5 @@
 from ...fixtures.model import User
-from ...fixtures.db import DB
+from ..fixtures.db import DB
 from ..test_case import TestCase
 
 

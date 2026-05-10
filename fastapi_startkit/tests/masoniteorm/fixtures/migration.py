@@ -1,16 +1,14 @@
-from .db import DB
-
-schema = DB.get_schema_builder()
+from fastapi_startkit.masoniteorm.schema import Schema
 
 
-async def wipe():
+async def wipe(schema: Schema) -> None:
     for connection in ("default", "dev"):
         tables = await schema.on(connection).get_all_tables()
         for table in tables:
             await schema.on(connection).drop_table_if_exists(table)
 
 
-async def migrate():
+async def migrate(schema: Schema) -> None:
     async with await schema.on("default").create_table_if_not_exists("users") as table:
         table.id()
         table.string("name")
