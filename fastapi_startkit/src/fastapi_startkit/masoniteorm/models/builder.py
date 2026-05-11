@@ -2,6 +2,7 @@ import inspect
 
 from typing import TYPE_CHECKING
 
+from dumpdie import dd
 from fastapi_startkit.masoniteorm.expressions.expressions import (
     JoinClause,
     QueryExpression,
@@ -124,6 +125,8 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         return self
 
     def get_grammar(self):
+        pk = self._model.__primary_key__ if self._model is not None else None
+        returning = f'"{pk}"' if pk else "*"
         return self.grammar(
             columns=self._columns,
             table=self._table,
@@ -136,6 +139,7 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
             group_by=self._group_by,
             having=self._having,
             distinct=self._distinct,
+            returning=returning,
         )
 
     def to_qmark(self) -> str:

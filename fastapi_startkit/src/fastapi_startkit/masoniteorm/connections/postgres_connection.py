@@ -1,4 +1,3 @@
-from sqlalchemy import text
 from fastapi_startkit.masoniteorm.query.grammars import PostgresGrammar
 from fastapi_startkit.masoniteorm.query.processors import PostgresPostProcessor
 from fastapi_startkit.masoniteorm.schema.platforms import PostgresPlatform
@@ -21,19 +20,12 @@ class PostgresConnection(Connection):
         return PostgresPostProcessor
 
     async def insert(self, query: str, bindings: list | None = None) -> int | None:
-        """Execute an INSERT ... RETURNING * and return the generated primary key."""
-        query_str, params = self.sql_alchemy_bindings(query, bindings)
-        conn = await self.get_connection()
-        result = await conn.execute(text(query_str), params or {})
+        """Execute INSERT ... RETURNING "pk" and return the generated primary key.
 
-        if not self.transactions:
-            await conn.commit()
-
+        The base Connection.insert() uses lastrowid which is SQLite-specific.
+        PostgreSQL uses RETURNING to get the pk back; the grammar scopes it to
+        the exact primary key column so row[0] is always the pk value.
+        """
+        result = await self.execute(query, bindings)
         row = result.fetchone()
-        if row:
-            return row[0]
-
-        # Fallback for cases where RETURNING result is unavailable
-        val_result = await conn.execute(text("SELECT lastval()"))
-        val_row = val_result.fetchone()
-        return val_row[0] if val_row else None
+        return row[0] if row else None

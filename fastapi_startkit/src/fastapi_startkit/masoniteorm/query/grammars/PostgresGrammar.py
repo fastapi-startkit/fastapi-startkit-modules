@@ -44,10 +44,10 @@ class PostgresGrammar(BaseGrammar):
         return "UPDATE {table} SET {key_equals} {wheres}"
 
     def insert_format(self):
-        return "INSERT INTO {table} ({columns}) VALUES ({values}) RETURNING *"
+        return f"INSERT INTO {{table}} ({{columns}}) VALUES ({{values}}) RETURNING {self._returning}"
 
     def bulk_insert_format(self):
-        return "INSERT INTO {table} ({columns}) VALUES {values} RETURNING *"
+        return f"INSERT INTO {{table}} ({{columns}}) VALUES {{values}} RETURNING {self._returning}"
 
     def delete_format(self):
         return "DELETE FROM {table} {wheres}"
