@@ -123,8 +123,6 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         return self
 
     def get_grammar(self):
-        pk = self._model.__primary_key__ if self._model is not None else None
-        returning = f'"{pk}"' if pk else "*"
         return self.grammar(
             columns=self._columns,
             table=self._table,
@@ -137,7 +135,6 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
             group_by=self._group_by,
             having=self._having,
             distinct=self._distinct,
-            returning=returning,
         )
 
     def to_qmark(self) -> str:
@@ -218,26 +215,27 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         self._distinct = True
         return self
 
-    def aggregate(self, aggregate_type: str, column: str, alias: str = None) -> "QueryBuilder":
-        if alias:
-            column = f"{column} as {alias}"
-        self._aggregates += (AggregateExpression(aggregate_type, column),)
-        return self
+    async def aggregate(self, function: str, column: str):
+        self._aggregates += (AggregateExpression(function, column),)
+        row = await self.connection.select_one(self.to_qmark(), self.get_bindings())
+        if row is None:
+            return None
+        return next(iter(row.values()))
 
-    def count(self, column: str = "*") -> "QueryBuilder":
-        return self.aggregate("COUNT", column)
+    async def count(self, column: str = "*"):
+        return await self.aggregate("COUNT", column)
 
-    def sum(self, column: str) -> "QueryBuilder":
-        return self.aggregate("SUM", column)
+    async def sum(self, column: str):
+        return await self.aggregate("SUM", column)
 
-    def max(self, column: str) -> "QueryBuilder":
-        return self.aggregate("MAX", column)
+    async def max(self, column: str):
+        return await self.aggregate("MAX", column)
 
-    def min(self, column: str) -> "QueryBuilder":
-        return self.aggregate("MIN", column)
+    async def min(self, column: str):
+        return await self.aggregate("MIN", column)
 
-    def avg(self, column: str) -> "QueryBuilder":
-        return self.aggregate("AVG", column)
+    async def avg(self, column: str):
+        return await self.aggregate("AVG", column)
 
     async def delete(self, column=None, value=None):
         if column is not None:
@@ -255,6 +253,15 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
     async def first_or_create(self, search: dict, attributes: dict | None = None):
         instance = await self.where(search).first()
         if instance is not None:
+            return instance
+
+        return await self.create({**(attributes or {}), **search})
+
+    async def update_or_create(self, search: dict, attributes: dict | None = None):
+        instance = await self.where(search).first()
+        if instance is not None:
+            if attributes:
+                await instance.update(attributes)
             return instance
 
         return await self.create({**(attributes or {}), **search})
@@ -302,9 +309,7 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         count_builder._wheres = list(self._wheres)
         count_builder._joins = self._joins
         count_builder._global_scopes = self._global_scopes
-        count_builder.count()
-        count_result = await self.connection.select(count_builder.to_qmark(), count_builder.get_bindings())
-        total = list(count_result[0].values())[0] if count_result else 0
+        total = await count_builder.count() or 0
 
         offset = (page - 1) * per_page
         results = await self.limit(per_page).offset(offset).get()

@@ -1,6 +1,7 @@
 from unittest import IsolatedAsyncioTestCase
 
 from fastapi_startkit.masoniteorm.testing.transaction import RefreshDatabase
+from fastapi_startkit.masoniteorm import Model
 
 from .fixtures.db import DB
 from ..fixtures.migration import migrate, wipe
@@ -10,6 +11,7 @@ from ..fixtures.seeder import seeder
 class TestCase(RefreshDatabase, IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.db = DB
+        Model.db_manager = DB
         self.schema = DB.get_schema_builder()
         await self.migrate_database()
 

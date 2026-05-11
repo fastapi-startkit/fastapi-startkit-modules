@@ -43,7 +43,6 @@ class BaseGrammar:
         lock=False,
         having=(),
         connection_details=None,
-        returning="*",
     ):
         self._columns = columns
         self.table = table
@@ -62,7 +61,6 @@ class BaseGrammar:
         self._connection_details = connection_details or {}
         self._column = None
 
-        self._returning = returning
         self._bindings = []
 
         self._sql = ""

@@ -46,14 +46,8 @@ class PostgresGrammar(BaseGrammar):
     def update_format(self):
         return "UPDATE {table} SET {key_equals} {wheres}"
 
-    def insert_format(self):
-        return f"INSERT INTO {{table}} ({{columns}}) VALUES ({{values}}) RETURNING {self._returning}"
-
-    def bulk_insert_format(self):
-        return f"INSERT INTO {{table}} ({{columns}}) VALUES {{values}} RETURNING {self._returning}"
-
     def delete_format(self):
-        return "DELETE FROM {TABLE} {wheres}"
+        return "DELETE FROM {table} {wheres}"
 
     def aggregate_string_with_alias(self):
         return "{aggregate_function}({column}) AS {alias}"

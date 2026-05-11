@@ -13,7 +13,7 @@ from fastapi_startkit.masoniteorm.models.attribute import Attribute
 from fastapi_startkit.masoniteorm.models.relationship import Relationship
 
 if TYPE_CHECKING:
-    from fastapi_startkit.orm.models.builder import QueryBuilder
+    from fastapi_startkit.masoniteorm.models.builder import QueryBuilder
 
 
 class Model(Attribute, Relationship, ObservesEvents):
@@ -119,6 +119,10 @@ class Model(Attribute, Relationship, ObservesEvents):
     async def all(cls):
         return await cls.query().get()
 
+    @classmethod
+    async def count(cls, column: str = "*"):
+        return await cls.query().count(column)
+
     def set_connection(self, connection: str):
         self.connection = connection
 
@@ -174,6 +178,12 @@ class Model(Attribute, Relationship, ObservesEvents):
         cls, search: dict, attributes: dict | None = None
     ) -> "Model":
         return await cls.query().first_or_create(search, attributes)
+
+    @classmethod
+    async def update_or_create(
+        cls, search: dict, attributes: dict | None = None
+    ) -> "Model":
+        return await cls.query().update_or_create(search, attributes)
 
     @classmethod
     async def create(cls, attributes: dict):

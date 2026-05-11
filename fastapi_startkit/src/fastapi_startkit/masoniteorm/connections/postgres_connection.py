@@ -7,6 +7,14 @@ from .connection import Connection
 class PostgresConnection(Connection):
     """Async PostgreSQL connection backed by asyncpg via SQLAlchemy."""
 
+    async def insert_get_id(self, query: str, bindings: list | None = None) -> int | None:
+        result = await self.run(query, bindings)
+        row = result.fetchone()
+        if not self.transactions:
+            conn = await self.get_connection()
+            await conn.commit()
+        return row[0] if row is not None else None
+
     @classmethod
     def get_query_grammar(cls):
         return PostgresGrammar
