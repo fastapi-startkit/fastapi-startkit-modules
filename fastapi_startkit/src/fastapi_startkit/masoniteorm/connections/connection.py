@@ -103,6 +103,13 @@ class Connection:
 
         return getattr(result, "lastrowid", None)
 
+    async def insert_get_id(self, query: str, bindings: list | None = None) -> int | None:
+        result = await self.execute(query, bindings)
+        row = result.fetchone()
+        if row is not None:
+            return row[0]
+        return getattr(result, "lastrowid", None)
+
     async def update(self, query: str, bindings: list | None = None) -> int:
         result = await self.execute(query, bindings)
 

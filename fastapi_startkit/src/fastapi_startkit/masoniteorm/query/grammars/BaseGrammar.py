@@ -1,4 +1,10 @@
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from ...models.builder import QueryBuilder
 
 from ...expressions.expressions import (
     JoinClause,
@@ -160,6 +166,35 @@ class BaseGrammar:
         )
 
         return self
+
+    def compile_insert(self, query: QueryBuilder, values:dict[str, Any] | list[dict[str, Any]]):
+        table = self.wrap_table(query._table)
+
+        if not values:
+            return f"INSERT INTO {table} DEFAULT VALUES"
+
+        # Normalise a single dict to a one-element list so the rest of the
+        # logic can treat every case uniformly.
+        if isinstance(values, dict):
+            values = [values]
+
+        columns = self.columnize_bulk_columns(list(values[0].keys()))
+
+        parameters = ", ".join(
+            "({})".format(", ".join("?" for _ in record))
+            for record in values
+        )
+
+        return f"INSERT INTO {table} ({columns}) VALUES {parameters}"
+
+    def compile_insert_get_id(
+        self,
+        query: QueryBuilder,
+        values: dict[str, Any] | list[dict[str, Any]],
+        sequences: str | None = None,
+    ) -> str:
+        return self.compile_insert(query, values)
+
 
     def _compile_bulk_create(self, qmark=False):
         """Compiles an insert expression.

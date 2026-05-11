@@ -1,8 +1,6 @@
 import inspect
+from typing import TYPE_CHECKING, Any
 
-from typing import TYPE_CHECKING
-
-from dumpdie import dd
 from fastapi_startkit.masoniteorm.expressions.expressions import (
     JoinClause,
     QueryExpression,
@@ -108,9 +106,9 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         collection = self._model.hydrate(models)
 
         if (
-            self._eager_relation.eagers
-            or self._eager_relation.nested_eagers
-            or self._eager_relation.callback_eagers
+                self._eager_relation.eagers
+                or self._eager_relation.nested_eagers
+                or self._eager_relation.callback_eagers
         ):
             await self._load_eagers(collection, self._model)
 
@@ -279,6 +277,16 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         bindings = [val for row in values for val in row.values()]
         return await self.connection.insert(sql, bindings)
 
+    async def insert_get_id(
+            self,
+            values: dict[str, Any] | list[dict[str, Any]],
+            sequences: str | None = None,
+    ) -> int | None:
+        sql = self.grammar().compile_insert_get_id(self, values, sequences)
+        bindings = self.clean_bindings(values)
+
+        return await self.connection.insert_get_id(sql, bindings)
+
     async def update(self, values: dict) -> int:
         updates = [UpdateQueryExpression(col, val) for col, val in values.items()]
         grammar = self.grammar()
@@ -390,3 +398,9 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         else:
             related.query_has(self, method="or_where_exists")
         return self
+
+    @classmethod
+    def clean_bindings(cls, values):
+        if isinstance(values, dict):
+            values = [values]
+        return [val for row in values for val in row.values()]

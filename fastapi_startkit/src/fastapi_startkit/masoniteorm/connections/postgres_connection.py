@@ -18,14 +18,3 @@ class PostgresConnection(Connection):
     @classmethod
     def get_post_processor(cls):
         return PostgresPostProcessor
-
-    async def insert(self, query: str, bindings: list | None = None) -> int | None:
-        """Execute INSERT ... RETURNING "pk" and return the generated primary key.
-
-        The base Connection.insert() uses lastrowid which is SQLite-specific.
-        PostgreSQL uses RETURNING to get the pk back; the grammar scopes it to
-        the exact primary key column so row[0] is always the pk value.
-        """
-        result = await self.execute(query, bindings)
-        row = result.fetchone()
-        return row[0] if row else None

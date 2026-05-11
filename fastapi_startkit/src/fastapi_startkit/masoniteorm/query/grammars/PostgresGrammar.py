@@ -1,7 +1,10 @@
 import re
+from typing import TYPE_CHECKING, Any
 
 from .BaseGrammar import BaseGrammar
 
+if TYPE_CHECKING:
+    from ...models.builder import QueryBuilder
 
 class PostgresGrammar(BaseGrammar):
     """Postgres grammar class."""
@@ -50,7 +53,7 @@ class PostgresGrammar(BaseGrammar):
         return f"INSERT INTO {{table}} ({{columns}}) VALUES {{values}} RETURNING {self._returning}"
 
     def delete_format(self):
-        return "DELETE FROM {table} {wheres}"
+        return "DELETE FROM {TABLE} {wheres}"
 
     def aggregate_string_with_alias(self):
         return "{aggregate_function}({column}) AS {alias}"
@@ -110,11 +113,11 @@ class PostgresGrammar(BaseGrammar):
         return "{column} {data_type}{length}{nullable}, "
 
     def column_exists_string(self):
-        return "SELECT column_name FROM information_schema.columns WHERE table_name='{clean_table}' and column_name={value}"
+        return "SELECT column_name FROM information_schema.columns WHERE table_name='{clean_table}' AND column_name={value}"
 
     def table_exists_string(self):
         return (
-            "SELECT * from information_schema.tables where table_name='{clean_table}'"
+            "SELECT * FROM information_schema.tables WHERE table_name='{clean_table}'"
         )
 
     def create_column_length(self, column_type):
@@ -210,6 +213,17 @@ class PostgresGrammar(BaseGrammar):
             string
         """
         return f"TRUNCATE TABLE {self.wrap_table(table)}"
+
+    def compile_insert_get_id(
+            self,
+            query: "QueryBuilder",
+            values: dict[str, Any] | list[dict[str, Any]],
+            sequences: str | None = None,
+    ) -> str:
+        return (
+                self.compile_insert(query, values)
+                + f" RETURNING {self.wrap_table(sequences or 'id')}"
+        )
 
     def compile_random(self):
         return "random()"

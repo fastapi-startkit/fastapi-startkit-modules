@@ -21,6 +21,7 @@ class Model(Attribute, Relationship, ObservesEvents):
     __table__ = None
     __primary_key__ = "id"
     __timestamps__ = True
+    __incrementing__ = True
 
     __has_events__ = True
     __observers__ = {}
@@ -215,11 +216,14 @@ class Model(Attribute, Relationship, ObservesEvents):
     async def perform_insert(self, query) -> bool:
         attributes = self.get_attributes_for_insert()
 
-        inserted_id = await query.insert(attributes)
-
-        # Store the auto-generated primary key so subsequent saves do an UPDATE
-        if inserted_id is not None:
+        """if the model set auto incrementing, we need to set back the primary key to the inserted id."""
+        if self.__incrementing__:
+            inserted_id = await query.insert_get_id(attributes)
+            self._attributes[self.__primary_key__] = inserted_id
             self._dirty_attributes[self.__primary_key__] = inserted_id
+
+        else:
+            await query.insert(attributes)
 
         self._exists = True
         self._was_recently_created = True
