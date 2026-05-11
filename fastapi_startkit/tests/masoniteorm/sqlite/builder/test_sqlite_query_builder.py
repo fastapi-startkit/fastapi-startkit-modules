@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock
 
 from ..test_case import TestCase
-from ...fixtures.db import DB
+from ..fixtures.db import DB
 from ...fixtures.model import User
 
 

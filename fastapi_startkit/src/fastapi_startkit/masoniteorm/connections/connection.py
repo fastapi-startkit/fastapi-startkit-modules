@@ -69,7 +69,6 @@ class Connection:
     async def reconnect(self) -> None:
         await self.close()
 
-
     @staticmethod
     def sql_alchemy_bindings(query: str, bindings: list | None = None):
         params = {}
@@ -101,6 +100,10 @@ class Connection:
     async def insert(self, query: str, bindings: list | None = None) -> int | None:
         result = await self.execute(query, bindings)
 
+        return getattr(result, "lastrowid", None)
+
+    async def insert_get_id(self, query: str, bindings: list | None = None) -> int | None:
+        result = await self.execute(query, bindings)
         return getattr(result, "lastrowid", None)
 
     async def update(self, query: str, bindings: list | None = None) -> int:
