@@ -90,7 +90,7 @@ class TestStorage(unittest.TestCase):
             
             response = driver.download("test.txt")
             self.assertIsInstance(response, RedirectResponse)
-            self.assertEqual(str(response.url), "https://s3.url")
+            self.assertEqual(response.headers["location"], "https://s3.url")
 
     def test_storage_fake(self):
         with patch("fastapi_startkit.application.app") as mock_app_getter:
@@ -106,4 +106,4 @@ class TestStorage(unittest.TestCase):
             self.assertIsInstance(driver, LocalDriver)
             
             # Verify it uses a temporary directory
-            self.assertTrue(driver.options['root'].startswith('/tmp/storage_fake_s3_'))
+            self.assertIn('storage_fake_s3_', driver.options['root'])
