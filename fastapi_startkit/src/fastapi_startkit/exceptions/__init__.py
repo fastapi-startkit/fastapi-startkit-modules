@@ -27,6 +27,7 @@ from .exceptions import (
     InvalidPackageName,
     LoaderNotFound,
     QueueException,
+    ValidationException,
     AmbiguousError,
     MethodNotAllowedException,
     ModelNotFoundException,

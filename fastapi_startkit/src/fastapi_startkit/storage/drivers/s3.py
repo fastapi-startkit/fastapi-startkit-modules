@@ -1,7 +1,6 @@
 import os
 import uuid
 
-from ..filestream import FileStream
 from ..file import File
 from ...utils.filesystem import get_extension
 

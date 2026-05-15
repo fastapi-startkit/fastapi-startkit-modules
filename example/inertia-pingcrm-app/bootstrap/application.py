@@ -30,7 +30,7 @@ app: Application = Application(
     providers=[
         LogProvider,
         (DatabaseProvider, DatabaseConfig),
-        (StorageProvider, StorageConfig()),
+        (StorageProvider, StorageConfig),
         FastAPIProvider,
         ViteProvider,
         InertiaProvider,

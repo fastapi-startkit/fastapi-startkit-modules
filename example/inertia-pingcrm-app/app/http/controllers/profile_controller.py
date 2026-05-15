@@ -2,22 +2,23 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-from fastapi import Request, UploadFile, File, Form
+
+from fastapi import Request, Depends, UploadFile, File
 from fastapi.responses import RedirectResponse
 from fastapi_startkit.inertia import Inertia
 from fastapi_startkit.storage import Storage
 from app.models.User import User
+from app.http.requests.profile import ProfileUpdateRequest
 
 
-async def _save_photo(photo: Optional[UploadFile]) -> Optional[str]:
+async def save_photo(photo: Optional[UploadFile]) -> Optional[str]:
     if photo is None or not photo.filename:
         return None
     if not photo.content_type or not photo.content_type.startswith("image/"):
         return None
     ext = Path(photo.filename).suffix.lower() or ".jpg"
     filename = f"photos/{uuid.uuid4().hex}{ext}"
-    disk = Storage.disk("s3")
-    disk.put(filename, await photo.read())
+    Storage.disk("s3").put(filename, await photo.read())
     return filename
 
 
@@ -38,23 +39,14 @@ async def edit(request: Request):
 
 async def update(
     request: Request,
-    first_name: str = Form(...),
-    last_name: str = Form(...),
-    email: str = Form(...),
-    password: str = Form(default=''),
+    form: ProfileUpdateRequest = Depends(),
     photo: Optional[UploadFile] = File(default=None),
 ):
     user = await User.find(request.state.user["id"])
 
-    photo_path = await _save_photo(photo)
+    photo_path = await save_photo(photo)
 
-    update_data = {
-        'first_name': first_name,
-        'last_name': last_name,
-        'email': email,
-    }
-    if password:
-        update_data['password'] = password
+    update_data = form.validated()
     if photo_path:
         update_data['photo_path'] = photo_path
 
