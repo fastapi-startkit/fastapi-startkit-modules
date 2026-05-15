@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from fastapi_startkit.masoniteorm import DatabaseManager
+    pass
 
 
 class Migration:

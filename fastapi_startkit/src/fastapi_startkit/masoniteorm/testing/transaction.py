@@ -19,7 +19,10 @@ class RefreshDatabase(DatabaseTransaction):
     @staticmethod
     async def migrate_database():
         if not RefreshDatabase.migrated:
-            from fastapi_startkit.masoniteorm.migrations import Migration
+            from fastapi_startkit.masoniteorm.migrations import Migrator
+            from fastapi_startkit.application import app as get_app
 
-            await Migration(migration_directory="databases/migrations").fresh(ignore_fk=True)
+            migration_dir = get_app().use_base_path("databases/migrations")
+            migrator = Migrator(migration_directory=migration_dir)
+            await migrator.fresh(ignore_fk=True)
             RefreshDatabase.migrated = True
