@@ -1,7 +1,5 @@
-from fastapi import Request
-from fastapi.responses import JSONResponse
-from fastapi_startkit.inertia import Inertia
+from fastapi_startkit.storage import Storage
 
-async def show(request: Request):
-    return JSONResponse(content={'message': 'images_controller.py@show'})
-
+async def stream(path: str):
+    """Stream a file from S3 back to the client."""
+    return Storage.disk("s3").stream(path)

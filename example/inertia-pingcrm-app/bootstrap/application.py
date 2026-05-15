@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from config.database import DatabaseConfig
+from config.storage import StorageConfig
 from providers.fastapi_provider import FastAPIProvider
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
@@ -12,6 +13,7 @@ from fastapi_startkit.exceptions import ExceptionHandler as BaseHandler
 from fastapi_startkit.inertia import InertiaProvider
 from fastapi_startkit.logging import LogProvider
 from fastapi_startkit.masoniteorm import DatabaseProvider
+from fastapi_startkit.storage.providers.provider import StorageProvider
 from fastapi_startkit.vite import ViteProvider
 from starlette.responses import RedirectResponse
 
@@ -28,6 +30,7 @@ app: Application = Application(
     providers=[
         LogProvider,
         (DatabaseProvider, DatabaseConfig),
+        (StorageProvider, StorageConfig),
         FastAPIProvider,
         ViteProvider,
         InertiaProvider,

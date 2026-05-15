@@ -11,11 +11,16 @@ const routeMap: Record<string, string> = {
     'logout': '/logout',
     'users': '/users',
     'users.create': '/users/create',
+    'users.store': '/users',
     'organizations': '/organizations',
     'organizations.create': '/organizations/create',
+    'organizations.store': '/organizations',
     'contacts': '/contacts',
     'contacts.create': '/contacts/create',
+    'contacts.store': '/contacts',
     'reports': '/reports',
+    'profile': '/profile',
+    'profile.update': '/profile',
 };
 
 // Basic Ziggy route() shim to handle PingCRM's URL generation
@@ -37,32 +42,33 @@ function currentRouteName(): string {
 }
 
 window.route = function (name, params, absolute) {
-    let url = "/";
+    let path = "/";
     if (name) {
         if (routeMap[name]) {
-            url = routeMap[name];
+            path = routeMap[name];
         } else {
             let parts = name.split('.');
-            url = "/" + parts[0];
+            path = "/" + parts[0];
             if (parts[1] === 'edit' && params) {
-                url += "/" + params + "/edit";
+                path += "/" + params + "/edit";
             } else if (parts[1] === 'destroy' && params) {
-                url += "/" + params;
+                path += "/" + params;
             } else if (parts[1] === 'update' && params) {
-                url += "/" + params;
+                path += "/" + params;
             } else if (parts[1] === 'restore' && params) {
-                url += "/" + params + "/restore";
+                path += "/" + params + "/restore";
             } else if (parts[1] === 'create') {
-                url += "/create";
+                path += "/create";
             }
         }
     }
 
-    const router = String(url);
-
-    // Add current() method
-    const routeObj = new String(router) as string & { current: (pattern?: string) => string | boolean };
-    (routeObj as any).current = function(pattern?: string) {
+    // Return a URL object so Inertia can use it directly (typeof URL === 'object',
+    // which is correct — Inertia's visit() handles URL instances natively).
+    // Using new String() was broken because typeof new String() === 'object' but
+    // it isn't a URL instance, so Inertia tried to read .href from it and got undefined.
+    const urlObj = new URL(path, window.location.href) as URL & { current: (pattern?: string) => string | boolean };
+    urlObj.current = function(pattern?: string) {
         const pathname = window.location.pathname;
         // Without a pattern, return the current route name (Ziggy behaviour used by FilterBar)
         if (!pattern) return currentRouteName();
@@ -70,7 +76,7 @@ window.route = function (name, params, absolute) {
         const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
         return regex.test(currentSegment) || (name != null && regex.test(name));
     };
-    return routeObj;
+    return urlObj as any;
 };
 
 createInertiaApp({

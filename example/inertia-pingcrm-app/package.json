@@ -4,7 +4,7 @@
     "type": "module",
     "version": "0.1.0",
     "scripts": {
-        "dev": "vite",
+        "dev": "concurrently \"npx vite dev\" \"uv run python artisan serve\"",
         "build": "vite build",
         "preview": "vite preview"
     },

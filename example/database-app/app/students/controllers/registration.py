@@ -1,6 +1,6 @@
 import hashlib
 
-from fastapi import HTTPException
+from fastapi.exceptions import RequestValidationError
 
 from app.http.schemas.auth import StudentRegistrationRequest
 from app.models import User, Profile
@@ -9,7 +9,14 @@ from app.models import User, Profile
 async def register(request: StudentRegistrationRequest):
     existing_user = await User.where("email", request.email).first()
     if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise RequestValidationError(
+            errors=[{
+                "loc": ("body", "email"),
+                "msg": "Email already registered",
+                "type": "value_error",
+                "input": request.email,
+            }]
+        )
 
     password = hashlib.md5(request.password.encode()).hexdigest()
     user = User(

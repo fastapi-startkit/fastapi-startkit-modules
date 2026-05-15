@@ -4,6 +4,7 @@ from app.http.controllers import images_controller
 from app.http.controllers import organizations_controller
 from app.http.controllers import reports_controller
 from app.http.controllers import users_controller
+from app.http.controllers import profile_controller
 from app.http.controllers.auth import authenticated_session_controller
 from authentication.middlewares.auth import auth
 from fastapi import Depends
@@ -15,7 +16,8 @@ guest = Router()
 guest.get("/login", authenticated_session_controller.create)
 guest.post("/login", authenticated_session_controller.store)
 guest.delete("/logout", authenticated_session_controller.destroy)
-guest.get("/img/{path:path}", images_controller.show)
+
+guest.get("/images/{path:path}", images_controller.stream)
 
 # Protected routes — auth_required dependency applied to every route
 auth = Router(dependencies=[Depends(auth)])
@@ -24,3 +26,5 @@ auth.resource("users", users_controller)
 auth.resource("organizations", organizations_controller)
 auth.resource("contacts", contacts_controller)
 auth.get("/reports", reports_controller.index)
+auth.get("/profile", profile_controller.edit)
+auth.post("/profile", profile_controller.update)

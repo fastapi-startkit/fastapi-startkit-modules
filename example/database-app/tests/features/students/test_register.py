@@ -61,5 +61,6 @@ class TestRegister(TestCase, HttpTestCase, RefreshDatabase):
         await self.post("/students/register", json=payload)
 
         response = await self.post("/students/register", json=payload)
-        assert response.status_code == 400
-        assert response.json()["detail"] == "Email already registered"
+        assert response.status_code == 422
+        errors = response.json()["errors"]
+        assert "email" in errors

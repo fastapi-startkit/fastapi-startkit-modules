@@ -22,7 +22,7 @@ const Edit = () => {
     email: user.email || '',
     password: user.password || '',
     owner: user.owner ? '1' : '0' || '0',
-    photo: '',
+    photo: null as File | null,
 
     // NOTE: When working with Laravel PUT/PATCH requests and FormData
     // you SHOULD send POST request and fake the PUT request like this.
@@ -33,7 +33,8 @@ const Edit = () => {
     e.preventDefault();
 
     // NOTE: We are using POST method here, not PUT/PATCH. See comment above.
-    post(route('users.update', user.id));
+    // forceFormData ensures Inertia serialises the File as multipart/form-data.
+    post(route('users.update', user.id), { forceFormData: true });
   }
 
   function destroy() {
@@ -142,10 +143,8 @@ const Edit = () => {
                 name="photo"
                 accept="image/*"
                 error={errors.photo}
-                value={data.photo}
-                onChange={photo => {
-                  setData('photo', photo as unknown as string);
-                }}
+                existingPhotoUrl={user.photo as unknown as string}
+                onChange={file => setData('photo', file)}
               />
             </FieldGroup>
           </div>

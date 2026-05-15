@@ -112,6 +112,12 @@ class Application(Container, Generic[TConfig]):
     def use_base_path(self, path: str):
         return self.base_path / path
 
+    def storage_path(self, path: str = "") -> str:
+        return str(self.base_path / "storage" / path)
+
+    def public_path(self, path: str = "") -> str:
+        return str(self.base_path / "public" / path)
+
     def get(self, path: str, **kwargs) -> Callable:
         return self.fastapi.get(path, **kwargs)
 

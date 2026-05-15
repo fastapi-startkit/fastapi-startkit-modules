@@ -1,7 +1,5 @@
 from pathlib import Path
 
-from fastapi.responses import RedirectResponse
-
 from authentication.middlewares.auth import AuthMiddleware, NotAuthenticated
 from fastapi import FastAPI, Request
 from fastapi_startkit.fastapi import FastAPIProvider as BaseFastAPIProvider

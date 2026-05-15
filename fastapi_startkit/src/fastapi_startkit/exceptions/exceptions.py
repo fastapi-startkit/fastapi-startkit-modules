@@ -216,3 +216,9 @@ class InvalidPackageName(Exception):
 
 class LoaderNotFound(Exception):
     pass
+
+
+class ValidationException(Exception):
+    def __init__(self, errors: dict):
+        super().__init__("The given data was invalid.")
+        self.errors = errors

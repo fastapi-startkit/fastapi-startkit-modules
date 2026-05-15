@@ -13,7 +13,7 @@ services:
             interval: 5s
             timeout: 5s
             retries: 10
-    postgres:
+    db:
         image: postgres:17
         environment:
             POSTGRES_DB: database_app_test

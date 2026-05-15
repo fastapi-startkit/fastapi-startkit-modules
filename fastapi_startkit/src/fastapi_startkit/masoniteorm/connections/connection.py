@@ -1,8 +1,9 @@
 from typing import List
 
-from fastapi_startkit.masoniteorm.models.builder import QueryBuilder
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncConnection, AsyncTransaction
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncTransaction
+
+from fastapi_startkit.masoniteorm.models.builder import QueryBuilder
 
 
 class Connection:
@@ -83,8 +84,12 @@ class Connection:
         query, bindings = self.sql_alchemy_bindings(query, bindings)
 
         conn = await self.get_connection()
+        result = await conn.execute(text(query), bindings or {})
 
-        return await conn.execute(text(query), bindings or {})
+        if not self.transactions:
+            await conn.commit()
+
+        return result
 
     async def execute(self, query: str, bindings: list | None = None):
         query, bindings = self.sql_alchemy_bindings(query, bindings)
@@ -117,13 +122,16 @@ class Connection:
 
     async def select(self, query: str, bindings: list | None = None) -> list[dict]:
         result = await self.run(query, bindings)
-        keys = result.keys()
-        return [dict(zip(keys, row)) for row in result.fetchall()]
+
+        return result.mappings().all()
 
     async def select_one(self, query: str, bindings: list | None = None) -> dict | None:
         result = await self.run(query, bindings)
         row = result.fetchone()
-        return dict(zip(result.keys(), row)) if row else None
+        result_dict = dict(zip(result.keys(), row)) if row else None
+        if not self.transactions and self.connection is not None:
+            await self.connection.commit()
+        return result_dict
 
     async def statement(self, query: str, bindings: list | None = None) -> bool:
         query, bindings = self.sql_alchemy_bindings(query, bindings)

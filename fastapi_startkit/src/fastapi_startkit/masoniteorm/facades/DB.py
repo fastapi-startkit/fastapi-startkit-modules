@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from fastapi_startkit.orm.connections.connection import Connection
-    from fastapi_startkit.orm.connections.manager import DatabaseManager
-    from fastapi_startkit.orm.models.builder import QueryBuilder
+    from fastapi_startkit.masoniteorm.connections.connection import Connection
+    from fastapi_startkit.masoniteorm.connections.manager import DatabaseManager
+    from fastapi_startkit.masoniteorm.models.builder import QueryBuilder
 
 
 class DB:
@@ -52,3 +52,15 @@ class DB:
     @classmethod
     async def statement(cls, query: str, bindings: list | None = None) -> bool:
         return await cls.instance().connection(None).statement(query, bindings)
+
+    @classmethod
+    async def begin_transaction(cls, name: str | None = None) -> None:
+        await cls.instance().connection(name).begin_transaction()
+
+    @classmethod
+    async def commit(cls, name: str | None = None) -> None:
+        await cls.instance().connection(name).commit_transaction()
+
+    @classmethod
+    async def rollback(cls, name: str | None = None) -> None:
+        await cls.instance().connection(name).rollback()

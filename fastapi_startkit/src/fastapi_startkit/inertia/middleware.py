@@ -94,7 +94,7 @@ class InertiaMiddleware(BaseHTTPMiddleware):
     def resolve_validation_errors(request: Request) -> dict:
         if "session" not in request.scope:
             return {}
-        return request.session.get("errors", {})
+        return request.session.pop("errors", {})
 
     @staticmethod
     def reflash(request: Request) -> None:

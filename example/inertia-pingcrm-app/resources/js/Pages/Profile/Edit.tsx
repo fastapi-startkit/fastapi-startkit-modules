@@ -1,49 +1,44 @@
 import LoadingButton from "@/Components/Button/LoadingButton"
 import FieldGroup from "@/Components/Form/FieldGroup"
 import FileInput from "@/Components/Form/FileInput"
-import SelectInput from "@/Components/Form/SelectInput"
 import TextInput from "@/Components/Form/TextInput"
 import MainLayout from "@/Layouts/MainLayout"
-import { Link, useForm } from "@inertiajs/react"
+import { Head, useForm, usePage } from "@inertiajs/react"
+import React from "react"
 
-const Create = () => {
+interface ProfileUser {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    photo: string | null;
+    password: string;
+}
+
+const Edit = () => {
+    const { user } = usePage<{ user: ProfileUser }>().props
+
     const { data, setData, errors, post, processing } = useForm({
-        first_name: "",
-        last_name: "",
-        email: "",
+        first_name: user.first_name || "",
+        last_name: user.last_name || "",
+        email: user.email || "",
         password: "",
-        owner: "0",
         photo: null as File | null,
     })
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
-        // forceFormData ensures Inertia sends multipart/form-data when a photo is attached.
-        post(route("users.store"), { forceFormData: true })
+        post("/profile", { forceFormData: true })
     }
 
     return (
         <div>
-            <div>
-                <h1 className="mb-8 text-3xl font-bold">
-                    <Link
-                        href={route("users")}
-                        className="text-indigo-600 hover:text-indigo-700"
-                    >
-                        Users
-                    </Link>
-                    <span className="font-medium text-indigo-600"> /</span>
-                    Create
-                </h1>
-            </div>
+            <Head title="My Profile"/>
+            <h1 className="mb-8 text-3xl font-bold">My Profile</h1>
             <div className="max-w-3xl overflow-hidden bg-white rounded shadow">
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-8 p-8 lg:grid-cols-2">
-                        <FieldGroup
-                            label="First Name"
-                            name="first_name"
-                            error={errors.first_name}
-                        >
+                        <FieldGroup label="First Name" name="first_name" error={errors.first_name}>
                             <TextInput
                                 name="first_name"
                                 error={errors.first_name}
@@ -52,11 +47,7 @@ const Create = () => {
                             />
                         </FieldGroup>
 
-                        <FieldGroup
-                            label="Last Name"
-                            name="last_name"
-                            error={errors.last_name}
-                        >
+                        <FieldGroup label="Last Name" name="last_name" error={errors.last_name}>
                             <TextInput
                                 name="last_name"
                                 error={errors.last_name}
@@ -75,11 +66,7 @@ const Create = () => {
                             />
                         </FieldGroup>
 
-                        <FieldGroup
-                            label="Password"
-                            name="password"
-                            error={errors.password}
-                        >
+                        <FieldGroup label="Password" name="password" error={errors.password}>
                             <TextInput
                                 name="password"
                                 type="password"
@@ -89,35 +76,19 @@ const Create = () => {
                             />
                         </FieldGroup>
 
-                        <FieldGroup label="Owner" name="owner" error={errors.owner}>
-                            <SelectInput
-                                name="owner"
-                                error={errors.owner}
-                                value={data.owner}
-                                onChange={e => setData("owner", e.target.value)}
-                                options={[
-                                    { value: "1", label: "Yes" },
-                                    { value: "0", label: "No" },
-                                ]}
-                            />
-                        </FieldGroup>
-
                         <FieldGroup label="Photo" name="photo" error={errors.photo}>
                             <FileInput
                                 name="photo"
                                 accept="image/*"
                                 error={errors.photo}
+                                existingPhotoUrl={user.photo as string}
                                 onChange={file => setData("photo", file)}
                             />
                         </FieldGroup>
                     </div>
                     <div className="flex items-center justify-end px-8 py-4 bg-gray-100 border-t border-gray-200">
-                        <LoadingButton
-                            loading={processing}
-                            type="submit"
-                            className="btn-indigo"
-                        >
-                            Create User
+                        <LoadingButton loading={processing} type="submit" className="btn-indigo">
+                            Save Changes
                         </LoadingButton>
                     </div>
                 </form>
@@ -126,13 +97,6 @@ const Create = () => {
     )
 }
 
-/**
- * Persistent Layout (Inertia.js)
- *
- * [Learn more](https://inertiajs.com/pages#persistent-layouts)
- */
-Create.layout = (page: React.ReactNode) => (
-    <MainLayout title="Create User" children={page}/>
-)
+Edit.layout = (page: React.ReactNode) => <MainLayout children={page}/>
 
-export default Create
+export default Edit
