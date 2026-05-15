@@ -2,7 +2,7 @@ import os
 import shutil
 from typing import TYPE_CHECKING
 
-from cleo.commands.command import Command
+from fastapi_startkit.console import Command
 from cleo.helpers import option
 from fastapi_startkit.helpers.string import Str
 

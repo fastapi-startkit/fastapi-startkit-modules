@@ -1,6 +1,6 @@
 from cleo.helpers import argument, option
 from ..config import load_config
-from .Command import Command
+from fastapi_startkit.console import Command
 
 
 class MakeModelDocstringCommand(Command):

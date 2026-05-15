@@ -4,7 +4,7 @@ import pathlib
 from inflection import tableize
 from cleo.helpers import argument, option
 from fastapi_startkit.helpers.string import Str
-from .Command import Command
+from fastapi_startkit.console import Command
 
 
 class MakeMigrationCommand(Command):

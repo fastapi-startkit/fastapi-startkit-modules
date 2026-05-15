@@ -4,7 +4,7 @@ import re
 import shlex
 import subprocess
 from collections import OrderedDict
-from .Command import Command
+from fastapi_startkit.console import Command
 
 
 class ShellCommand(Command):

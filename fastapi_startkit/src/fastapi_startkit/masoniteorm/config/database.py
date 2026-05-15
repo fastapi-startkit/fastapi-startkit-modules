@@ -20,5 +20,5 @@ class DatabaseConfig:
     )
 
     migrations: Dict[str, Dict[str, Any]] = field(
-        default_factory=lambda: {"table": "migrations", "path": "databases/migrations"}
+        default_factory=lambda: {"table": "migrations", "directory": "databases/migrations"}
     )

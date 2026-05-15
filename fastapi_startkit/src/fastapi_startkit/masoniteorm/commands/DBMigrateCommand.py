@@ -1,6 +1,9 @@
 import os
-from .Command import Command
+
 from cleo.helpers import option
+
+from fastapi_startkit.console import Command
+from fastapi_startkit.masoniteorm.migrations.Migrator import Migrator
 
 
 class DBMigrateCommand(Command):
@@ -29,12 +32,6 @@ class DBMigrateCommand(Command):
             description="Force migrations without prompt in production",
         ),
         option(
-            "show",
-            "s",
-            flag=True,
-            description="Shows the output of SQL for migrations that would be running",
-        ),
-        option(
             "directory",
             "d",
             flag=False,
@@ -49,8 +46,35 @@ class DBMigrateCommand(Command):
         return asyncio.run(self.handle_async())
 
     async def handle_async(self):
-        from ..migrations import Migration
+        self.confirm_to_proceed()
 
+        directory = self.resolve_migration_path()
+
+        migration = Migrator(
+            command_class=self,
+            connection=self.option("connection"),
+            migration_directory=directory,
+        )
+
+        await migration.create_table_if_not_exists()
+        if not await migration.get_unran_migrations():
+            self.info("Nothing To Migrate!")
+            return
+
+        migration_name = self.option("migration")
+
+        await migration.migrate(migration=migration_name)
+
+    def resolve_migration_path(self) -> str:
+        path = self.option('directory')
+
+        config = self.container.make('config').get('database.migrations')
+        default_directory = config.get('directory')
+
+        migration_directory = path or default_directory
+        return self.container.use_base_path(migration_directory)
+
+    def confirm_to_proceed(self) -> None:
         # prompt user for confirmation in production
         if os.getenv("APP_ENV") == "production" and not self.option("force"):
             answer = ""
@@ -61,17 +85,3 @@ class DBMigrateCommand(Command):
             if answer != "y":
                 self.info("Migrations cancelled")
                 exit(0)
-        migration = Migration(
-            command_class=self,
-            connection=self.option("connection"),
-            migration_directory=self.option("directory"),
-        )
-        await migration.create_table_if_not_exists()
-        if not await migration.get_unran_migrations():
-            self.info("Nothing To Migrate!")
-            return
-
-        migration_name = self.option("migration")
-        show_output = self.option("show")
-
-        await migration.migrate(migration=migration_name, output=show_output)

@@ -1,6 +1,6 @@
 """CreateCategoriesTable Migration."""
 
-from fastapi_startkit.masoniteorm.migrations import Migration
+from fastapi_startkit.masoniteorm import Migration
 
 
 class CreateCategoriesTable(Migration):

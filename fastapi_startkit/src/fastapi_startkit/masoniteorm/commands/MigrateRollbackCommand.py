@@ -1,5 +1,6 @@
 from cleo.helpers import option
-from .Command import Command
+from fastapi_startkit.console import Command
+from fastapi_startkit.masoniteorm.migrations.Migrator import Migrator
 
 
 class MigrateRollbackCommand(Command):
@@ -22,19 +23,6 @@ class MigrateRollbackCommand(Command):
             description="The connection you want to run migrations on",
         ),
         option(
-            "show",
-            "s",
-            flag=True,
-            description="Shows the output of SQL for migrations that would be running",
-        ),
-        option(
-            "schema",
-            None,
-            flag=False,
-            default=None,
-            description="Sets the schema to be migrated",
-        ),
-        option(
             "directory",
             "d",
             flag=False,
@@ -49,12 +37,21 @@ class MigrateRollbackCommand(Command):
         return asyncio.run(self.handle_async())
 
     async def handle_async(self):
-        from ..migrations import Migration
+        directory = self.resolve_migration_path()
 
-        await Migration(
+        migration = Migrator(
             command_class=self,
             connection=self.option("connection"),
-            migration_directory=self.option("directory"),
-            config_path=self.option("config"),
-            schema=self.option("schema"),
-        ).rollback(migration=self.option("migration"), output=self.option("show"))
+            migration_directory=directory,
+        )
+
+        await migration.rollback(migration=self.option("migration"))
+
+    def resolve_migration_path(self) -> str:
+        path = self.option('directory')
+
+        config = self.container.make('config').get('database.migrations')
+        default_directory = config.get('directory')
+
+        migration_directory = path or default_directory
+        return self.container.use_base_path(migration_directory)
