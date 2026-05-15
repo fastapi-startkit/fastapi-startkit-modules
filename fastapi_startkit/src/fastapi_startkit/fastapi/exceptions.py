@@ -26,3 +26,45 @@ class HTTPExceptionHandler:
             content = {"message": "Server Error"}
 
         return JSONResponse(status_code=500, content=content)
+
+
+class ValidationExceptionHandler:
+    """
+    Handles RequestValidationError with content negotiation.
+
+    JSON requests (API clients) receive a 422 Unprocessable Entity response.
+    Non-JSON requests (browser/Inertia) have errors flashed to the session
+    and are redirected back to the referring page.
+    """
+
+    def report(self, exc) -> None:
+        pass
+
+    async def render(self, request, exc):
+        accept = request.headers.get("accept", "")
+        content_type = request.headers.get("content-type", "")
+
+        wants_json = (
+            "application/json" in accept
+            or content_type.startswith("application/json")
+        )
+
+        errors = {}
+        for err in exc.errors():
+            field = ".".join(str(x) for x in err["loc"][1:])
+            errors.setdefault(field, []).append(err["msg"])
+
+        if wants_json:
+            from fastapi.responses import JSONResponse
+
+            return JSONResponse(status_code=422, content={"errors": errors})
+
+        if "session" in request.scope:
+            request.session["errors"] = errors
+
+        from starlette.responses import RedirectResponse
+
+        return RedirectResponse(
+            url=request.headers.get("referer", "/"),
+            status_code=303,
+        )

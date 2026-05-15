@@ -12,8 +12,6 @@ class InertiaProvider(Provider):
         self.app.bind("inertia", Inertia)
 
     def boot(self) -> None:
-        self.register_validation_handler()
-
         self.app.add_middleware(InertiaMiddleware)
 
         if self.app.has("templates"):
@@ -28,8 +26,3 @@ class InertiaProvider(Provider):
             templates.env.globals["inertia"] = inertia_helper
             templates.env.globals["Inertia"] = self.app.make("inertia")
 
-    def register_validation_handler(self) -> None:
-        from fastapi.exceptions import RequestValidationError
-        from .exceptions import InertiaValidationHandler
-
-        self.app.exception_manager.register_handler(RequestValidationError, InertiaValidationHandler())

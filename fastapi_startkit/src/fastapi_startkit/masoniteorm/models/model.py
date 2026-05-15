@@ -13,7 +13,7 @@ from fastapi_startkit.masoniteorm.models.attribute import Attribute
 from fastapi_startkit.masoniteorm.models.relationship import Relationship
 
 if TYPE_CHECKING:
-    from fastapi_startkit.orm.models.builder import QueryBuilder
+    from fastapi_startkit.masoniteorm.models.builder import QueryBuilder
 
 
 class Model(Attribute, Relationship, ObservesEvents):
@@ -21,6 +21,7 @@ class Model(Attribute, Relationship, ObservesEvents):
     __table__ = None
     __primary_key__ = "id"
     __timestamps__ = True
+    __incrementing__ = True
 
     __has_events__ = True
     __observers__ = {}
@@ -118,6 +119,10 @@ class Model(Attribute, Relationship, ObservesEvents):
     async def all(cls):
         return await cls.query().get()
 
+    @classmethod
+    async def count(cls, column: str = "*"):
+        return await cls.query().count(column)
+
     def set_connection(self, connection: str):
         self.connection = connection
 
@@ -175,6 +180,12 @@ class Model(Attribute, Relationship, ObservesEvents):
         return await cls.query().first_or_create(search, attributes)
 
     @classmethod
+    async def update_or_create(
+        cls, search: dict, attributes: dict | None = None
+    ) -> "Model":
+        return await cls.query().update_or_create(search, attributes)
+
+    @classmethod
     async def create(cls, attributes: dict):
         instance = cls().new_model_instance(attributes)
         await instance.save()
@@ -215,11 +226,14 @@ class Model(Attribute, Relationship, ObservesEvents):
     async def perform_insert(self, query) -> bool:
         attributes = self.get_attributes_for_insert()
 
-        inserted_id = await query.insert(attributes)
-
-        # Store the auto-generated primary key so subsequent saves do an UPDATE
-        if inserted_id is not None:
+        """if the model set auto incrementing, we need to set back the primary key to the inserted id."""
+        if self.__incrementing__:
+            inserted_id = await query.insert_get_id(attributes)
+            self._attributes[self.__primary_key__] = inserted_id
             self._dirty_attributes[self.__primary_key__] = inserted_id
+
+        else:
+            await query.insert(attributes)
 
         self._exists = True
         self._was_recently_created = True

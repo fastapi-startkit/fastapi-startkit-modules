@@ -39,7 +39,7 @@ class DatabaseManager:
 
         return Schema(self)
 
-    def clear(self):
+    async def clear(self):
         for conn in self.connections.values():
-            conn.engine.dispose()
+            await conn.engine.dispose()
         self.connections.clear()

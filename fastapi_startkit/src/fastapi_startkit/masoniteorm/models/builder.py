@@ -1,6 +1,5 @@
 import inspect
-
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from fastapi_startkit.masoniteorm.expressions.expressions import (
     JoinClause,
@@ -107,9 +106,9 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         collection = self._model.hydrate(models)
 
         if (
-            self._eager_relation.eagers
-            or self._eager_relation.nested_eagers
-            or self._eager_relation.callback_eagers
+                self._eager_relation.eagers
+                or self._eager_relation.nested_eagers
+                or self._eager_relation.callback_eagers
         ):
             await self._load_eagers(collection, self._model)
 
@@ -216,26 +215,27 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         self._distinct = True
         return self
 
-    def aggregate(self, aggregate_type: str, column: str, alias: str = None) -> "QueryBuilder":
-        if alias:
-            column = f"{column} as {alias}"
-        self._aggregates += (AggregateExpression(aggregate_type, column),)
-        return self
+    async def aggregate(self, function: str, column: str):
+        self._aggregates += (AggregateExpression(function, column),)
+        row = await self.connection.select_one(self.to_qmark(), self.get_bindings())
+        if row is None:
+            return None
+        return next(iter(row.values()))
 
-    def count(self, column: str = "*") -> "QueryBuilder":
-        return self.aggregate("COUNT", column)
+    async def count(self, column: str = "*"):
+        return await self.aggregate("COUNT", column)
 
-    def sum(self, column: str) -> "QueryBuilder":
-        return self.aggregate("SUM", column)
+    async def sum(self, column: str):
+        return await self.aggregate("SUM", column)
 
-    def max(self, column: str) -> "QueryBuilder":
-        return self.aggregate("MAX", column)
+    async def max(self, column: str):
+        return await self.aggregate("MAX", column)
 
-    def min(self, column: str) -> "QueryBuilder":
-        return self.aggregate("MIN", column)
+    async def min(self, column: str):
+        return await self.aggregate("MIN", column)
 
-    def avg(self, column: str) -> "QueryBuilder":
-        return self.aggregate("AVG", column)
+    async def avg(self, column: str):
+        return await self.aggregate("AVG", column)
 
     async def delete(self, column=None, value=None):
         if column is not None:
@@ -253,6 +253,15 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
     async def first_or_create(self, search: dict, attributes: dict | None = None):
         instance = await self.where(search).first()
         if instance is not None:
+            return instance
+
+        return await self.create({**(attributes or {}), **search})
+
+    async def update_or_create(self, search: dict, attributes: dict | None = None):
+        instance = await self.where(search).first()
+        if instance is not None:
+            if attributes:
+                await instance.update(attributes)
             return instance
 
         return await self.create({**(attributes or {}), **search})
@@ -275,6 +284,16 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         bindings = [val for row in values for val in row.values()]
         return await self.connection.insert(sql, bindings)
 
+    async def insert_get_id(
+            self,
+            values: dict[str, Any] | list[dict[str, Any]],
+            sequences: str | None = None,
+    ) -> int | None:
+        sql = self.grammar().compile_insert_get_id(self, values, sequences)
+        bindings = self.clean_bindings(values)
+
+        return await self.connection.insert_get_id(sql, bindings)
+
     async def update(self, values: dict) -> int:
         updates = [UpdateQueryExpression(col, val) for col, val in values.items()]
         grammar = self.grammar()
@@ -290,9 +309,7 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         count_builder._wheres = list(self._wheres)
         count_builder._joins = self._joins
         count_builder._global_scopes = self._global_scopes
-        count_builder.count()
-        count_result = await self.connection.select(count_builder.to_qmark(), count_builder.get_bindings())
-        total = list(count_result[0].values())[0] if count_result else 0
+        total = await count_builder.count() or 0
 
         offset = (page - 1) * per_page
         results = await self.limit(per_page).offset(offset).get()
@@ -386,3 +403,9 @@ class QueryBuilder(EagerLoadMixin, SupportMixin):
         else:
             related.query_has(self, method="or_where_exists")
         return self
+
+    @classmethod
+    def clean_bindings(cls, values):
+        if isinstance(values, dict):
+            values = [values]
+        return [val for row in values for val in row.values()]

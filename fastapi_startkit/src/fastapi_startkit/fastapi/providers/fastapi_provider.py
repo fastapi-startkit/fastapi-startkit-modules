@@ -1,4 +1,4 @@
-from fastapi_startkit.fastapi.exceptions import HTTPExceptionHandler
+from fastapi_startkit.fastapi.exceptions import HTTPExceptionHandler, ValidationExceptionHandler
 from fastapi import FastAPI
 
 from fastapi_startkit.fastapi.commands import ServeCommand
@@ -26,6 +26,8 @@ class FastAPIProvider(Provider):
 
         exception_manager = self.app.exception_manager
         exception_manager.register_handler(Exception, HTTPExceptionHandler())
+        exception_manager.register_handler(HTTPException, HTTPExceptionHandler())
+        exception_manager.register_handler(RequestValidationError, ValidationExceptionHandler())
 
         async def handler(request, exc):
             return await exception_manager.handle(exc, {"request": request})
