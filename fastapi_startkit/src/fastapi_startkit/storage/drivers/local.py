@@ -3,8 +3,8 @@ import uuid
 from os.path import isfile, join
 from shutil import copyfile, move
 
-from ..FileStream import FileStream
-from ..File import File
+from ..filestream import FileStream
+from ..file import File
 from ...utils.filesystem import get_extension
 
 
@@ -19,6 +19,8 @@ class LocalDriver:
 
     def get_path(self, path):
         root = self.options.get("root") or self.options.get("path")
+        if not os.path.isabs(root):
+            root = os.path.join(str(self.application.base_path), root)
         file_path = os.path.join(root, path)
         self.make_file_path_if_not_exists(file_path)
         return file_path

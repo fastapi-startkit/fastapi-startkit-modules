@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi_startkit.masoniteorm.models import Model
+from fastapi_startkit.masoniteorm import Model
 
 
 class User(Model):

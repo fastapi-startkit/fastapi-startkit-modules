@@ -1,8 +1,8 @@
 import os
 import uuid
 
-from ..FileStream import FileStream
-from ..File import File
+from ..filestream import FileStream
+from ..file import File
 from ...utils.filesystem import get_extension
 
 
@@ -111,14 +111,24 @@ class S3Driver:
         return not self.exists(file_path)
 
     def stream(self, file_path):
-        return FileStream(
-            self.get_resource()
-            .Bucket(self.get_bucket())
-            .Object(file_path)
-            .get()
-            .get("Body")
-            .read(),
-            file_path,
+        import mimetypes
+        from fastapi import HTTPException
+        from fastapi.responses import StreamingResponse
+
+        try:
+            obj = self.get_client().get_object(
+                Bucket=self.get_bucket(),
+                Key=file_path,
+            )
+        except self.missing_file_exceptions():
+            raise HTTPException(status_code=404, detail="File not found.")
+
+        media_type, _ = mimetypes.guess_type(file_path)
+        # No Content-Length header — avoids the BaseHTTPMiddleware streaming
+        # conflict that occurs when Content-Length is set on a streamed response.
+        return StreamingResponse(
+            obj["Body"].iter_chunks(chunk_size=65536),
+            media_type=media_type or "application/octet-stream",
         )
 
     def copy(self, from_file_path, to_file_path):

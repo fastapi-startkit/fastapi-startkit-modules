@@ -43,23 +43,31 @@ class StorageManager:
         driver = self.get_driver(name)
         return driver.set_options(store_config)
 
-    def fake(self, name: str = "default") -> Any:
-        """Replace the given disk with a fake local disk for testing."""
+    def fake(self, name: str = "default") -> "FakeDriver":
+        """
+        Replace the named disk with a FakeDriver backed by a temp directory.
+
+        The fake uses a plain LocalDriver under the hood (same as Laravel) so
+        all normal storage operations work, and the returned object exposes
+        assertion helpers (assertExists, assertMissing, assertCount, …).
+
+        The driver name key that the disk config references (e.g. "s3") is
+        replaced in self.drivers so that any subsequent Storage.disk(name)
+        call transparently returns the fake.
+        """
         if name == "default":
             name = self.store_config.get("default", "local")
 
-        from .drivers import LocalDriver
-        import tempfile
+        from .drivers.fake import FakeDriver
 
-        # Use a temporary directory for the fake storage
-        temp_dir = tempfile.mkdtemp(prefix=f"storage_fake_{name}_")
+        fake = FakeDriver(self.application, disk_name=name)
 
-        fake_driver = LocalDriver(self.application)
-        fake_driver.set_options({"root": temp_dir})
+        # Resolve which driver key this disk uses (e.g. "s3", "local") and
+        # replace that slot so get_driver() picks up the fake transparently.
+        driver_key = self.get_config_options(name).get("driver", name)
+        self.drivers[driver_key] = fake
 
-        # Replace the driver in the manager
-        self.drivers[name] = fake_driver
-        return fake_driver
+        return fake
 
     def put(self, *args, **kwargs):
         return self.disk().put(*args, **kwargs)

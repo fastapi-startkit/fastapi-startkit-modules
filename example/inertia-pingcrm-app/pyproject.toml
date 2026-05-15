@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Vite + FastAPI example using fastapi-startkit"
 requires-python = ">=3.12"
 dependencies = [
+    "boto3>=1.35.0",
     "faker>=40.15.0",
     "fastapi-startkit[fastapi,database,postgres]",
     "itsdangerous>=2.2.0",

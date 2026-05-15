@@ -1,15 +1,13 @@
 import uuid
 from pathlib import Path
 
-from fastapi import Request, UploadFile, File
+from fastapi import UploadFile, File
 from fastapi.responses import JSONResponse
-
-UPLOAD_DIR = Path("public") / "img"
-ALLOWED_MIME_PREFIXES = ("image/jpeg", "image/png", "image/gif", "image/webp")
+from fastapi_startkit.storage import Storage
 
 
-async def upload(request: Request, photo: UploadFile = File(...)) -> JSONResponse:
-    """Save an uploaded profile photo and return its public path."""
+async def upload(photo: UploadFile = File(...)) -> JSONResponse:
+    """Upload a profile photo to S3 and return its storage key."""
     if not photo.content_type or not photo.content_type.startswith("image/"):
         return JSONResponse(
             content={"error": "Only image files are allowed."},
@@ -17,12 +15,14 @@ async def upload(request: Request, photo: UploadFile = File(...)) -> JSONRespons
         )
 
     ext = Path(photo.filename or "upload").suffix.lower() or ".jpg"
-    filename = f"{uuid.uuid4().hex}{ext}"
-
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    dest = UPLOAD_DIR / filename
+    filename = f"photos/{uuid.uuid4().hex}{ext}"
 
     contents = await photo.read()
-    dest.write_bytes(contents)
+    Storage.disk("s3").put(filename, contents)
 
-    return JSONResponse(content={"path": f"/img/{filename}"})
+    return JSONResponse(content={"path": filename, "url": Storage.disk("s3").url(filename)})
+
+
+async def stream(path: str):
+    """Stream a file from S3 back to the client."""
+    return Storage.disk("s3").stream(path)

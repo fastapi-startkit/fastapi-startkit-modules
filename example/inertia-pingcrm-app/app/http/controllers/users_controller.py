@@ -5,13 +5,12 @@ from typing import Optional
 from fastapi import Request, UploadFile, File, Form
 from fastapi.responses import RedirectResponse
 from fastapi_startkit.inertia import Inertia
+from fastapi_startkit.storage import Storage
 from app.models.User import User
-
-UPLOAD_DIR = Path("public") / "img"
 
 
 async def _save_photo(photo: Optional[UploadFile]) -> Optional[str]:
-    """Save an UploadFile to disk and return its public URL path, or None."""
+    """Save an UploadFile to the public disk and return its public URL path, or None."""
     if photo is None or not photo.filename:
         return None
     if not photo.content_type or not photo.content_type.startswith("image/"):
@@ -20,11 +19,9 @@ async def _save_photo(photo: Optional[UploadFile]) -> Optional[str]:
     ext = Path(photo.filename).suffix.lower() or ".jpg"
     filename = f"{uuid.uuid4().hex}{ext}"
 
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    dest = UPLOAD_DIR / filename
-    dest.write_bytes(await photo.read())
+    Storage.disk("public").put(filename, await photo.read())
 
-    return f"/img/{filename}"
+    return f"/storage/{filename}"
 
 
 async def index():
@@ -80,7 +77,7 @@ async def store(
     return RedirectResponse(url="/users", status_code=303)
 
 
-async def edit(user: str):
+async def edit(user: int):
     u = await User.find(user)
     return Inertia.render('Users/Edit', {
         'user': {
@@ -98,7 +95,7 @@ async def edit(user: str):
 
 async def update(
     request: Request,
-    user: str,
+    user: int,
     first_name: str = Form(...),
     last_name: str = Form(...),
     email: str = Form(...),
@@ -125,9 +122,9 @@ async def update(
     return RedirectResponse(url=f"/users/{user}/edit", status_code=303)
 
 
-async def destroy(user: str):
+async def destroy(user: int):
     return RedirectResponse(url="/users", status_code=303)
 
 
-async def restore(user: str):
+async def restore(user: int):
     return RedirectResponse(url="/users", status_code=303)
