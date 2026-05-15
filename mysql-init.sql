@@ -1,0 +1,3 @@
+CREATE DATABASE IF NOT EXISTS database_app;
+GRANT ALL PRIVILEGES ON database_app.* TO 'app'@'%';
+FLUSH PRIVILEGES;

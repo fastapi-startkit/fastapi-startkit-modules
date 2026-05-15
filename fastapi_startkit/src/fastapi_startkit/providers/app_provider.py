@@ -1,4 +1,4 @@
-from fastapi_startkit.commands.publish_command import PublishCommand
+from fastapi_startkit.console.publish_command import PublishCommand
 from fastapi_startkit.providers import Provider
 
 

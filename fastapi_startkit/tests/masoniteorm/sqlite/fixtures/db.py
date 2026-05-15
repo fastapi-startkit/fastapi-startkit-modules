@@ -6,6 +6,7 @@ DB = DatabaseManager(
     ConnectionFactory(),
     {
         "default": "sqlite",
+        "migrations": "fixtures/migrations",
         "connections": {
             "sqlite": {
                 "driver": "sqlite",

@@ -1,5 +1,6 @@
 from cleo.helpers import option
-from .Command import Command
+from fastapi_startkit.console import Command
+from fastapi_startkit.masoniteorm.migrations.Migrator import Migrator
 
 
 class MigrateFreshCommand(Command):
@@ -49,12 +50,12 @@ class MigrateFreshCommand(Command):
         return asyncio.run(self.handle_async())
 
     async def handle_async(self):
-        from ..migrations import Migration
+        directory = self.resolve_migration_path()
 
-        migration = Migration(
+        migration = Migrator(
             command_class=self,
             connection=self.option("connection"),
-            migration_directory=self.option("directory"),
+            migration_directory=directory,
         )
 
         await migration.fresh(ignore_fk=not self.option("no-fk"))
@@ -69,3 +70,12 @@ class MigrateFreshCommand(Command):
                 "seed:run",
                 f"{self.option('seed')} --directory {self.option('seed-directory')} --connection {self.option('connection')}",
             )
+
+    def resolve_migration_path(self) -> str:
+        path = self.option('directory')
+
+        config = self.container.make('config').get('database.migrations')
+        default_directory = config.get('directory')
+
+        migration_directory = path or default_directory
+        return self.container.use_base_path(migration_directory)

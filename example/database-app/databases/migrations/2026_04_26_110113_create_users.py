@@ -1,6 +1,6 @@
 """Create-users Migration."""
 
-from fastapi_startkit.masoniteorm.migrations import Migration
+from fastapi_startkit.masoniteorm import Migration
 
 
 class CreateUsers(Migration):

@@ -1,19 +1,26 @@
+from typing import TYPE_CHECKING
+
 from cleo.application import Application as BaseApplication
 from cleo.io.io import IO
-from fastapi_startkit.application import Application
+
+if TYPE_CHECKING:
+    from fastapi_startkit.application import Application
 
 
 class ConsoleApplication(BaseApplication):
-    def __init__(self, app: Application):
+    def __init__(self, app: "Application"):
         super().__init__()
         self.app = app
 
         # Register commands from Application
         for command in self.app.commands:
             if isinstance(command, type):
-                self.add(command())
+                instance = command()
             else:
-                self.add(command)
+                instance = command
+
+            instance.set_container(self.app)
+            self.add(instance)
 
     def render_error(self, error: Exception, io: IO) -> None:
         self.app.exception_manager.report(error)

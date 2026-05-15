@@ -8,6 +8,8 @@ services:
             MYSQL_PASSWORD: secret
         ports:
             - "3306:3306"
+        volumes:
+            - ./mysql-init.sql:/docker-entrypoint-initdb.d/init.sql
         healthcheck:
             test: [ "CMD", "mysqladmin", "ping", "--silent" ]
             interval: 5s

@@ -12,8 +12,8 @@ from fastapi_startkit.masoniteorm.commands import (
 )
 from fastapi_startkit.masoniteorm.connections.factory import ConnectionFactory
 from fastapi_startkit.masoniteorm.connections.manager import DatabaseManager
-from fastapi_startkit.masoniteorm.migrations import Migration
-from fastapi_startkit.masoniteorm.models import Model
+from fastapi_startkit.masoniteorm import Migrator
+from fastapi_startkit.masoniteorm import Model
 from fastapi_startkit.providers.Provider import Provider
 
 
@@ -30,7 +30,7 @@ class DatabaseProvider(Provider):
         self.app.bind("schema", db.get_schema_builder())
 
         Model.db_manager = db
-        Migration.db_manager = db
+        Migrator.db_manager = db
 
     def boot(self) -> None:
         self.publishes(

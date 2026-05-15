@@ -1,4 +1,4 @@
-from cleo.commands.command import Command
+from fastapi_startkit.console.command import Command
 from cleo.helpers import option
 
 

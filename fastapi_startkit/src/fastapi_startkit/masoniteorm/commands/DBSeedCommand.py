@@ -1,7 +1,7 @@
 from cleo.helpers import argument, option
 from inflection import camelize, underscore
 
-from .Command import Command
+from fastapi_startkit.console import Command
 
 
 class DBSeedCommand(Command):

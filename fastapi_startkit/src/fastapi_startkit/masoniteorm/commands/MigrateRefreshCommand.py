@@ -1,5 +1,5 @@
 from cleo.helpers import option
-from .Command import Command
+from fastapi_startkit.console import Command
 
 
 class MigrateRefreshCommand(Command):
