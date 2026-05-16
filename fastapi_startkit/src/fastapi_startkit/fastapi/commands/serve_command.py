@@ -1,3 +1,4 @@
+from dumpdie import dd
 from fastapi_startkit.console.command import Command
 from cleo.helpers import option
 
@@ -39,15 +40,15 @@ class ServeCommand(Command):
 
     def handle(self):
         import uvicorn
-        from fastapi_startkit.configuration.config import Config
+        from fastapi_startkit import Config
         from fastapi_startkit.container import Container
 
-        # Resolve server settings: CLI flag > fastapi config > built-in defaults
+        # Resolve server settings: CLI flag > fastapi config > uvicorn default (None)
         cfg_host = Config.get("fastapi.host", "127.0.0.1")
         cfg_port = Config.get("fastapi.port", 8000)
         cfg_reload = Config.get("fastapi.reload", True)
-        cfg_reload_dirs = Config.get("fastapi.reload_dirs", []) or []
-        cfg_reload_excludes = Config.get("fastapi.reload_excludes", ["*.log", "tests/*"]) or []
+        cfg_reload_dirs = Config.get("fastapi.reload_dirs") or None
+        cfg_reload_excludes = Config.get("fastapi.reload_excludes") or None
 
         host = self.option("host") or cfg_host
         port = int(self.option("port") or cfg_port)
@@ -68,11 +69,12 @@ class ServeCommand(Command):
                 {
                     "app": app,
                     "factory": True,
-                    "reload_excludes": cfg_reload_excludes,
                 }
             )
-            if cfg_reload_dirs:
+            if cfg_reload_dirs is not None:
                 kwargs["reload_dirs"] = cfg_reload_dirs
+            if cfg_reload_excludes is not None:
+                kwargs["reload_excludes"] = cfg_reload_excludes
 
             self.line(
                 f"<info>Starting Uvicorn server on {host}:{port} [{app}]...</info>"
