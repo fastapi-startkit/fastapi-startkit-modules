@@ -22,8 +22,15 @@ class FastAPIProvider(Provider):
         self.app.use_fastapi(fastapi)
 
     def boot(self):
+        import os
+
         self.commands([ServeCommand])
         self._register_exception_handlers()
+
+        source = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "../config/fastapi.py")
+        )
+        self.publishes({source: "config/fastapi.py"})
 
     def _register_exception_handlers(self):
         """Wire exception_manager as a catch-all handler for all exceptions."""
