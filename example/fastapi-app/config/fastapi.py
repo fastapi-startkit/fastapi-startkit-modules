@@ -16,7 +16,5 @@ class FastAPIConfig:
             "*.log",
             "tests/*",
             "node_modules/*",
-            "logs/*",
-            "storage/logs/*",
         ]
     )
