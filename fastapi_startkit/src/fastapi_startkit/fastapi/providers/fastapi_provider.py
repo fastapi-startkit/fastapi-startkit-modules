@@ -2,12 +2,18 @@ from fastapi_startkit.fastapi.exceptions import HTTPExceptionHandler, Validation
 from fastapi import FastAPI
 
 from fastapi_startkit.fastapi.commands import ServeCommand
+from fastapi_startkit.fastapi.config import FastAPIConfig
 from fastapi_startkit.providers import Provider
 
 
 class FastAPIProvider(Provider):
     def register(self) -> None:
         """Create a FastAPI instance and register routers."""
+        # Register default FastAPI server config if not already set by user config
+        config = self.app.make("config")
+        if not config.has("fastapi"):
+            config.set("fastapi", FastAPIConfig())
+
         fastapi = FastAPI(
             title="Jobins AI Agent (LangChain)",
             version="1.0.0",

@@ -11,22 +11,22 @@ class ServeCommand(Command):
             "port",
             "p",
             flag=False,
-            default="8000",
-            description="The port to serve the application on",
+            default=None,
+            description="The port to serve the application on (overrides fastapi config)",
         ),
         option(
             "host",
             None,
             flag=False,
-            default="127.0.0.1",
-            description="The host to bind to",
+            default=None,
+            description="The host to bind to (overrides fastapi config)",
         ),
         option(
             "reload",
             "r",
             flag=False,
-            default=True,
-            description="Enable auto-reload on code changes",
+            default=None,
+            description="Enable auto-reload on code changes (overrides fastapi config)",
         ),
         option(
             "app",
@@ -39,12 +39,20 @@ class ServeCommand(Command):
 
     def handle(self):
         import uvicorn
+        from fastapi_startkit.configuration.config import Config
         from fastapi_startkit.container import Container
 
-        port = int(self.option("port"))
-        host = self.option("host")
+        # Resolve server settings: CLI flag > fastapi config > built-in defaults
+        cfg_host = Config.get("fastapi.host", "127.0.0.1")
+        cfg_port = Config.get("fastapi.port", 8000)
+        cfg_reload = Config.get("fastapi.reload", True)
+        cfg_reload_dirs = Config.get("fastapi.reload_dirs", []) or []
+        cfg_reload_excludes = Config.get("fastapi.reload_excludes", ["*.log", "tests/*"]) or []
+
+        host = self.option("host") or cfg_host
+        port = int(self.option("port") or cfg_port)
+        reload = cfg_reload if self.option("reload") is None else self.option("reload")
         app = self.option("app")
-        reload = self.option("reload")
 
         exist = self.is_app_exist()
 
@@ -59,11 +67,12 @@ class ServeCommand(Command):
             kwargs.update(
                 {
                     "app": app,
-                    "reload": reload,
                     "factory": True,
-                    "reload_excludes": ["*.log", "tests/*"],
+                    "reload_excludes": cfg_reload_excludes,
                 }
             )
+            if cfg_reload_dirs:
+                kwargs["reload_dirs"] = cfg_reload_dirs
 
             self.line(
                 f"<info>Starting Uvicorn server on {host}:{port} [{app}]...</info>"
