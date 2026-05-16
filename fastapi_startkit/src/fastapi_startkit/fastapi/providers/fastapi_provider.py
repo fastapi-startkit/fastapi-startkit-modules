@@ -7,12 +7,12 @@ from fastapi_startkit.providers import Provider
 
 
 class FastAPIProvider(Provider):
+    provider_key = "fastapi"
+
     def register(self) -> None:
         """Create a FastAPI instance and register routers."""
-        # Register default FastAPI server config if not already set by user config
-        config = self.app.make("config")
-        if not config.has("fastapi"):
-            config.set("fastapi", FastAPIConfig())
+        config = self.resolve_config(FastAPIConfig)
+        self.merge_config_from(config, self.provider_key)
 
         fastapi = FastAPI(
             title="Jobins AI Agent (LangChain)",
