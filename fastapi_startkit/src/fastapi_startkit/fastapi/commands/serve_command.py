@@ -1,4 +1,3 @@
-from dumpdie import dd
 from fastapi_startkit.console.command import Command
 from cleo.helpers import option
 
