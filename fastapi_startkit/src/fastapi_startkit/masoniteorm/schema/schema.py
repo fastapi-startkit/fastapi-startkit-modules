@@ -4,6 +4,48 @@ from fastapi_startkit.masoniteorm.schema.TableDiff import TableDiff
 
 
 class Schema:
+    _type_hints_map = {
+        "string": str,
+        "char": str,
+        "big_increments": int,
+        "integer": int,
+        "big_integer": int,
+        "tiny_integer": int,
+        "small_integer": int,
+        "medium_integer": int,
+        "integer_unsigned": int,
+        "big_integer_unsigned": int,
+        "tiny_integer_unsigned": int,
+        "small_integer_unsigned": int,
+        "medium_integer_unsigned": int,
+        "increments": int,
+        "uuid": str,
+        "binary": bytes,
+        "boolean": bool,
+        "decimal": float,
+        "double": float,
+        "enum": str,
+        "text": str,
+        "tiny_text": str,
+        "float": float,
+        "geometry": str,
+        "json": dict,
+        "jsonb": bytes,
+        "inet": str,
+        "cidr": str,
+        "macaddr": str,
+        "long_text": str,
+        "point": str,
+        "time": str,
+        "timestamp": str,
+        "date": str,
+        "year": str,
+        "datetime": str,
+        "tiny_increments": int,
+        "unsigned": int,
+        "unsigned_integer": int,
+    }
+
     def __init__(self, manager) -> None:
         self._manager = manager
         self._connection = None
