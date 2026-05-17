@@ -5,10 +5,11 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # ── Start MySQL via Docker Compose ────────────────────────────────────────────
 echo "Starting test services..."
+docker compose -f "$ROOT/docker-compose.yml" down --remove-orphans
 docker compose -f "$ROOT/docker-compose.yml" up -d --wait
 
 # Ensure MySQL is torn down on exit (even if tests fail)
-trap 'echo "Stopping test services..."; docker compose -f "$ROOT/docker-compose.test.yml" down' EXIT
+trap 'echo "Stopping test services..."; docker compose -f "$ROOT/docker-compose.yml" down' EXIT
 
 # ── Common DB env vars (match docker-compose.test.yml) ───────────────────────
 export DB_HOST=127.0.0.1
