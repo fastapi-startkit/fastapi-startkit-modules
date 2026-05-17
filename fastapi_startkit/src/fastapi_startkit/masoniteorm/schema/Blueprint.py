@@ -754,10 +754,10 @@ class Blueprint:
         elif self._action == "create_table_if_not_exists":
             return self.platform().compile_create_sql(self.table, if_not_exists=True)
         else:
-            table = await self.platform().get_current_schema(
-                self.connection, self.table.name, schema=self.schema
-            )
-            self.table.from_table = table
+            if self.table.from_table is None:
+                self.table.from_table = await self.platform().get_current_schema(
+                    self.connection, self.table.name, schema=self.schema
+                )
             return self.platform().compile_alter_sql(self.table)
 
     def __enter__(self):
