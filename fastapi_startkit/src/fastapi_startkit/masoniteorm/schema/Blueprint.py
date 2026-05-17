@@ -754,13 +754,6 @@ class Blueprint:
         elif self._action == "create_table_if_not_exists":
             return self.platform().compile_create_sql(self.table, if_not_exists=True)
         else:
-            if not self._dry and self.table.from_table is None:
-                # get current table schema
-                table = self.platform().get_current_schema(
-                    self.connection, self.table.name, schema=self.schema
-                )
-                self.table.from_table = table
-
             return self.platform().compile_alter_sql(self.table)
 
     def __enter__(self):
@@ -781,10 +774,16 @@ class Blueprint:
     async def __aenter__(self):
         return self
 
-    # TODO: review
     async def __aexit__(self, exc_type, exc_value, exc_traceback):
         if self._dry:
             return
+
+        # For alter operations, fetch the current table schema asynchronously
+        # before compiling the SQL (get_current_schema is async and uses connection.select)
+        if self._action not in ("create", "create_table_if_not_exists") and self.table.from_table is None:
+            self.table.from_table = await self.platform().get_current_schema(
+                self.connection, self.table.name, schema=self.schema
+            )
 
         sql = self.to_sql()
         if isinstance(sql, list):

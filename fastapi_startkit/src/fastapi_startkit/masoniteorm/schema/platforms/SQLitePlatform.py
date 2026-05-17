@@ -367,13 +367,13 @@ class SQLitePlatform(Platform):
 
         return names
 
-    def get_current_schema(self, connection, table_name, schema=None):
+    async def get_current_schema(self, connection, table_name, schema=None):
         sql = f"PRAGMA table_info({table_name})"
 
         reversed_type_map = {v: k for k, v in self.type_map.items()}
         table = Table(table_name)
 
-        result = connection.query(sql, ())
+        result = await connection.select(sql, ())
         for column in result:
             column_type = self.get_column_type(
                 reversed_type_map, column["type"].upper()

@@ -492,7 +492,7 @@ class PostgresPlatform(Platform):
     def compile_get_all_tables(self, database=None, schema=None):
         return f"SELECT table_name FROM information_schema.tables WHERE table_schema = '{schema or 'public'}' AND table_catalog = '{database}' AND table_type = 'BASE TABLE'"
 
-    def get_current_schema(self, connection, table_name, schema=None):
+    async def get_current_schema(self, connection, table_name, schema=None):
         sql = self.table_information_string().format(
             table=table_name, schema=schema or "public"
         )
@@ -501,7 +501,7 @@ class PostgresPlatform(Platform):
         reversed_type_map.update(self.table_info_map)
         table = Table(table_name)
 
-        result = connection.query(sql, ())
+        result = await connection.select(sql, ())
         for column in result:
             column_type = reversed_type_map.get(column["data_type"].upper())
 
