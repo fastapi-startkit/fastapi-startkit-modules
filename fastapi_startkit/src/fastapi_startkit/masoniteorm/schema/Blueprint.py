@@ -743,7 +743,7 @@ class Blueprint:
         self._last_column = _columns
         return self
 
-    def to_sql(self):
+    async def to_sql(self):
         """Compiles the blueprint class into a sql statement.
 
         Returns:
@@ -754,6 +754,10 @@ class Blueprint:
         elif self._action == "create_table_if_not_exists":
             return self.platform().compile_create_sql(self.table, if_not_exists=True)
         else:
+            table = await self.platform().get_current_schema(
+                self.connection, self.table.name, schema=self.schema
+            )
+            self.table.from_table = table
             return self.platform().compile_alter_sql(self.table)
 
     def __enter__(self):
@@ -778,14 +782,7 @@ class Blueprint:
         if self._dry:
             return
 
-        # For alter operations, fetch the current table schema asynchronously
-        # before compiling the SQL (get_current_schema is async and uses connection.select)
-        if self._action not in ("create", "create_table_if_not_exists") and self.table.from_table is None:
-            self.table.from_table = await self.platform().get_current_schema(
-                self.connection, self.table.name, schema=self.schema
-            )
-
-        sql = self.to_sql()
+        sql = await self.to_sql()
         if isinstance(sql, list):
             for q in sql:
                 await self.connection.statement(q, ())
