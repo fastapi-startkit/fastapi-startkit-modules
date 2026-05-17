@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 from fastapi_startkit.masoniteorm.schema.Table import Table
 
@@ -10,7 +10,7 @@ class TestSQLiteSchemaBuilderAlter(TestCase):
         mock_statement = AsyncMock()
         conn = self.schema.get_connection()
         conn.statement = mock_statement
-        conn.query = MagicMock(return_value=[])
+        conn.select = AsyncMock(return_value=[])
 
         async with await self.schema.table("users") as blueprint:
             blueprint.string("name")
@@ -19,7 +19,7 @@ class TestSQLiteSchemaBuilderAlter(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 3)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'ALTER TABLE "users" ADD COLUMN "name" VARCHAR NOT NULL',
                 """ALTER TABLE "users" ADD COLUMN "external_type" VARCHAR NOT NULL DEFAULT 'external'""",
@@ -31,14 +31,14 @@ class TestSQLiteSchemaBuilderAlter(TestCase):
         mock_statement = AsyncMock()
         conn = self.schema.get_connection()
         conn.statement = mock_statement
-        conn.query = MagicMock(return_value=[])
+        conn.select = AsyncMock(return_value=[])
 
         async with await self.schema.table("users") as blueprint:
             blueprint.unique("name", name="table_unique")
 
         self.assertEqual(len(blueprint.table.added_columns), 0)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             ['CREATE UNIQUE INDEX table_unique ON "users"(name)'],
         )
 
@@ -54,7 +54,7 @@ class TestSQLiteSchemaBuilderAlter(TestCase):
             blueprint.table.from_table = table
 
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 "CREATE TEMPORARY TABLE __temp__users AS SELECT post FROM users",
                 'DROP TABLE "users"',
@@ -78,7 +78,7 @@ class TestSQLiteSchemaBuilderAlter(TestCase):
             blueprint.table.from_table = table
 
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 "CREATE TEMPORARY TABLE __temp__users AS SELECT name, email FROM users",
                 'DROP TABLE "users"',
@@ -103,7 +103,7 @@ class TestSQLiteSchemaBuilderAlter(TestCase):
         self.assertEqual(len(blueprint.table.added_columns), 1)
         self.assertEqual(len(blueprint.table.changed_columns), 1)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'ALTER TABLE "users" ADD COLUMN "name" VARCHAR NOT NULL',
                 "CREATE TEMPORARY TABLE __temp__users AS SELECT age FROM users",
@@ -144,7 +144,7 @@ class TestSQLiteSchemaBuilderAlter(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 1)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             ['ALTER TABLE "users" ADD COLUMN "due_date" TIMESTAMP NULL'],
         )
 
@@ -152,7 +152,7 @@ class TestSQLiteSchemaBuilderAlter(TestCase):
         mock_statement = AsyncMock()
         conn = self.schema.get_connection()
         conn.statement = mock_statement
-        conn.query = MagicMock(return_value=[])
+        conn.select = AsyncMock(return_value=[])
 
         async with await self.schema.table("table_schema") as blueprint:
             blueprint.drop_column("name")
@@ -164,13 +164,13 @@ class TestSQLiteSchemaBuilderAlter(TestCase):
         mock_statement = AsyncMock()
         conn = self.schema.get_connection()
         conn.statement = mock_statement
-        conn.query = MagicMock(return_value=[])
+        conn.select = AsyncMock(return_value=[])
 
         async with await self.schema.table("users") as blueprint:
             blueprint.primary("playlist_id")
 
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'ALTER TABLE "users" ADD CONSTRAINT users_playlist_id_primary PRIMARY KEY (playlist_id)'
             ],
@@ -192,7 +192,7 @@ class TestSQLiteSchemaBuilderAlter(TestCase):
             blueprint.table.from_table = table
 
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'ALTER TABLE "users" ADD COLUMN "playlist_id" INTEGER UNSIGNED NULL REFERENCES "playlists"("id")',
                 "CREATE TEMPORARY TABLE __temp__users AS SELECT age, email FROM users",
@@ -219,7 +219,7 @@ class TestSQLiteSchemaBuilderAlter(TestCase):
             blueprint.table.from_table = table
 
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 "CREATE TEMPORARY TABLE __temp__users AS SELECT age, email FROM users",
                 'DROP TABLE "users"',
@@ -234,16 +234,37 @@ class TestSQLiteSchemaBuilderAlter(TestCase):
         mock_statement = AsyncMock()
         conn = self.schema.get_connection()
         conn.statement = mock_statement
-        conn.query = MagicMock(return_value=[])
+        conn.select = AsyncMock(return_value=[])
 
         async with await self.schema.table("users") as blueprint:
             blueprint.enum("status", ["active", "inactive"]).default("active")
 
         self.assertEqual(len(blueprint.table.added_columns), 1)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 "ALTER TABLE \"users\" ADD COLUMN \"status\" VARCHAR CHECK('status' IN('active', 'inactive')) NOT NULL DEFAULT 'active'"
+            ],
+        )
+
+    async def test_add_nullable_columns_without_from_table(self):
+        """Regression: adding nullable columns should use async get_current_schema,
+        not connection.query() which takes no arguments."""
+        mock_statement = AsyncMock()
+        conn = self.schema.get_connection()
+        conn.statement = mock_statement
+        conn.select = AsyncMock(return_value=[])
+
+        async with await self.schema.table("clients") as blueprint:
+            blueprint.text("website").nullable()
+            blueprint.text("linkedin_url").nullable()
+
+        self.assertEqual(len(blueprint.table.added_columns), 2)
+        self.assertEqual(
+            await blueprint.to_sql(),
+            [
+                'ALTER TABLE "clients" ADD COLUMN "website" TEXT NULL',
+                'ALTER TABLE "clients" ADD COLUMN "linkedin_url" TEXT NULL',
             ],
         )
 
@@ -257,7 +278,7 @@ class TestSQLiteSchemaBuilderAlter(TestCase):
 
         self.assertEqual(len(blueprint.table.changed_columns), 1)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 "CREATE TEMPORARY TABLE __temp__users AS SELECT  FROM users",
                 'DROP TABLE "users"',

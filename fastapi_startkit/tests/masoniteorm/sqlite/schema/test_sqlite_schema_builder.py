@@ -17,7 +17,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 2)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'CREATE TABLE "users" ("name" VARCHAR(255) NOT NULL, "age" INTEGER NOT NULL)'
             ],
@@ -32,7 +32,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 1)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             ['CREATE TABLE "users" ("description" TEXT NOT NULL)'],
         )
 
@@ -45,7 +45,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 1)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             ['CREATE TABLE "users" ("amount" DECIMAL(19, 4) NOT NULL)'],
         )
 
@@ -59,7 +59,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 2)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'CREATE TABLE IF NOT EXISTS "users" ("name" VARCHAR(255) NOT NULL, "age" INTEGER NOT NULL)'
             ],
@@ -76,7 +76,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 2)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'CREATE TABLE "users" ("name" VARCHAR(255) NOT NULL, "age" INTEGER NOT NULL, UNIQUE(name))'
             ],
@@ -90,7 +90,7 @@ class TestSQLiteSchemaBuilder(TestCase):
             blueprint.float("amount")
 
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 """CREATE TABLE "users" ("""
                 """\"amount" FLOAT(19, 4) NOT NULL)"""
@@ -109,7 +109,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 3)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'CREATE TABLE "users" '
                 '("name" VARCHAR(255) NOT NULL, '
@@ -134,7 +134,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 3)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'CREATE TABLE "users" '
                 '("name" VARCHAR(255) NOT NULL, '
@@ -154,7 +154,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 2)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'CREATE TABLE "likes" ("record_id" INTEGER UNSIGNED NOT NULL, "record_type" VARCHAR NOT NULL)',
                 'CREATE INDEX likes_record_id_index ON "likes"(record_id)',
@@ -181,7 +181,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 11)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 """CREATE TABLE "users" ("id" INTEGER NOT NULL, "name" VARCHAR(255) NOT NULL, "gender" VARCHAR(255) CHECK(gender IN ('male', 'female')) NOT NULL, "email" VARCHAR(255) NOT NULL, """
                 """"password" VARCHAR(255) NOT NULL, "option" VARCHAR(255) NOT NULL DEFAULT 'ADMIN', "admin" INTEGER NOT NULL DEFAULT 0, "remember_token" VARCHAR(255) NULL, """
@@ -207,7 +207,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 0)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'CREATE INDEX users_name_index ON "users"(name)',
                 'CREATE INDEX active_idx ON "users"(active)',
@@ -229,7 +229,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 2)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'ALTER TABLE "users" ADD COLUMN "email" VARCHAR NOT NULL',
                 'ALTER TABLE "users" ADD COLUMN "active" VARCHAR NOT NULL',
@@ -250,7 +250,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 3)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'CREATE TABLE "users" '
                 '("name" VARCHAR(255) NOT NULL, '
@@ -272,7 +272,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 3)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'CREATE TABLE "users" '
                 '("name" VARCHAR(255) NOT NULL, '
@@ -309,7 +309,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 17)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 'CREATE TABLE "users" ("id" INTEGER NOT NULL, "name" VARCHAR(255) NOT NULL, "duration" VARCHAR(255) NOT NULL, '
                 '"url" VARCHAR(255) NOT NULL, "payload" JSON NOT NULL, "birth" VARCHAR(4) NOT NULL, "last_address" VARCHAR(255) NULL, "route_origin" VARCHAR(255) NULL, "mac_address" VARCHAR(255) NULL, '
@@ -390,7 +390,7 @@ class TestSQLiteSchemaBuilder(TestCase):
             blueprint.medium_integer("medium_profile_id").unsigned()
 
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 """CREATE TABLE "users" ("""
                 """"profile_id" INTEGER UNSIGNED NOT NULL, """
@@ -444,7 +444,7 @@ class TestSQLiteSchemaBuilder(TestCase):
 
         self.assertEqual(len(blueprint.table.added_columns), 1)
         self.assertEqual(
-            blueprint.to_sql(),
+            await blueprint.to_sql(),
             [
                 "CREATE TABLE \"users\" (\"status\" VARCHAR(255) CHECK(status IN ('active', 'inactive')) NOT NULL DEFAULT 'active')"
             ],
