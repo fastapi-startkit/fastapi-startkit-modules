@@ -1,3 +1,7 @@
+import datetime
+
+import pendulum
+
 from ...fixtures.casts import Address
 from ...fixtures.model import User
 from ..test_case import TestCase
@@ -101,3 +105,62 @@ class SqliteModelCastsTest(TestCase):
         self.assertIsInstance(fetched.address, Address)
         self.assertEqual(fetched.address.address, "789 King St")
         self.assertEqual(fetched.address.city, "Brisbane")
+
+    async def test_sqlite_model_casts_datetime(self):
+        await User.create({
+            "email": "datetime@example.com",
+            "name": "DateTime User",
+            "is_admin": False,
+            "email_verified_at": "2024-06-15 12:30:00",
+            "date_of_birth": datetime.datetime.now(datetime.timezone.utc),
+        })
+
+        user = await User.where("email", "datetime@example.com").first()
+
+        # email_verified_at: Carbon = DateTimeField() → DateCast → pendulum.DateTime
+        self.assertIsInstance(user.email_verified_at, pendulum.DateTime)
+        self.assertEqual(user.email_verified_at.year, 2024)
+        self.assertEqual(user.email_verified_at.month, 6)
+        self.assertEqual(user.email_verified_at.day, 15)
+
+    async def test_sqlite_model_casts_datetime_none(self):
+        user = await User.where("email", "guest@guest.com").first()
+
+        # guest user has no email_verified_at seeded — should remain None
+        self.assertIsNone(user.email_verified_at)
+
+    async def test_sqlite_model_casts_date(self):
+        user = await User.where("email", "admin@admin.com").first()
+
+        # date_of_birth: date annotation → DateCast → pendulum.DateTime
+        self.assertIsInstance(user.date_of_birth, pendulum.DateTime)
+        self.assertEqual(user.date_of_birth.year, 1990)
+        self.assertEqual(user.date_of_birth.month, 6)
+        self.assertEqual(user.date_of_birth.day, 15)
+
+    async def test_sqlite_model_casts_timedelta(self):
+        user = await User.where("email", "admin@admin.com").first()
+
+        # session_duration: timedelta annotation → TimeDeltaCast; stored as seconds
+        self.assertIsInstance(user.session_duration, datetime.timedelta)
+        self.assertEqual(user.session_duration.total_seconds(), 3600.0)
+
+    async def test_sqlite_model_casts_time(self):
+        user = await User.where("email", "admin@admin.com").first()
+
+        # punch_in_time: time annotation → TimeCast; stored as HH:MM:SS string
+        self.assertIsInstance(user.punch_in_time, datetime.time)
+        self.assertEqual(user.punch_in_time.hour, 9)
+        self.assertEqual(user.punch_in_time.minute, 0)
+
+    async def test_sqlite_model_casts_timedelta_none(self):
+        user = await User.where("email", "guest@guest.com").first()
+
+        self.assertIsNone(user.session_duration)
+
+    async def test_sqlite_model_casts_time_default(self):
+        user = await User.where("email", "guest@guest.com").first()
+
+        # guest has no punch_in_time seeded (NULL) — Field(default=time(12, 0, 0)) should apply
+        self.assertIsInstance(user.punch_in_time, datetime.time)
+        self.assertEqual(user.punch_in_time, datetime.time(12, 0, 0))

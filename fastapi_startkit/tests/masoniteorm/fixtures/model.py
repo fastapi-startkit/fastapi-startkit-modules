@@ -1,6 +1,8 @@
+from datetime import datetime, timedelta, time, date
+
 from fastapi_startkit.carbon.carbon import Carbon
 from tests.masoniteorm.fixtures.casts import Address
-from fastapi_startkit.masoniteorm.models.fields import Field, DateTimeField
+from fastapi_startkit.masoniteorm.models.fields import ModelField, Field
 from fastapi_startkit.masoniteorm.relationships import (
     HasOne,
     BelongsTo,
@@ -17,10 +19,13 @@ class User(Model):
     id: int
     name: str
     email: str
-    email_verified_at: Carbon = DateTimeField(fmt="%Y-%m-%d %H:%M:%S", tz="UTC")
+    email_verified_at: datetime
+    date_of_birth: date
+    session_duration: timedelta
+    punch_in_time: time = Field(default=time(12, 0, 0))
     is_admin: bool
     preferences: dict
-    address: Address
+    address: Address = ModelField()
 
     profile: "Profile" = HasOne("Profile", "user_id", "id")
     articles: "Articles" = HasMany("Articles", "id", "user_id")

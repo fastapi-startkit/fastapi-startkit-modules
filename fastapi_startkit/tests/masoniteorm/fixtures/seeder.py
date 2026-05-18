@@ -1,11 +1,19 @@
-from .model import User, Profile, Articles, Logo, Country, Port, IncomingShipment, Like, Product
+from .model import Articles, Country, IncomingShipment, Like, Logo, Port, Product, Profile, User
 
 
 async def seeder():
     user = await User.query().create(
-        {"email": "admin@admin.com", "name": "Joe", "is_admin": True,
-         "preferences": {"theme": "dark", "language": "en"},
-         "address": {"address": "123 Main St", "city": "Sydney", "state": "NSW", "country": "Australia"}}
+        {
+            "email": "admin@admin.com",
+            "name": "Joe",
+            "is_admin": True,
+            "email_verified_at": "2024-01-15 08:00:00",
+            "date_of_birth": "1990-06-15",
+            "session_duration": 3600.0,
+            "punch_in_time": "09:00:00",
+            "preferences": {"theme": "dark", "language": "en"},
+            "address": {"address": "123 Main St", "city": "Sydney", "state": "NSW", "country": "Australia"},
+        }
     )
     await Profile.create({"name": "Joe Profile", "user_id": user.id})
     article = await Articles.create(
@@ -15,9 +23,7 @@ async def seeder():
             "published_date": "2020-01-01 00:00:00",
         }
     )
-    await Logo.create(
-        {"article_id": article.id, "published_date": "2020-01-01 00:00:00"}
-    )
+    await Logo.create({"article_id": article.id, "published_date": "2020-01-01 00:00:00"})
     product = await Product.create({"name": "Widget"})
     await Like.create({"likeable_type": "article", "likeable_id": article.id})
     await Like.create({"likeable_type": "product", "likeable_id": product.id})

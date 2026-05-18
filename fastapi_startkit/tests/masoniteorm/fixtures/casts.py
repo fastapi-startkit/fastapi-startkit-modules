@@ -1,9 +1,8 @@
 from typing import Optional
 
-from fastapi_startkit.masoniteorm.models.caster import Attribute
+from pydantic import BaseModel
 
-
-class Address(Attribute):
+class Address(BaseModel):
     address: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
