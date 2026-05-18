@@ -1,4 +1,5 @@
 from fastapi_startkit.carbon.carbon import Carbon
+from tests.masoniteorm.fixtures.casts import Address
 from fastapi_startkit.masoniteorm.models.fields import Field, DateTimeField
 from fastapi_startkit.masoniteorm.relationships import (
     HasOne,
@@ -18,6 +19,8 @@ class User(Model):
     email: str
     email_verified_at: Carbon = DateTimeField(fmt="%Y-%m-%d %H:%M:%S", tz="UTC")
     is_admin: bool
+    preferences: dict
+    address: Address
 
     profile: "Profile" = HasOne("Profile", "user_id", "id")
     articles: "Articles" = HasMany("Articles", "id", "user_id")

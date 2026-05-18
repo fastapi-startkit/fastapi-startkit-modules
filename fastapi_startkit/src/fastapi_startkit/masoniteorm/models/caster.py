@@ -5,11 +5,33 @@ from decimal import Decimal
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, get_type_hints, Optional
+from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from fastapi_startkit.carbon import Carbon
 
 if TYPE_CHECKING:
     from .model import Model
+
+
+class Attribute(BaseModel):
+    @classmethod
+    def get(cls, value):
+        if value is None:
+            return None
+        if isinstance(value, cls):
+            return value
+        data = json.loads(value) if isinstance(value, str) else value
+        return cls(**data)
+
+    @classmethod
+    def set(cls, value) -> Optional[str]:
+        if value is None:
+            return None
+        if isinstance(value, cls):
+            return value.model_dump_json()
+        if isinstance(value, dict):
+            return json.dumps(value)
+        return value
 
 
 @dataclass

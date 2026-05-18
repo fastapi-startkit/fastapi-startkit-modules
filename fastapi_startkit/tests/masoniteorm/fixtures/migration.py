@@ -15,6 +15,8 @@ async def migrate(schema: Schema) -> None:
         table.string("email").unique()
         table.boolean("is_admin").default(False)
         table.timestamp("email_verified_at").nullable()
+        table.json("preferences").nullable()
+        table.text("address").nullable()
         table.timestamps()
 
     async with await schema.create_table_if_not_exists("profiles") as table:

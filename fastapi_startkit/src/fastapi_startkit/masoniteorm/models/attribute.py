@@ -105,4 +105,7 @@ class Attribute:
         }
 
     def get_attributes_for_insert(self) -> dict:
-        return {**self._attributes, **self._dirty_attributes}
+        # _dirty_attributes already went through set_attribute (casts applied on assignment).
+        # _attributes is set raw via new_model_instance, so apply set casts here.
+        casted = {k: self.caster.set(k, v) for k, v in self._attributes.items()}
+        return {**casted, **self._dirty_attributes}

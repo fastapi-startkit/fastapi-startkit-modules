@@ -1,9 +1,11 @@
+import json
+
 from .model import User, Profile, Articles, Logo, Country, Port, IncomingShipment, Like, Product
 
 
 async def seeder():
     user = await User.query().create(
-        {"email": "admin@admin.com", "name": "Joe", "is_admin": True}
+        {"email": "admin@admin.com", "name": "Joe", "is_admin": True, "preferences": json.dumps({"theme": "dark", "language": "en"}), "address": json.dumps({"address": "123 Main St", "city": "Sydney", "state": "NSW", "country": "Australia"})}
     )
     await Profile.create({"name": "Joe Profile", "user_id": user.id})
     article = await Articles.create(
