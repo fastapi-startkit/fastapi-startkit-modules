@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, time, date
 
 from fastapi_startkit.carbon.carbon import Carbon
 from tests.masoniteorm.fixtures.casts import Address
-from fastapi_startkit.masoniteorm.models.fields import ModelField, Field
+from fastapi_startkit.masoniteorm import ModelField, Field
 from fastapi_startkit.masoniteorm.relationships import (
     HasOne,
     BelongsTo,
@@ -12,7 +12,7 @@ from fastapi_startkit.masoniteorm.relationships import (
     HasOneThrough,
     MorphTo,
 )
-from fastapi_startkit.masoniteorm.models.model import Model
+from fastapi_startkit.masoniteorm import Model
 
 
 class User(Model):
