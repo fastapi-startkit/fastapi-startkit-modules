@@ -41,6 +41,19 @@ def Field(*args, **kwargs) -> Any:
     return FieldDescriptor(BaseField(*args, **kwargs))
 
 
+class ModelField:
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        return instance.get_attribute(self.name)
+
+    def __set__(self, instance, value):
+        instance.set_attribute(self.name, value)
+
+
 class DateTimeField:
     def __init__(self, fmt: str = "YYYY-MM-DD HH:mm:ss", tz: str = "UTC"):
         self.format = fmt

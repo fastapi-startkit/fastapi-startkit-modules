@@ -111,6 +111,66 @@ class DecimalCast(BaseCast):
         return str(value)
 
 
+class TimeCast(BaseCast):
+    """Casts a value to datetime.time; stored as HH:MM:SS string"""
+
+    def get(self, value):
+        if not value:
+            return None
+        if isinstance(value, datetime.time):
+            return value
+        return datetime.time.fromisoformat(str(value))
+
+    def set(self, value):
+        if not value:
+            return None
+        if isinstance(value, datetime.time):
+            return value.strftime("%H:%M:%S")
+        return str(value)
+
+
+class TimeDeltaCast(BaseCast):
+    """Casts a value to datetime.timedelta; stored as total seconds"""
+
+    def get(self, value):
+        if value is None:
+            return None
+        if isinstance(value, datetime.timedelta):
+            return value
+        return datetime.timedelta(seconds=float(value))
+
+    def set(self, value):
+        if value is None:
+            return None
+        if isinstance(value, datetime.timedelta):
+            return value.total_seconds()
+        return float(value)
+
+
+@dataclass
+class ModelCast(BaseCast):
+    model_class: type = field(default=None)
+
+    def get(self, value):
+        if value is None:
+            return None
+        if isinstance(value, self.model_class):
+            return value
+        data = json.loads(value) if isinstance(value, str) else value
+        return self.model_class(**data)
+
+    def set(self, value) -> Optional[str]:
+        if value is None:
+            return None
+        if isinstance(value, self.model_class):
+            if hasattr(value, "model_dump_json"):
+                return value.model_dump_json()
+            return json.dumps(value.__dict__)
+        if isinstance(value, dict):
+            return json.dumps(value)
+        return value
+
+
 class Caster:
     casts = {}
 
@@ -121,6 +181,8 @@ class Caster:
         "float": FloatCast,
         "date": DateCast,
         "decimal": DecimalCast,
+        "time": TimeCast,
+        "timedelta": TimeDeltaCast,
     }
 
     IGNORE_CASTS = ["caster", "db_manager"]
@@ -156,21 +218,26 @@ class Caster:
         annotations = {
             k: v for k, v in annotations.items() if k not in cls.IGNORE_CASTS
         }
-        from .fields import FieldDescriptor
+        from .fields import ModelField, FieldDescriptor
 
         # 1. Collect all potential fields (annotations + descriptors)
         all_field_names = set(annotations.keys())
         descriptors = {}
-        for name, attr in cls.__dict__.items():
-            if isinstance(attr, FieldDescriptor):
+        for name, attr in model.__dict__.items():
+            if isinstance(attr, (FieldDescriptor, ModelField)):
                 all_field_names.add(name)
                 descriptors[name] = attr
 
         casts = {}
         for field_name in all_field_names:
-            # 2. Get Type Hint and FieldInfo
             typ = annotations.get(field_name) or "str"
             descriptor = descriptors.get(field_name, None)
+
+            # AttributeField: use the type annotation as the model class
+            if isinstance(descriptor, ModelField):
+                casts[field_name] = ModelCast(model_class=typ)
+                continue
+
             field_info = (
                 descriptor.field_info
                 if isinstance(descriptor, FieldDescriptor)
@@ -204,11 +271,28 @@ class Caster:
             or t is Carbon
         ):
             return "date"
+        if t is datetime.time:
+            return "time"
+        if t is datetime.timedelta:
+            return "timedelta"
         if isinstance(t, type):
             if issubclass(t, Enum) or hasattr(t, "get") or hasattr(t, "set"):
                 return t
 
         return "str"
+
+    @staticmethod
+    def _apply_default(cast: "BaseCast"):
+        """Return the Field default/default_factory value, or None if none is set."""
+        from pydantic_core import PydanticUndefined
+
+        if cast.config is None:
+            return None
+        if cast.config.default is not PydanticUndefined:
+            return cast.config.default
+        if cast.config.default_factory is not None:
+            return cast.config.default_factory()
+        return None
 
     def get(self, attribute: str, value: Any) -> Any:
         if attribute not in self.casts:
@@ -220,7 +304,10 @@ class Caster:
             return str(value) if value is not None else None
 
         if isinstance(cast, BaseCast):
-            return cast.get(value)
+            result = cast.get(value)
+            if result is None:
+                result = self._apply_default(cast)
+            return result
 
         if isinstance(cast, type):
             if issubclass(cast, Enum):
